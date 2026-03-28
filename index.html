@@ -1088,6 +1088,7 @@
   <script defer src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/loaders/MTLLoader.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/loaders/OBJLoader.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/loaders/GLTFLoader.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/loaders/DRACOLoader.js"></script>
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
 
@@ -1308,7 +1309,11 @@
   function loadDogModel() {
     if (_dogLoaded) return;
     _dogLoaded = true;
-    (new THREE.GLTFLoader()).load('assets/dog-schnauzer.glb', function(gltf) {
+    var dracoLoader = new THREE.DRACOLoader();
+    dracoLoader.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/libs/draco/');
+    var gltfLoader = new THREE.GLTFLoader();
+    gltfLoader.setDRACOLoader(dracoLoader);
+    gltfLoader.load('assets/dog-schnauzer.glb', function(gltf) {
       var model = gltf.scene;
 
       // Centre model at origin, then fit inside a ~3.5-unit sphere
