@@ -213,7 +213,7 @@
     /* ─── SHLUMPY ANNOTATION ─── */
     .dog-annotation {
       position: absolute; z-index: 11;
-      top: 25%; right: 34%;
+      top: 10%; right: 18%;
       pointer-events: none;
       display: flex; flex-direction: column; align-items: flex-end; gap: 6px;
     }
@@ -649,7 +649,7 @@
       footer { padding: 22px 24px; }
 
       /* Hero */
-      .dog-annotation { top: 8%; right: 4%; }
+      .dog-annotation { top: 10%; right: 4%; }
       .scroll-hint { right: 24px; bottom: 40px; }
 
       /* Project rows — compact 3-col */
@@ -695,7 +695,7 @@
       .hero-sub { gap: 16px; margin-top: 20px; }
       .hero-sub p { font-size: 10px; }
       .scroll-hint { right: 16px; bottom: 28px; font-size: 8px; }
-      .dog-annotation { top: 6%; right: 2%; }
+      .dog-annotation { top: 8%; right: 2%; }
       .annotation-label { font-size: clamp(12px, 3.2vw, 16px); }
       .annotation-svg { width: clamp(50px, 12vw, 80px); }
 
@@ -854,11 +854,13 @@
     <div class="collapse-pad">
     <!-- Yiddish Anarchy -->
     <div class="font-item reveal">
-      <div class="font-name-block">
-        <div class="font-name">Yiddish Anarchy</div>
-        <div class="font-tagline">Hebrew Script · Anarchist Influence · 2025</div>
+      <div class="font-meta">
+        <div class="font-name-block">
+          <div class="font-name">Yiddish Anarchy</div>
+          <div class="font-tagline">Hebrew Script · Anarchist Influence · 2025</div>
+        </div>
+        <p class="font-desc">A typeface rooted in Yiddish script tradition, reinterpreted through an anarchist visual lens. Raw, angular, and unapologetic — it draws from historical Yiddish letterforms and injects them with the urgency of protest typography.</p>
       </div>
-      <div class="font-display">אנרכיה</div>
       <div class="glyph-grid" id="glyph-grid-heb"></div>
       <div class="glyph-grid" id="glyph-grid-finals"></div>
       <div class="glyph-grid" id="glyph-grid-nums"></div>
@@ -881,11 +883,13 @@
 
     <!-- Clockwork Tapoz -->
     <div class="font-item reveal font-item-sep" data-font="tapoz">
-      <div class="font-name-block">
-        <div class="font-name">Clockwork Tapoz</div>
-        <div class="font-tagline">Hebrew Script · Mechanical · 2024</div>
+      <div class="font-meta">
+        <div class="font-name-block">
+          <div class="font-name">Clockwork Tapoz</div>
+          <div class="font-tagline">Hebrew Script · Mechanical · 2024</div>
+        </div>
+        <p class="font-desc">Inspired by A Clockwork Orange — a Hebrew typeface built on geometric precision and dystopian tension. Sharp, mechanical letterforms that carry an unmistakable sense of controlled aggression.</p>
       </div>
-      <div class="font-display">תפוז</div>
       <div class="glyph-grid" id="glyph-grid-tapoz-heb"></div>
       <div class="glyph-grid" id="glyph-grid-tapoz-finals"></div>
       <div class="font-tester-wrap">
@@ -907,11 +911,13 @@
 
     <!-- Shlumpy -->
     <div class="font-item reveal font-item-sep" data-font="shlumpy">
-      <div class="font-name-block">
-        <div class="font-name">Shlumpy</div>
-        <div class="font-tagline">Hebrew Script · Comics &amp; Illustration · 2024</div>
+      <div class="font-meta">
+        <div class="font-name-block">
+          <div class="font-name">Shlumpy</div>
+          <div class="font-tagline">Hebrew Script · Comics &amp; Illustration · 2024</div>
+        </div>
+        <p class="font-desc">A hand-drawn Hebrew typeface designed for illustration and comics. Loose, energetic letterforms with a spontaneous quality — like someone just picked up a marker and ran with it.</p>
       </div>
-      <div class="font-display">שלומפי</div>
       <div class="glyph-grid" id="glyph-grid-shlumpy-heb"></div>
       <div class="glyph-grid" id="glyph-grid-shlumpy-finals"></div>
       <div class="glyph-grid" id="glyph-grid-shlumpy-nums"></div>
@@ -1355,8 +1361,8 @@
   var hapoelPill  = document.getElementById('hapoel-pill');
   var hapoelAudio = document.getElementById('hapoel-audio');
 
-  // Dog colour toggle — red in Hapoel mode, original textures otherwise
-  var dogMatRed = new THREE.MeshStandardMaterial({ color:0xC8001A, roughness:0.75, metalness:0, emissive:0xC8001A, emissiveIntensity:0.65 });
+  // Dog colour toggle — white in Hapoel mode, original textures otherwise
+  var dogMatRed = new THREE.MeshStandardMaterial({ color:0xffffff, roughness:0.55, metalness:0.05, emissive:0xffffff, emissiveIntensity:0.3 });
 
   function setDogColor(red) {
     if (!window._dogFurMeshes) return;
