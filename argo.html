@@ -17,7 +17,7 @@
       color: #111;
       font-family: 'Space Grotesk', sans-serif;
       overflow-x: hidden;
-      cursor: none;
+      cursor: auto;
     }
 
     /* ─── CURSOR ─── */
@@ -411,7 +411,7 @@
       transform: rotate(var(--r, 0deg)) translateY(var(--y, 0px));
       transition: transform .4s cubic-bezier(.34,1.56,.64,1), box-shadow .4s;
       box-shadow: 0 8px 32px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.08);
-      cursor: none;
+      cursor: auto;
     }
     .screen-img:hover {
       transform: rotate(0deg) translateY(0px) scale(1.04);
@@ -671,49 +671,49 @@
     <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 24px;">
       <div style="display:flex; flex-direction:column; gap:10px;">
         <div style="border-radius:14px; overflow:hidden; box-shadow: 0 8px 32px rgba(0,0,0,.10); transform: rotate(-1.5deg) translateY(8px); transition: transform .4s cubic-bezier(.34,1.56,.64,1);" onmouseenter="this.style.transform='rotate(0deg) translateY(0) scale(1.03)'" onmouseleave="this.style.transform='rotate(-1.5deg) translateY(8px)'">
-          <img src="assets/argo/wireframes/wf_search.png" alt="Search wireframe" style="width:100%; display:block;">
+          <img loading="lazy" src="assets/argo/wireframes/wf_search.webp" alt="Search wireframe" style="width:100%; display:block;">
         </div>
         <p style="font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:rgba(0,0,0,.35); text-align:center;">Search</p>
       </div>
       <div style="display:flex; flex-direction:column; gap:10px;">
         <div style="border-radius:14px; overflow:hidden; box-shadow: 0 8px 32px rgba(0,0,0,.10); transform: rotate(1deg) translateY(0px); transition: transform .4s cubic-bezier(.34,1.56,.64,1);" onmouseenter="this.style.transform='rotate(0deg) translateY(0) scale(1.03)'" onmouseleave="this.style.transform='rotate(1deg) translateY(0px)'">
-          <img src="assets/argo/wireframes/wf_login.png" alt="Login wireframe" style="width:100%; display:block;">
+          <img loading="lazy" src="assets/argo/wireframes/wf_login.webp" alt="Login wireframe" style="width:100%; display:block;">
         </div>
         <p style="font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:rgba(0,0,0,.35); text-align:center;">Login</p>
       </div>
       <div style="display:flex; flex-direction:column; gap:10px;">
         <div style="border-radius:14px; overflow:hidden; box-shadow: 0 8px 32px rgba(0,0,0,.10); transform: rotate(-1deg) translateY(12px); transition: transform .4s cubic-bezier(.34,1.56,.64,1);" onmouseenter="this.style.transform='rotate(0deg) translateY(0) scale(1.03)'" onmouseleave="this.style.transform='rotate(-1deg) translateY(12px)'">
-          <img src="assets/argo/wireframes/wf_onboarding.png" alt="Onboarding wireframe" style="width:100%; display:block;">
+          <img loading="lazy" src="assets/argo/wireframes/wf_onboarding.webp" alt="Onboarding wireframe" style="width:100%; display:block;">
         </div>
         <p style="font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:rgba(0,0,0,.35); text-align:center;">Onboarding</p>
       </div>
       <div style="display:flex; flex-direction:column; gap:10px;">
         <div style="border-radius:14px; overflow:hidden; box-shadow: 0 8px 32px rgba(0,0,0,.10); transform: rotate(1.5deg) translateY(6px); transition: transform .4s cubic-bezier(.34,1.56,.64,1);" onmouseenter="this.style.transform='rotate(0deg) translateY(0) scale(1.03)'" onmouseleave="this.style.transform='rotate(1.5deg) translateY(6px)'">
-          <img src="assets/argo/wireframes/wf_details.png" alt="Details wireframe" style="width:100%; display:block;">
+          <img loading="lazy" src="assets/argo/wireframes/wf_details.webp" alt="Details wireframe" style="width:100%; display:block;">
         </div>
         <p style="font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:rgba(0,0,0,.35); text-align:center;">Move Details</p>
       </div>
       <div style="display:flex; flex-direction:column; gap:10px;">
         <div style="border-radius:14px; overflow:hidden; box-shadow: 0 8px 32px rgba(0,0,0,.10); transform: rotate(-1.2deg) translateY(4px); transition: transform .4s cubic-bezier(.34,1.56,.64,1);" onmouseenter="this.style.transform='rotate(0deg) translateY(0) scale(1.03)'" onmouseleave="this.style.transform='rotate(-1.2deg) translateY(4px)'">
-          <img src="assets/argo/wireframes/wf_booking.png" alt="Booking wireframe" style="width:100%; display:block;">
+          <img loading="lazy" src="assets/argo/wireframes/wf_booking.webp" alt="Booking wireframe" style="width:100%; display:block;">
         </div>
         <p style="font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:rgba(0,0,0,.35); text-align:center;">Booking</p>
       </div>
       <div style="display:flex; flex-direction:column; gap:10px;">
         <div style="border-radius:14px; overflow:hidden; box-shadow: 0 8px 32px rgba(0,0,0,.10); transform: rotate(0.8deg) translateY(10px); transition: transform .4s cubic-bezier(.34,1.56,.64,1);" onmouseenter="this.style.transform='rotate(0deg) translateY(0) scale(1.03)'" onmouseleave="this.style.transform='rotate(0.8deg) translateY(10px)'">
-          <img src="assets/argo/wireframes/wf_moving_day.png" alt="Moving day wireframe" style="width:100%; display:block;">
+          <img loading="lazy" src="assets/argo/wireframes/wf_moving_day.webp" alt="Moving day wireframe" style="width:100%; display:block;">
         </div>
         <p style="font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:rgba(0,0,0,.35); text-align:center;">Moving Day</p>
       </div>
       <div style="display:flex; flex-direction:column; gap:10px;">
         <div style="border-radius:14px; overflow:hidden; box-shadow: 0 8px 32px rgba(0,0,0,.10); transform: rotate(-0.8deg) translateY(6px); transition: transform .4s cubic-bezier(.34,1.56,.64,1);" onmouseenter="this.style.transform='rotate(0deg) translateY(0) scale(1.03)'" onmouseleave="this.style.transform='rotate(-0.8deg) translateY(6px)'">
-          <img src="assets/argo/wireframes/wf_chats.png" alt="Chats wireframe" style="width:100%; display:block;">
+          <img loading="lazy" src="assets/argo/wireframes/wf_chats.webp" alt="Chats wireframe" style="width:100%; display:block;">
         </div>
         <p style="font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:rgba(0,0,0,.35); text-align:center;">Chats</p>
       </div>
       <div style="display:flex; flex-direction:column; gap:10px;">
         <div style="border-radius:14px; overflow:hidden; box-shadow: 0 8px 32px rgba(0,0,0,.10); transform: rotate(1.2deg) translateY(14px); transition: transform .4s cubic-bezier(.34,1.56,.64,1);" onmouseenter="this.style.transform='rotate(0deg) translateY(0) scale(1.03)'" onmouseleave="this.style.transform='rotate(1.2deg) translateY(14px)'">
-          <img src="assets/argo/wireframes/wf_review.png" alt="Review wireframe" style="width:100%; display:block;">
+          <img loading="lazy" src="assets/argo/wireframes/wf_review.webp" alt="Review wireframe" style="width:100%; display:block;">
         </div>
         <p style="font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:rgba(0,0,0,.35); text-align:center;">Review</p>
       </div>
@@ -959,9 +959,9 @@
     <div class="screen-row">
       <div class="screen-row-label">01 — Search Mover</div>
       <div class="screen-strip">
-        <img src="assets/argo/screens/s1_01.png" class="screen-img" style="--r:-3deg; --y:16px">
-        <img src="assets/argo/screens/s1_04.png" class="screen-img" style="--r:0deg; --y:0px">
-        <img src="assets/argo/screens/s1_07.png" class="screen-img" style="--r:3deg; --y:16px">
+        <img loading="lazy" src="assets/argo/screens/s1_01.webp" class="screen-img" style="--r:-3deg; --y:16px">
+        <img loading="lazy" src="assets/argo/screens/s1_04.webp" class="screen-img" style="--r:0deg; --y:0px">
+        <img loading="lazy" src="assets/argo/screens/s1_07.webp" class="screen-img" style="--r:3deg; --y:16px">
       </div>
     </div>
 
@@ -969,9 +969,9 @@
     <div class="screen-row">
       <div class="screen-row-label">02 — Change Move Details</div>
       <div class="screen-strip">
-        <img src="assets/argo/screens/s2_01.png" class="screen-img" style="--r:-3deg; --y:16px">
-        <img src="assets/argo/screens/s2_03.png" class="screen-img" style="--r:0deg; --y:0px">
-        <img src="assets/argo/screens/s2_06.png" class="screen-img" style="--r:3deg; --y:16px">
+        <img loading="lazy" src="assets/argo/screens/s2_01.webp" class="screen-img" style="--r:-3deg; --y:16px">
+        <img loading="lazy" src="assets/argo/screens/s2_03.webp" class="screen-img" style="--r:0deg; --y:0px">
+        <img loading="lazy" src="assets/argo/screens/s2_06.webp" class="screen-img" style="--r:3deg; --y:16px">
       </div>
     </div>
 
@@ -979,9 +979,9 @@
     <div class="screen-row">
       <div class="screen-row-label">03 — Home Scan</div>
       <div class="screen-strip">
-        <img src="assets/argo/screens/s3_01.png" class="screen-img" style="--r:-3deg; --y:16px">
-        <img src="assets/argo/screens/s3_04.png" class="screen-img" style="--r:0deg; --y:0px">
-        <img src="assets/argo/screens/s3_07.png" class="screen-img" style="--r:3deg; --y:16px">
+        <img loading="lazy" src="assets/argo/screens/s3_01.webp" class="screen-img" style="--r:-3deg; --y:16px">
+        <img loading="lazy" src="assets/argo/screens/s3_04.webp" class="screen-img" style="--r:0deg; --y:0px">
+        <img loading="lazy" src="assets/argo/screens/s3_07.webp" class="screen-img" style="--r:3deg; --y:16px">
       </div>
     </div>
 
@@ -989,9 +989,9 @@
     <div class="screen-row">
       <div class="screen-row-label">04 — Find a Move</div>
       <div class="screen-strip">
-        <img src="assets/argo/screens/s4_01.png" class="screen-img" style="--r:-3deg; --y:16px">
-        <img src="assets/argo/screens/s4_04.png" class="screen-img" style="--r:0deg; --y:0px">
-        <img src="assets/argo/screens/s4_07.png" class="screen-img" style="--r:3deg; --y:16px">
+        <img loading="lazy" src="assets/argo/screens/s4_01.webp" class="screen-img" style="--r:-3deg; --y:16px">
+        <img loading="lazy" src="assets/argo/screens/s4_04.webp" class="screen-img" style="--r:0deg; --y:0px">
+        <img loading="lazy" src="assets/argo/screens/s4_07.webp" class="screen-img" style="--r:3deg; --y:16px">
       </div>
     </div>
 
@@ -999,9 +999,9 @@
     <div class="screen-row">
       <div class="screen-row-label">05 — Close a Move</div>
       <div class="screen-strip">
-        <img src="assets/argo/screens/s5_01.png" class="screen-img" style="--r:-3deg; --y:16px">
-        <img src="assets/argo/screens/s5_03.png" class="screen-img" style="--r:0deg; --y:0px">
-        <img src="assets/argo/screens/s5_06.png" class="screen-img" style="--r:3deg; --y:16px">
+        <img loading="lazy" src="assets/argo/screens/s5_01.webp" class="screen-img" style="--r:-3deg; --y:16px">
+        <img loading="lazy" src="assets/argo/screens/s5_03.webp" class="screen-img" style="--r:0deg; --y:0px">
+        <img loading="lazy" src="assets/argo/screens/s5_06.webp" class="screen-img" style="--r:3deg; --y:16px">
       </div>
     </div>
 
@@ -1009,9 +1009,9 @@
     <div class="screen-row">
       <div class="screen-row-label">06 — Add Items</div>
       <div class="screen-strip">
-        <img src="assets/argo/screens/s6_01.png" class="screen-img" style="--r:-3deg; --y:16px">
-        <img src="assets/argo/screens/s6_03.png" class="screen-img" style="--r:0deg; --y:0px">
-        <img src="assets/argo/screens/s6_05.png" class="screen-img" style="--r:3deg; --y:16px">
+        <img loading="lazy" src="assets/argo/screens/s6_01.webp" class="screen-img" style="--r:-3deg; --y:16px">
+        <img loading="lazy" src="assets/argo/screens/s6_03.webp" class="screen-img" style="--r:0deg; --y:0px">
+        <img loading="lazy" src="assets/argo/screens/s6_05.webp" class="screen-img" style="--r:3deg; --y:16px">
       </div>
     </div>
 
@@ -1019,9 +1019,9 @@
     <div class="screen-row" style="border-bottom: none;">
       <div class="screen-row-label">07 — Chat with Mover</div>
       <div class="screen-strip">
-        <img src="assets/argo/screens/s7_01.png" class="screen-img" style="--r:-3deg; --y:16px">
-        <img src="assets/argo/screens/s7_04.png" class="screen-img" style="--r:0deg; --y:0px">
-        <img src="assets/argo/screens/s7_07.png" class="screen-img" style="--r:3deg; --y:16px">
+        <img loading="lazy" src="assets/argo/screens/s7_01.webp" class="screen-img" style="--r:-3deg; --y:16px">
+        <img loading="lazy" src="assets/argo/screens/s7_04.webp" class="screen-img" style="--r:0deg; --y:0px">
+        <img loading="lazy" src="assets/argo/screens/s7_07.webp" class="screen-img" style="--r:3deg; --y:16px">
       </div>
     </div>
   </section>
@@ -1031,7 +1031,7 @@
     <p style="font-size:10px; letter-spacing:.3em; text-transform:uppercase; color:rgba(0,0,0,.35); margin-bottom:16px;">Web Design</p>
     <h2 style="font-family:'Fraunces',serif; font-size:clamp(40px,6vw,80px); font-weight:900; letter-spacing:-.03em; color:#111; line-height:.9; margin-bottom:60px;">The Website</h2>
     <div style="border-radius:16px; overflow:hidden; box-shadow: 0 24px 80px rgba(0,0,0,.12), 0 4px 16px rgba(0,0,0,.06);">
-      <img src="assets/argo/extra_web.png" alt="ARGO Website Design" style="width:100%; display:block;">
+      <img loading="lazy" src="assets/argo/extra_web.webp" alt="ARGO Website Design" style="width:100%; display:block;">
     </div>
   </section>
 
