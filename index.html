@@ -213,7 +213,7 @@
     /* ─── SHLUMPY ANNOTATION ─── */
     .dog-annotation {
       position: absolute; z-index: 11;
-      top: 10%; right: 18%;
+      top: 10%; right: 26%;
       pointer-events: none;
       display: flex; flex-direction: column; align-items: flex-end; gap: 6px;
     }
@@ -652,9 +652,10 @@
       .dog-annotation { top: 10%; right: 4%; }
       .scroll-hint { right: 24px; bottom: 40px; }
 
-      /* Project rows — compact 3-col */
-      .project-row { grid-template-columns: 38px 1fr 36px; gap: 0 12px; padding: 20px 0; }
-      .proj-cat, .proj-year { display: none; }
+      /* Project rows — compact 4-col */
+      .project-row { grid-template-columns: 38px 1fr auto 36px; gap: 0 12px; padding: 20px 0; }
+      .proj-year { display: none; }
+      .proj-cat { font-size: 9px; letter-spacing: .1em; }
       .proj-name { font-size: clamp(22px, 6vw, 36px); }
 
       /* Contact */
@@ -702,6 +703,7 @@
       /* Work */
       #work { padding: 60px 16px 40px; }
       .project-row { grid-template-columns: 30px 1fr 28px; gap: 0 8px; padding: 16px 0; }
+      .proj-cat { display: none; }
       .proj-num { font-size: 9px; }
       .proj-name { font-size: clamp(18px, 5vw, 28px); }
 
@@ -793,7 +795,7 @@
     </div>
     <div class="project-row" data-href="48.html" data-img="assets/screens/48.jpg">
       <span class="proj-num">01</span>
-      <h3 class="proj-name">4.8 Bar</h3>
+      <h3 class="proj-name">8.4</h3>
       <span class="proj-cat">Brand · Identity</span>
       <span class="proj-year">2026</span>
       <span class="proj-arrow">↗</span>
