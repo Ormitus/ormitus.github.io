@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ARGO — Case Study / Ori Mor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,800;0,9..144,900;1,9..144,300;1,9..144,800&family=Space+Grotesk:wght@300;400;500&display=swap" rel="stylesheet">
+
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: #fff;
+      color: #111;
+      font-family: 'Space Grotesk', sans-serif;
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* ─── CURSOR ─── */
+    #cur {
+      position: fixed; z-index: 9999; pointer-events: none;
+      width: 8px; height: 8px; background: #111; border-radius: 50%;
+      transform: translate(-50%, -50%);
+      transition: width .2s, height .2s;
+      mix-blend-mode: difference;
+    }
+    #cur.expanded { width: 48px; height: 48px; }
+
+    /* ─── NAV ─── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 500;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 32px 60px;
+      mix-blend-mode: difference;
+    }
+    .nav-logo {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 13px; font-weight: 500; letter-spacing: .22em;
+      text-transform: uppercase; color: #fff; text-decoration: none;
+    }
+    .nav-back {
+      font-size: 11px; letter-spacing: .2em; text-transform: uppercase;
+      color: rgba(255,255,255,.5); text-decoration: none;
+      transition: color .3s;
+    }
+    .nav-back:hover { color: #fff; }
+
+    /* ─── HERO ─── */
+    #hero {
+      min-height: 100vh;
+      display: flex; flex-direction: column; justify-content: flex-end;
+      padding: 0 60px 80px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-bg-text {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: 'Fraunces', serif;
+      font-size: clamp(160px, 22vw, 340px);
+      font-weight: 900;
+      color: rgba(0,0,0,.04);
+      letter-spacing: -.04em;
+      white-space: nowrap;
+      user-select: none;
+      pointer-events: none;
+    }
+    .hero-meta {
+      font-size: 11px; letter-spacing: .28em; text-transform: uppercase;
+      color: rgba(0,0,0,.35); margin-bottom: 24px;
+      opacity: 0; transform: translateY(20px);
+      animation: fadeUp .8s .2s forwards;
+    }
+    .hero-title {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(100px, 18vw, 260px);
+      font-weight: 900; line-height: .85;
+      letter-spacing: -.04em; color: #111;
+      opacity: 0; transform: translateY(60px);
+      animation: fadeUp .9s .35s forwards;
+    }
+    .hero-title-italic {
+      font-style: italic;
+      -webkit-text-stroke: 2px #111;
+      color: transparent;
+      display: block;
+    }
+    .hero-subtitle {
+      font-size: 13px; letter-spacing: .18em; text-transform: uppercase;
+      color: rgba(0,0,0,.35); margin-top: 32px;
+      opacity: 0; transform: translateY(20px);
+      animation: fadeUp .8s .55s forwards;
+    }
+    .hero-divider {
+      display: inline-block; width: 40px; height: 1px;
+      background: rgba(0,0,0,.2); vertical-align: middle; margin: 0 16px;
+    }
+
+    /* ─── OVERVIEW STRIP ─── */
+    .overview-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      border-top: 1px solid rgba(0,0,0,.1);
+      border-bottom: 1px solid rgba(0,0,0,.1);
+      margin: 0 60px;
+    }
+    .overview-item {
+      padding: 48px 40px;
+      border-right: 1px solid rgba(0,0,0,.1);
+    }
+    .overview-item:last-child { border-right: none; }
+    .overview-label {
+      font-size: 9px; letter-spacing: .3em; text-transform: uppercase;
+      color: rgba(0,0,0,.35); margin-bottom: 12px;
+    }
+    .overview-value {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(15px, 1.8vw, 22px);
+      font-weight: 300; font-style: italic;
+      color: #111; line-height: 1.3;
+    }
+
+    /* ─── SECTIONS ─── */
+    .case-section {
+      padding: 120px 60px;
+      border-bottom: 1px solid rgba(0,0,0,.08);
+    }
+    .case-section:last-of-type { border-bottom: none; }
+
+    .section-eyebrow {
+      font-size: 9px; letter-spacing: .32em; text-transform: uppercase;
+      color: rgba(0,0,0,.35); margin-bottom: 40px;
+      display: flex; align-items: center; gap: 20px;
+    }
+    .section-eyebrow::before {
+      content: '';
+      display: inline-block; width: 32px; height: 1px;
+      background: rgba(0,0,0,.2);
+    }
+    .section-num {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(60px, 9vw, 130px);
+      font-weight: 900; line-height: .85;
+      letter-spacing: -.04em;
+      color: rgba(0,0,0,.06);
+      position: absolute; right: 60px; top: 120px;
+      pointer-events: none;
+    }
+    .case-section { position: relative; }
+
+    .section-heading {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(40px, 5.5vw, 80px);
+      font-weight: 900; line-height: .9;
+      letter-spacing: -.03em; color: #111;
+      margin-bottom: 20px;
+    }
+    .section-subheading {
+      font-size: clamp(16px, 1.8vw, 22px);
+      color: rgba(0,0,0,.45);
+      font-weight: 300; margin-bottom: 60px;
+      max-width: 600px;
+      line-height: 1.6;
+    }
+    .body-text {
+      font-size: 16px; line-height: 1.75;
+      color: rgba(0,0,0,.6);
+      max-width: 720px;
+    }
+
+    /* ─── TWO-COL LAYOUT ─── */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: start;
+    }
+    .two-col-3-2 {
+      display: grid;
+      grid-template-columns: 3fr 2fr;
+      gap: 80px;
+      align-items: start;
+    }
+
+    /* ─── PROBLEM CARDS ─── */
+    .problem-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+      margin-top: 60px;
+    }
+    .problem-card {
+      background: rgba(0,0,0,.03);
+      border: 1px solid rgba(0,0,0,.1);
+      padding: 48px 40px;
+      transition: background .3s;
+      opacity: 0; transform: translateY(30px);
+    }
+    .problem-card.visible { animation: fadeUp .7s forwards; }
+    .problem-card:hover { background: rgba(0,0,0,.06); }
+    .problem-icon {
+      font-family: 'Fraunces', serif;
+      font-size: 48px; font-weight: 900; font-style: italic;
+      color: rgba(0,0,0,.12);
+      margin-bottom: 24px; display: block;
+    }
+    .problem-title {
+      font-size: 18px; font-weight: 500;
+      letter-spacing: -.01em; color: #111;
+      margin-bottom: 16px;
+    }
+    .problem-desc {
+      font-size: 14px; line-height: 1.7;
+      color: rgba(0,0,0,.5);
+    }
+
+    /* ─── PERSONAS ─── */
+    .personas-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-top: 60px;
+    }
+    .persona-card {
+      border: 1px solid rgba(0,0,0,.1);
+      padding: 40px;
+      opacity: 0; transform: translateY(30px);
+    }
+    .persona-card.visible { animation: fadeUp .7s forwards; }
+    .persona-num {
+      font-family: 'Fraunces', serif;
+      font-size: 60px; font-weight: 900; font-style: italic;
+      color: rgba(0,0,0,.08);
+      line-height: 1; margin-bottom: 16px;
+    }
+    .persona-name {
+      font-size: 20px; font-weight: 500;
+      letter-spacing: -.01em; color: #111;
+      margin-bottom: 16px;
+    }
+    .persona-desc {
+      font-size: 14px; line-height: 1.7;
+      color: rgba(0,0,0,.5);
+    }
+
+    /* ─── STATS ─── */
+    .stats-row {
+      display: flex; gap: 80px;
+      margin: 60px 0;
+      padding: 60px 0;
+      border-top: 1px solid rgba(0,0,0,.1);
+      border-bottom: 1px solid rgba(0,0,0,.1);
+    }
+    .stat-block { flex: 1; }
+    .stat-number {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(60px, 8vw, 120px);
+      font-weight: 900; line-height: .85;
+      letter-spacing: -.04em;
+      color: #111;
+    }
+    .stat-label {
+      font-size: 13px; color: rgba(0,0,0,.4);
+      margin-top: 16px; line-height: 1.5;
+      max-width: 260px;
+    }
+
+    /* ─── FLOW STEPS ─── */
+    .flow-steps {
+      margin-top: 60px;
+    }
+    .flow-step {
+      display: grid;
+      grid-template-columns: 80px 1fr;
+      gap: 40px;
+      padding: 40px 0;
+      border-bottom: 1px solid rgba(0,0,0,.08);
+      opacity: 0; transform: translateX(-20px);
+    }
+    .flow-step.visible { animation: fadeInLeft .6s forwards; }
+    .flow-step:last-child { border-bottom: none; }
+    .flow-step-num {
+      font-family: 'Fraunces', serif;
+      font-size: 44px; font-weight: 900; font-style: italic;
+      color: rgba(0,0,0,.15);
+      line-height: 1;
+    }
+    .flow-step-title {
+      font-size: 18px; font-weight: 500;
+      color: #111; margin-bottom: 10px;
+      letter-spacing: -.01em;
+    }
+    .flow-step-desc {
+      font-size: 14px; line-height: 1.7;
+      color: rgba(0,0,0,.5);
+    }
+
+    /* ─── SOLUTION FEATURES ─── */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 2px;
+      margin-top: 60px;
+    }
+    .feature-item {
+      background: rgba(0,0,0,.02);
+      padding: 48px 40px;
+      border: 1px solid rgba(0,0,0,.08);
+      opacity: 0; transform: translateY(20px);
+      transition: background .3s;
+    }
+    .feature-item.visible { animation: fadeUp .7s forwards; }
+    .feature-item:hover { background: rgba(0,0,0,.05); }
+    .feature-tag {
+      font-size: 9px; letter-spacing: .3em; text-transform: uppercase;
+      color: rgba(0,0,0,.35); margin-bottom: 20px;
+    }
+    .feature-title {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(22px, 2.5vw, 34px);
+      font-weight: 900; line-height: 1;
+      letter-spacing: -.02em; color: #111;
+      margin-bottom: 16px;
+    }
+    .feature-desc {
+      font-size: 14px; line-height: 1.75;
+      color: rgba(0,0,0,.5);
+    }
+
+    /* ─── PAIN POINTS SOLVED ─── */
+    .pain-list {
+      margin-top: 60px;
+    }
+    .pain-item {
+      display: grid;
+      grid-template-columns: 180px 1fr;
+      gap: 40px;
+      padding: 48px 0;
+      border-bottom: 1px solid rgba(0,0,0,.08);
+      opacity: 0; transform: translateY(20px);
+    }
+    .pain-item.visible { animation: fadeUp .6s forwards; }
+    .pain-item:last-child { border-bottom: none; }
+    .pain-step {
+      font-size: 11px; letter-spacing: .18em; text-transform: uppercase;
+      color: rgba(0,0,0,.35); padding-top: 4px;
+    }
+    .pain-title {
+      font-size: 20px; font-weight: 500;
+      letter-spacing: -.01em; color: #111; margin-bottom: 12px;
+    }
+    .pain-problem {
+      font-size: 14px; line-height: 1.7;
+      color: rgba(0,0,0,.4); margin-bottom: 16px;
+      font-style: italic;
+    }
+    .pain-solution {
+      font-size: 14px; line-height: 1.7;
+      color: rgba(0,0,0,.6);
+    }
+
+    /* ─── PULL QUOTE ─── */
+    .pull-quote {
+      padding: 80px 0;
+      border-top: 1px solid rgba(0,0,0,.1);
+      border-bottom: 1px solid rgba(0,0,0,.1);
+      margin: 80px 0;
+    }
+    .pull-quote-text {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(30px, 4.5vw, 64px);
+      font-weight: 900; font-style: italic;
+      line-height: .95; letter-spacing: -.03em;
+      color: #111;
+    }
+    .pull-quote-text .outline {
+      -webkit-text-stroke: 1px #111;
+      color: transparent;
+    }
+
+    /* ─── SCREEN ROWS ─── */
+    .screen-row {
+      padding: 50px 60px;
+      border-bottom: 1px solid rgba(0,0,0,.08);
+      overflow: visible;
+    }
+    .screen-row-label {
+      font-size: 11px; letter-spacing: .24em; text-transform: uppercase;
+      color: rgba(0,0,0,.3); margin-bottom: 32px;
+    }
+    .screen-strip {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      justify-content: center;
+      overflow-x: auto;
+      padding-bottom: 20px;
+      perspective: 1200px;
+    }
+    .screen-strip::-webkit-scrollbar { height: 2px; }
+    .screen-strip::-webkit-scrollbar-track { background: rgba(0,0,0,.05); }
+    .screen-strip::-webkit-scrollbar-thumb { background: rgba(0,0,0,.2); border-radius: 2px; }
+    .screen-img {
+      width: 200px;
+      flex-shrink: 0;
+      border-radius: 20px;
+      transform: rotate(var(--r, 0deg)) translateY(var(--y, 0px));
+      transition: transform .4s cubic-bezier(.34,1.56,.64,1), box-shadow .4s;
+      box-shadow: 0 8px 32px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.08);
+      cursor: none;
+    }
+    .screen-img:hover {
+      transform: rotate(0deg) translateY(0px) scale(1.04);
+      box-shadow: 0 20px 60px rgba(0,0,0,.18), 0 4px 16px rgba(0,0,0,.1);
+      z-index: 10;
+      position: relative;
+    }
+
+    /* ─── ANIMATIONS ─── */
+    @keyframes fadeUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeInLeft {
+      to { opacity: 1; transform: translateX(0); }
+    }
+    .fade-in {
+      opacity: 0; transform: translateY(40px);
+      transition: opacity .8s ease, transform .8s ease;
+    }
+    .fade-in.visible {
+      opacity: 1; transform: translateY(0);
+    }
+
+    /* ─── FOOTER ─── */
+    .case-footer {
+      padding: 80px 60px;
+      border-top: 1px solid rgba(0,0,0,.1);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .footer-note {
+      font-size: 11px; letter-spacing: .2em; text-transform: uppercase;
+      color: rgba(0,0,0,.25);
+    }
+    .footer-back {
+      font-size: 11px; letter-spacing: .22em; text-transform: uppercase;
+      color: rgba(0,0,0,.4); text-decoration: none;
+      transition: color .3s;
+    }
+    .footer-back:hover { color: #111; }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 900px) {
+      nav { padding: 24px 28px; }
+      #hero { padding: 0 28px 60px; }
+      .overview-strip { grid-template-columns: 1fr 1fr; margin: 0 28px; }
+      .case-section { padding: 80px 28px; }
+      .problem-grid { grid-template-columns: 1fr; }
+      .personas-grid { grid-template-columns: 1fr; }
+      .two-col { grid-template-columns: 1fr; gap: 40px; }
+      .two-col-3-2 { grid-template-columns: 1fr; gap: 40px; }
+      .features-grid { grid-template-columns: 1fr; }
+      .pain-item { grid-template-columns: 1fr; gap: 12px; }
+      .stats-row { flex-direction: column; gap: 40px; }
+      .section-num { display: none; }
+      .case-footer { padding: 60px 28px; flex-direction: column; gap: 24px; }
+      .screen-row { padding: 40px 28px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="cur"></div>
+
+  <nav>
+    <a class="nav-logo" href="index.html">ORI MOR</a>
+    <a class="nav-back" href="index.html">&#8592; Back to Work</a>
+  </nav>
+
+  <!-- HERO -->
+  <section id="hero">
+    <div class="hero-bg-text">ARGO</div>
+    <div class="hero-meta">UX / Product Design &nbsp;&mdash;&nbsp; 02 / 2025</div>
+    <h1 class="hero-title">
+      ARGO
+      <span class="hero-title-italic">Case Study</span>
+    </h1>
+    <p class="hero-subtitle">
+      Moving App<span class="hero-divider"></span>iOS<span class="hero-divider"></span>End-to-End Design
+    </p>
+  </section>
+
+  <!-- LOGO STRIP -->
+  <div style="padding: 48px 60px; border-bottom: 1px solid rgba(0,0,0,.08); display: flex; align-items: center; justify-content: space-between; gap: 40px;">
+    <svg width="180" height="51" viewBox="0 0 549 156" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M162.177 0.40449C175.322 -0.0431379 189.855 0.711319 203.148 0.395267C206.721 0.310082 223.749 0.169826 226.195 0.725698C226.813 2.74192 226.454 17.1135 226.449 20.4007C226.421 29.1267 226.482 37.853 226.632 46.578C221.817 46.9675 211.045 46.6301 205.794 46.6301L161.761 46.6821C161.384 42.5756 162.598 34.1054 159.441 31.6983C155.083 28.3763 146.33 29.2529 146.16 36.2516C145.98 43.7056 146.028 50.9663 146.026 58.3457L146.034 124.231C146.045 127.681 146.06 131.131 146.123 134.577C146.16 136.607 146.459 138.24 148.337 139.422C153.612 142.744 158.089 141.274 161.517 136.396C161.7 131.165 161.508 124.543 161.506 119.232L161.498 84.3339C161.497 80.7729 161.243 67.8894 161.974 65.1125C163.546 64.1231 217.355 64.5986 223.996 64.6008C225.144 64.5525 225.352 64.5126 226.219 65.0275C226.869 66.2294 226.452 81.3611 226.444 83.943L226.434 122.917L226.464 141.466C226.498 145.532 226.727 150.433 226.361 154.418C221.597 154.642 215.362 154.462 210.517 154.457L81.4927 154.46L81.4694 154.226C80.8784 148.064 81.2211 136.906 81.2225 130.323L81.2051 48.2952C81.198 43.482 80.909 33.1329 81.3671 28.8861C81.677 26.0188 82.83 23.3076 84.6805 21.0947C86.0794 19.4243 88.4028 17.5891 90.5501 17.177C96.0892 16.1132 103.087 16.5099 108.831 16.5167L139.419 16.5158C144.505 16.5128 152.18 16.7171 157.073 16.2901C157.156 11.5591 156.888 7.93657 157.214 2.97388C158.741 0.686633 159.565 0.658417 162.177 0.40449Z" fill="#111"/>
+      <path d="M0.0328643 0C8.53078 0.371395 62.4696 -0.50541 65.0134 0.523591C65.3366 1.42292 65.5227 2.75874 65.5178 3.73023C65.4508 16.6387 65.4627 29.5505 65.4598 42.4595C65.4589 46.4852 65.5843 50.4566 65.2991 54.4768C64.8009 64.0927 64.9979 74.3233 64.9992 84.0099L65.0144 146.029C65.015 148.506 65.1287 152.693 64.9363 155.046C52.4846 154.928 40.0322 154.892 27.58 154.936C18.6421 154.938 9.39483 154.828 0.477037 155.057C-0.187539 147.656 0.232346 133.729 0.237013 125.937L0.244991 80.723C0.244639 72.2474 0.413754 63.1874 0.140108 54.7858C-0.160267 36.7142 0.13118 18.1409 0.0328643 0Z" fill="#111"/>
+      <path d="M0.0328643 0C8.53078 0.371395 62.4696 -0.50541 65.0134 0.523591C65.3366 1.42292 65.5227 2.75874 65.5178 3.73023C65.4508 16.6387 65.4627 29.5505 65.4598 42.4595C65.4589 46.4852 65.5843 50.4566 65.2991 54.4768C59.0835 54.4728 0.97095 54.2172 0.140108 54.7858C-0.160267 36.7142 0.13118 18.1409 0.0328643 0Z" fill="#FF5700"/>
+      <path d="M402.81 0.772619C403.174 0.52032 463.303 0.270731 467.688 0.649451C467.569 10.3063 467.536 19.9642 467.588 29.6216C467.594 34.6027 467.534 39.5475 467.729 44.5289C468.058 52.9212 482.738 51.469 483.246 44.1339C484.226 30.0342 482.548 14.8664 483.696 0.839357L524.548 0.804361C532.078 0.804632 540.637 0.606046 548.113 0.839626C547.798 4.58342 547.964 8.67799 547.861 12.479C546.914 47.34 518.618 55.3072 489.84 63.5989C494.453 63.9961 499.075 64.2696 503.704 64.419C511.321 64.6966 516.249 64.6013 523.81 66.7358C550.599 74.2994 548.303 100.248 547.983 122.411C547.831 132.962 548.303 144.02 547.931 154.678C536.043 155.15 521.641 154.755 509.568 154.751L494.38 154.771C490.972 154.787 487.485 154.945 484.101 154.645C482.226 152.031 484.695 95.1382 482.912 86.4171C480.299 83.4413 479.683 83.1904 475.846 82.1163C472.633 82.8266 470.749 83.2023 468.266 85.6008C467.184 89.1514 467.572 100.891 467.572 105.362L467.588 137.928C467.591 142.916 467.792 149.84 467.556 154.714C452.782 154.888 437.827 154.75 423.041 154.752L410.191 154.795C408.555 154.803 404.837 154.918 403.388 154.713C402.463 151.757 402.775 139.613 402.775 135.962L402.81 0.772619Z" fill="#111"/>
+      <path d="M354.279 0.597084C357.267 0.590573 374.384 0.332304 376.468 0.903912C382.908 2.88595 386.965 8.62644 386.748 15.2432C386.612 19.3576 386.778 23.7153 386.772 27.8652L386.748 56.3145L386.77 154.666C369.188 154.419 351.56 154.727 333.973 154.613C330.021 154.588 326.092 154.665 322.138 154.509C321.88 141.686 322.051 128.411 322.06 115.558L322.024 57.8674C322.032 45.9648 322.092 34.0012 321.975 22.0979C321.864 20.9031 321.989 19.009 321.43 17.9447C318.768 12.8754 312.988 13.2587 308.537 15.4507C307.452 16.9149 306.877 18.2822 306.567 20.0784C305.172 28.1786 307.476 76.0937 305.528 78.3972C303.219 78.8223 288.725 78.6183 285.349 78.6162L241.69 78.608C241.327 75.0403 241.456 68.7108 241.458 64.9562L241.485 42.3106L241.471 16.8715C241.469 11.8846 241.331 5.56738 241.746 0.666806C253.146 0.175772 267.955 0.606579 279.615 0.604138L354.279 0.597084Z" fill="#111"/>
+    </svg>
+    <p style="font-size: 12px; letter-spacing: .18em; text-transform: uppercase; color: rgba(0,0,0,.3); max-width: 260px; line-height: 1.8;">Moving app — iOS — Brand identity &amp; UX</p>
+  </div>
+
+  <!-- OVERVIEW STRIP -->
+  <div class="overview-strip fade-in">
+    <div class="overview-item">
+      <div class="overview-label">Project</div>
+      <div class="overview-value">ARGO &mdash; Moving Made Simple</div>
+    </div>
+    <div class="overview-item">
+      <div class="overview-label">Role</div>
+      <div class="overview-value">UX / Product Design</div>
+    </div>
+    <div class="overview-item">
+      <div class="overview-label">Platform</div>
+      <div class="overview-value">iOS Mobile App</div>
+    </div>
+    <div class="overview-item">
+      <div class="overview-label">Year</div>
+      <div class="overview-value">February 2025</div>
+    </div>
+  </div>
+
+  <!-- SECTION 01: OVERVIEW -->
+  <section class="case-section">
+    <div class="section-num">01</div>
+    <div class="section-eyebrow">Overview</div>
+    <div class="two-col-3-2">
+      <div>
+        <h2 class="section-heading">The Solution for Moving</h2>
+        <p class="section-subheading">Moving day has never been simpler.</p>
+        <p class="body-text fade-in">
+          ARGO is a mobile application that connects people who are moving with professional movers, providing a complete solution for every stage of the moving process &mdash; from the initial search all the way through to the end of the move.
+        </p>
+        <p class="body-text fade-in" style="margin-top: 24px;">
+          We connect you with trusted movers suited for every task &mdash; fast, simple, and at a fair price. Our movers are personally matched for heavy loads, crane services, special items, and more.
+        </p>
+      </div>
+      <div>
+        <div style="padding: 40px 0; border-top: 1px solid rgba(0,0,0,.1); border-bottom: 1px solid rgba(0,0,0,.1);">
+          <div class="pull-quote-text" style="font-size: clamp(24px, 3vw, 44px);">
+            Moving day <span class="outline">never</span> been simpler.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 02: PROBLEM -->
+  <section class="case-section" style="background: #f8f8f8;">
+    <div class="section-num">02</div>
+    <div class="section-eyebrow">Problem Identification</div>
+    <h2 class="section-heading fade-in">Why do we need this?</h2>
+    <p class="section-subheading fade-in">Three core pain points in today's moving experience</p>
+
+    <div class="problem-grid">
+      <div class="problem-card">
+        <span class="problem-icon">01</span>
+        <div class="problem-title">Uncertainty</div>
+        <div class="problem-desc">It's hard to compare prices and services, and the final price can change on moving day. Quotes are given over the phone based on rough estimates &mdash; "approximately what's in the apartment" &mdash; with no way to contest it.</div>
+      </div>
+      <div class="problem-card" style="animation-delay:.1s">
+        <span class="problem-icon">02</span>
+        <div class="problem-title">Emotional Overwhelm</div>
+        <div class="problem-desc">Moving is not just a logistical process &mdash; it's a significant emotional experience. Moving day brings enormous stress, fear, and uncertainty: How long will this take? Where are the movers? Did they take everything? What if something breaks?</div>
+      </div>
+      <div class="problem-card" style="animation-delay:.2s">
+        <span class="problem-icon">03</span>
+        <div class="problem-title">Fragmented Platforms</div>
+        <div class="problem-desc">Most of the moving process today happens offline or across many different platforms simultaneously. People send furniture photos to each mover via WhatsApp and Facebook &mdash; exhausting, time-consuming, and chaotic.</div>
+      </div>
+    </div>
+
+    <div class="stats-row fade-in">
+      <div class="stat-block">
+        <div class="stat-number">8%</div>
+        <div class="stat-label">of Israeli households move every single year</div>
+      </div>
+      <div class="stat-block">
+        <div class="stat-number">216K</div>
+        <div class="stat-label">moves per year &mdash; roughly 18,000 every single month</div>
+      </div>
+      <div class="stat-block">
+        <div class="stat-number">27%</div>
+        <div class="stat-label">cheaper on average for large furniture moves compared to competitors</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 03: USER RESEARCH -->
+  <section class="case-section">
+    <div class="section-num">03</div>
+    <div class="section-eyebrow">User Research</div>
+    <h2 class="section-heading fade-in">Who will use ARGO?</h2>
+    <p class="section-subheading fade-in">Moving personas &mdash; three archetypes representing the core user base</p>
+
+    <div class="personas-grid">
+      <div class="persona-card fade-in">
+        <div class="persona-num">01</div>
+        <div class="persona-name">The Student Moving to the City</div>
+        <div class="persona-desc">Doesn't have a lot of time and is looking for a solution that makes the move easier. Doesn't have much money and wants the best possible quote. Prioritizes speed and transparency above everything else.</div>
+      </div>
+      <div class="persona-card fade-in" style="transition-delay:.1s">
+        <div class="persona-num">02</div>
+        <div class="persona-name">The Young Couple</div>
+        <div class="persona-desc">Their schedule is packed, and they need a fast, simple, and convenient solution. No time for delays &mdash; they prefer to pay someone to handle everything end-to-end. Values reliability and seamless communication throughout.</div>
+      </div>
+      <div class="persona-card fade-in" style="transition-delay:.2s">
+        <div class="persona-num">03</div>
+        <div class="persona-name">The Established Family</div>
+        <div class="persona-desc">Looking for a service that gives them peace of mind and can handle any possible challenge. They have a lot of valuable, sensitive, and large items. Prioritizes trust, safety, and a truly full-service experience.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 04: FLOW MAPPING -->
+  <section class="case-section" style="background: #f8f8f8;">
+    <div class="section-num">04</div>
+    <div class="section-eyebrow">Flow Mapping</div>
+    <h2 class="section-heading fade-in">Where does ARGO fit in?</h2>
+    <p class="section-subheading fade-in">Mapping the complete user journey &mdash; from first search to move completion</p>
+
+    <div class="flow-steps">
+      <div class="flow-step">
+        <div class="flow-step-num">01</div>
+        <div>
+          <div class="flow-step-title">Enter Initial Details &amp; Find a Mover</div>
+          <div class="flow-step-desc">The user enters move details first, and receives a list of only the movers who are available and work in their area &mdash; eliminating long calls that go nowhere before any real information is exchanged.</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-step-num">02</div>
+        <div>
+          <div class="flow-step-title">Scan the Home</div>
+          <div class="flow-step-desc">Scan the home's contents and create a comprehensive list of the items being moved. Save time and effort &mdash; one scan generates an accurate, itemized inventory. No more sending photos over WhatsApp to multiple movers in parallel.</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-step-num">03</div>
+        <div>
+          <div class="flow-step-title">Receive Accurate Quotes &amp; Choose a Mover</div>
+          <div class="flow-step-desc">Receive precise price quotes from multiple movers and choose the best fit. Transparent pricing breakdown &mdash; you know exactly what to expect, with no surprises and no hidden costs.</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-step-num">04</div>
+        <div>
+          <div class="flow-step-title">Book the Move</div>
+          <div class="flow-step-desc">Select your preferred move time and enter payment details. Simple, secure checkout that locks in the confirmed price before moving day arrives.</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-step-num">05</div>
+        <div>
+          <div class="flow-step-title">Moving Day &mdash; Real-Time Updates</div>
+          <div class="flow-step-desc">Receive updates on the progress of the move and track in real time. Stay informed throughout the day: where are the movers now, what's been loaded, and when will they arrive at the new address?</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WIREFRAMES -->
+  <section style="background:#f4f4f4; padding: 100px 60px;">
+    <p style="font-size:10px; letter-spacing:.3em; text-transform:uppercase; color:rgba(0,0,0,.35); margin-bottom:16px;">UX Process</p>
+    <h2 style="font-family:'Fraunces',serif; font-size:clamp(40px,6vw,80px); font-weight:900; letter-spacing:-.03em; color:#111; line-height:.9; margin-bottom:16px;">Wireframes</h2>
+    <p style="font-size:15px; color:rgba(0,0,0,.5); line-height:1.7; max-width:640px; margin-bottom:60px;">Low-fidelity wireframes exploring the core user flows — from search and onboarding to booking, moving day, and post-move reviews.</p>
+    <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 24px;">
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <div style="border-radius:14px; overflow:hidden; box-shadow: 0 8px 32px rgba(0,0,0,.10); transform: rotate(-1.5deg) translateY(8px); transition: transform .4s cubic-bezier(.34,1.56,.64,1);" onmouseenter="this.style.transform='rotate(0deg) translateY(0) scale(1.03)'" onmouseleave="this.style.transform='rotate(-1.5deg) translateY(8px)'">
+          <img src="assets/argo/wireframes/wf_search.png" alt="Search wireframe" style="width:100%; display:block;">
+        </div>
+        <p style="font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:rgba(0,0,0,.35); text-align:center;">Search</p>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <div style="border-radius:14px; overflow:hidden; box-shadow: 0 8px 32px rgba(0,0,0,.10); transform: rotate(1deg) translateY(0px); transition: transform .4s cubic-bezier(.34,1.56,.64,1);" onmouseenter="this.style.transform='rotate(0deg) translateY(0) scale(1.03)'" onmouseleave="this.style.transform='rotate(1deg) translateY(0px)'">
+          <img src="assets/argo/wireframes/wf_login.png" alt="Login wireframe" style="width:100%; display:block;">
+        </div>
+        <p style="font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:rgba(0,0,0,.35); text-align:center;">Login</p>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <div style="border-radius:14px; overflow:hidden; box-shadow: 0 8px 32px rgba(0,0,0,.10); transform: rotate(-1deg) translateY(12px); transition: transform .4s cubic-bezier(.34,1.56,.64,1);" onmouseenter="this.style.transform='rotate(0deg) translateY(0) scale(1.03)'" onmouseleave="this.style.transform='rotate(-1deg) translateY(12px)'">
+          <img src="assets/argo/wireframes/wf_onboarding.png" alt="Onboarding wireframe" style="width:100%; display:block;">
+        </div>
+        <p style="font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:rgba(0,0,0,.35); text-align:center;">Onboarding</p>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <div style="border-radius:14px; overflow:hidden; box-shadow: 0 8px 32px rgba(0,0,0,.10); transform: rotate(1.5deg) translateY(6px); transition: transform .4s cubic-bezier(.34,1.56,.64,1);" onmouseenter="this.style.transform='rotate(0deg) translateY(0) scale(1.03)'" onmouseleave="this.style.transform='rotate(1.5deg) translateY(6px)'">
+          <img src="assets/argo/wireframes/wf_details.png" alt="Details wireframe" style="width:100%; display:block;">
+        </div>
+        <p style="font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:rgba(0,0,0,.35); text-align:center;">Move Details</p>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <div style="border-radius:14px; overflow:hidden; box-shadow: 0 8px 32px rgba(0,0,0,.10); transform: rotate(-1.2deg) translateY(4px); transition: transform .4s cubic-bezier(.34,1.56,.64,1);" onmouseenter="this.style.transform='rotate(0deg) translateY(0) scale(1.03)'" onmouseleave="this.style.transform='rotate(-1.2deg) translateY(4px)'">
+          <img src="assets/argo/wireframes/wf_booking.png" alt="Booking wireframe" style="width:100%; display:block;">
+        </div>
+        <p style="font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:rgba(0,0,0,.35); text-align:center;">Booking</p>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <div style="border-radius:14px; overflow:hidden; box-shadow: 0 8px 32px rgba(0,0,0,.10); transform: rotate(0.8deg) translateY(10px); transition: transform .4s cubic-bezier(.34,1.56,.64,1);" onmouseenter="this.style.transform='rotate(0deg) translateY(0) scale(1.03)'" onmouseleave="this.style.transform='rotate(0.8deg) translateY(10px)'">
+          <img src="assets/argo/wireframes/wf_moving_day.png" alt="Moving day wireframe" style="width:100%; display:block;">
+        </div>
+        <p style="font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:rgba(0,0,0,.35); text-align:center;">Moving Day</p>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <div style="border-radius:14px; overflow:hidden; box-shadow: 0 8px 32px rgba(0,0,0,.10); transform: rotate(-0.8deg) translateY(6px); transition: transform .4s cubic-bezier(.34,1.56,.64,1);" onmouseenter="this.style.transform='rotate(0deg) translateY(0) scale(1.03)'" onmouseleave="this.style.transform='rotate(-0.8deg) translateY(6px)'">
+          <img src="assets/argo/wireframes/wf_chats.png" alt="Chats wireframe" style="width:100%; display:block;">
+        </div>
+        <p style="font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:rgba(0,0,0,.35); text-align:center;">Chats</p>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <div style="border-radius:14px; overflow:hidden; box-shadow: 0 8px 32px rgba(0,0,0,.10); transform: rotate(1.2deg) translateY(14px); transition: transform .4s cubic-bezier(.34,1.56,.64,1);" onmouseenter="this.style.transform='rotate(0deg) translateY(0) scale(1.03)'" onmouseleave="this.style.transform='rotate(1.2deg) translateY(14px)'">
+          <img src="assets/argo/wireframes/wf_review.png" alt="Review wireframe" style="width:100%; display:block;">
+        </div>
+        <p style="font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:rgba(0,0,0,.35); text-align:center;">Review</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FLOW MAPPING -->
+  <section style="background:#fff; padding: 100px 60px;">
+    <p style="font-size:10px; letter-spacing:.3em; text-transform:uppercase; color:rgba(0,0,0,.35); margin-bottom:16px;">UX Research</p>
+    <h2 style="font-family:'Fraunces',serif; font-size:clamp(40px,6vw,80px); font-weight:900; letter-spacing:-.03em; color:#111; line-height:.9; margin-bottom:20px;">Flow Mapping</h2>
+    <p style="font-size:15px; color:rgba(0,0,0,.5); line-height:1.7; max-width:640px; margin-bottom:60px;">
+      End-to-end journey mapping across 9 stages — from discovery to post-move reviews. Covers user goals, actions, emotions, and pain points at each touchpoint.
+    </p>
+
+    <div style="overflow-x: auto; padding-bottom: 20px;">
+      <div style="display: grid; grid-template-columns: repeat(9, minmax(180px, 1fr)); gap: 0; min-width: 1440px; border: 1px solid rgba(0,0,0,.08); border-radius: 16px; overflow: hidden;">
+
+        <!-- ROW LABELS -->
+        <div style="display: contents;">
+          <!-- Stage headers -->
+          <div style="background: #111; color: #fff; padding: 20px 20px 16px; border-right: 1px solid rgba(255,255,255,.1);">
+            <div style="font-size: 8px; letter-spacing: .2em; text-transform: uppercase; color: rgba(255,255,255,.4); margin-bottom: 8px;">Stage 01</div>
+            <div style="font-family: 'Fraunces', serif; font-size: 16px; font-weight: 900; line-height: 1.2;">Discovery<br>& Sign Up</div>
+          </div>
+          <div style="background: #111; color: #fff; padding: 20px 20px 16px; border-right: 1px solid rgba(255,255,255,.1);">
+            <div style="font-size: 8px; letter-spacing: .2em; text-transform: uppercase; color: rgba(255,255,255,.4); margin-bottom: 8px;">Stage 02</div>
+            <div style="font-family: 'Fraunces', serif; font-size: 16px; font-weight: 900; line-height: 1.2;">Enter Move<br>Details</div>
+          </div>
+          <div style="background: #111; color: #fff; padding: 20px 20px 16px; border-right: 1px solid rgba(255,255,255,.1);">
+            <div style="font-size: 8px; letter-spacing: .2em; text-transform: uppercase; color: rgba(255,255,255,.4); margin-bottom: 8px;">Stage 03</div>
+            <div style="font-family: 'Fraunces', serif; font-size: 16px; font-weight: 900; line-height: 1.2;">Select<br>Preferences</div>
+          </div>
+          <div style="background: #111; color: #fff; padding: 20px 20px 16px; border-right: 1px solid rgba(255,255,255,.1);">
+            <div style="font-size: 8px; letter-spacing: .2em; text-transform: uppercase; color: rgba(255,255,255,.4); margin-bottom: 8px;">Stage 04</div>
+            <div style="font-family: 'Fraunces', serif; font-size: 16px; font-weight: 900; line-height: 1.2;">Browse &<br>Compare</div>
+          </div>
+          <div style="background: #111; color: #fff; padding: 20px 20px 16px; border-right: 1px solid rgba(255,255,255,.1);">
+            <div style="font-size: 8px; letter-spacing: .2em; text-transform: uppercase; color: rgba(255,255,255,.4); margin-bottom: 8px;">Stage 05</div>
+            <div style="font-family: 'Fraunces', serif; font-size: 16px; font-weight: 900; line-height: 1.2;">Close with<br>Mover</div>
+          </div>
+          <div style="background: #111; color: #fff; padding: 20px 20px 16px; border-right: 1px solid rgba(255,255,255,.1);">
+            <div style="font-size: 8px; letter-spacing: .2em; text-transform: uppercase; color: rgba(255,255,255,.4); margin-bottom: 8px;">Stage 06</div>
+            <div style="font-family: 'Fraunces', serif; font-size: 16px; font-weight: 900; line-height: 1.2;">Before<br>Arrival</div>
+          </div>
+          <div style="background: #111; color: #fff; padding: 20px 20px 16px; border-right: 1px solid rgba(255,255,255,.1);">
+            <div style="font-size: 8px; letter-spacing: .2em; text-transform: uppercase; color: rgba(255,255,255,.4); margin-bottom: 8px;">Stage 07</div>
+            <div style="font-family: 'Fraunces', serif; font-size: 16px; font-weight: 900; line-height: 1.2;">Arrival at<br>New Home</div>
+          </div>
+          <div style="background: #111; color: #fff; padding: 20px 20px 16px; border-right: 1px solid rgba(255,255,255,.1);">
+            <div style="font-size: 8px; letter-spacing: .2em; text-transform: uppercase; color: rgba(255,255,255,.4); margin-bottom: 8px;">Stage 08</div>
+            <div style="font-family: 'Fraunces', serif; font-size: 16px; font-weight: 900; line-height: 1.2;">Payment &<br>Closure</div>
+          </div>
+          <div style="background: #111; color: #fff; padding: 20px 20px 16px;">
+            <div style="font-size: 8px; letter-spacing: .2em; text-transform: uppercase; color: rgba(255,255,255,.4); margin-bottom: 8px;">Stage 09</div>
+            <div style="font-family: 'Fraunces', serif; font-size: 16px; font-weight: 900; line-height: 1.2;">Reviews &<br>Referrals</div>
+          </div>
+        </div>
+
+        <!-- GOAL ROW -->
+        <div style="grid-column: 1 / -1; background: rgba(0,0,0,.03); border-top: 1px solid rgba(0,0,0,.08); padding: 10px 20px 6px; display: grid; grid-template-columns: repeat(9, 1fr);">
+          <div style="grid-column: 1 / -1; font-size: 8px; letter-spacing: .22em; text-transform: uppercase; color: rgba(0,0,0,.35); margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid rgba(0,0,0,.06);">Goal</div>
+        </div>
+        <div style="padding: 0 20px 20px; border-right: 1px solid rgba(0,0,0,.06); background: rgba(0,0,0,.015);">
+          <div style="font-size: 13px; line-height: 1.6; color: rgba(0,0,0,.65);">Download the app and create an account quickly and easily</div>
+        </div>
+        <div style="padding: 0 20px 20px; border-right: 1px solid rgba(0,0,0,.06); background: rgba(0,0,0,.015);">
+          <div style="font-size: 13px; line-height: 1.6; color: rgba(0,0,0,.65);">Submit move dates, addresses, and apartment details accurately</div>
+        </div>
+        <div style="padding: 0 20px 20px; border-right: 1px solid rgba(0,0,0,.06); background: rgba(0,0,0,.015);">
+          <div style="font-size: 13px; line-height: 1.6; color: rgba(0,0,0,.65);">Choose the services needed and get a price estimate</div>
+        </div>
+        <div style="padding: 0 20px 20px; border-right: 1px solid rgba(0,0,0,.06); background: rgba(0,0,0,.015);">
+          <div style="font-size: 13px; line-height: 1.6; color: rgba(0,0,0,.65);">Find the most suitable mover based on price and reviews</div>
+        </div>
+        <div style="padding: 0 20px 20px; border-right: 1px solid rgba(0,0,0,.06); background: rgba(0,0,0,.015);">
+          <div style="font-size: 13px; line-height: 1.6; color: rgba(0,0,0,.65);">Lock in the deal with the chosen mover and confirm booking</div>
+        </div>
+        <div style="padding: 0 20px 20px; border-right: 1px solid rgba(0,0,0,.06); background: rgba(0,0,0,.015);">
+          <div style="font-size: 13px; line-height: 1.6; color: rgba(0,0,0,.65);">Complete preparations and be ready for moving day</div>
+        </div>
+        <div style="padding: 0 20px 20px; border-right: 1px solid rgba(0,0,0,.06); background: rgba(0,0,0,.015);">
+          <div style="font-size: 13px; line-height: 1.6; color: rgba(0,0,0,.65);">Ensure everything is unloaded and placed correctly</div>
+        </div>
+        <div style="padding: 0 20px 20px; border-right: 1px solid rgba(0,0,0,.06); background: rgba(0,0,0,.015);">
+          <div style="font-size: 13px; line-height: 1.6; color: rgba(0,0,0,.65);">Complete the transaction and close the move officially</div>
+        </div>
+        <div style="padding: 0 20px 20px; background: rgba(0,0,0,.015);">
+          <div style="font-size: 13px; line-height: 1.6; color: rgba(0,0,0,.65);">Share feedback and recommend ARGO to others</div>
+        </div>
+
+        <!-- ACTIONS ROW -->
+        <div style="grid-column: 1 / -1; background: #fff; border-top: 1px solid rgba(0,0,0,.08); padding: 10px 20px 6px; display: grid; grid-template-columns: repeat(9, 1fr);">
+          <div style="grid-column: 1 / -1; font-size: 8px; letter-spacing: .22em; text-transform: uppercase; color: rgba(0,0,0,.35); margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid rgba(0,0,0,.06);">Actions</div>
+        </div>
+        <div style="padding: 0 20px 20px; border-right: 1px solid rgba(0,0,0,.06);">
+          <ul style="font-size: 12px; line-height: 1.8; color: rgba(0,0,0,.6); padding-left: 14px; margin: 0;">
+            <li>Searches "moving app"</li>
+            <li>Downloads ARGO</li>
+            <li>Registers with email or Google</li>
+          </ul>
+        </div>
+        <div style="padding: 0 20px 20px; border-right: 1px solid rgba(0,0,0,.06);">
+          <ul style="font-size: 12px; line-height: 1.8; color: rgba(0,0,0,.6); padding-left: 14px; margin: 0;">
+            <li>Enters move dates</li>
+            <li>Inputs origin &amp; destination</li>
+            <li>Specifies floor &amp; elevator</li>
+          </ul>
+        </div>
+        <div style="padding: 0 20px 20px; border-right: 1px solid rgba(0,0,0,.06);">
+          <ul style="font-size: 12px; line-height: 1.8; color: rgba(0,0,0,.6); padding-left: 14px; margin: 0;">
+            <li>Scans home for inventory</li>
+            <li>Selects packing services</li>
+            <li>Reviews price estimate</li>
+          </ul>
+        </div>
+        <div style="padding: 0 20px 20px; border-right: 1px solid rgba(0,0,0,.06);">
+          <ul style="font-size: 12px; line-height: 1.8; color: rgba(0,0,0,.6); padding-left: 14px; margin: 0;">
+            <li>Reviews mover profiles</li>
+            <li>Compares prices &amp; ratings</li>
+            <li>Reads user reviews</li>
+          </ul>
+        </div>
+        <div style="padding: 0 20px 20px; border-right: 1px solid rgba(0,0,0,.06);">
+          <ul style="font-size: 12px; line-height: 1.8; color: rgba(0,0,0,.6); padding-left: 14px; margin: 0;">
+            <li>Selects preferred mover</li>
+            <li>Confirms quote &amp; terms</li>
+            <li>Pays deposit in-app</li>
+          </ul>
+        </div>
+        <div style="padding: 0 20px 20px; border-right: 1px solid rgba(0,0,0,.06);">
+          <ul style="font-size: 12px; line-height: 1.8; color: rgba(0,0,0,.6); padding-left: 14px; margin: 0;">
+            <li>Packs belongings</li>
+            <li>Chats with mover</li>
+            <li>Reviews moving checklist</li>
+          </ul>
+        </div>
+        <div style="padding: 0 20px 20px; border-right: 1px solid rgba(0,0,0,.06);">
+          <ul style="font-size: 12px; line-height: 1.8; color: rgba(0,0,0,.6); padding-left: 14px; margin: 0;">
+            <li>Tracks mover live</li>
+            <li>Guides placement of items</li>
+            <li>Signs off on delivery</li>
+          </ul>
+        </div>
+        <div style="padding: 0 20px 20px; border-right: 1px solid rgba(0,0,0,.06);">
+          <ul style="font-size: 12px; line-height: 1.8; color: rgba(0,0,0,.6); padding-left: 14px; margin: 0;">
+            <li>Reviews itemized invoice</li>
+            <li>Pays remaining balance</li>
+            <li>Receives confirmation</li>
+          </ul>
+        </div>
+        <div style="padding: 0 20px 20px;">
+          <ul style="font-size: 12px; line-height: 1.8; color: rgba(0,0,0,.6); padding-left: 14px; margin: 0;">
+            <li>Rates the mover</li>
+            <li>Writes a review</li>
+            <li>Refers friends via link</li>
+          </ul>
+        </div>
+
+        <!-- EMOTIONS ROW -->
+        <div style="grid-column: 1 / -1; background: rgba(0,0,0,.03); border-top: 1px solid rgba(0,0,0,.08); padding: 10px 20px 6px; display: grid; grid-template-columns: repeat(9, 1fr);">
+          <div style="grid-column: 1 / -1; font-size: 8px; letter-spacing: .22em; text-transform: uppercase; color: rgba(0,0,0,.35); margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid rgba(0,0,0,.06);">Emotions &amp; Thoughts</div>
+        </div>
+        <div style="padding: 0 20px 20px; border-right: 1px solid rgba(0,0,0,.06); background: rgba(0,0,0,.015);">
+          <div style="font-size: 22px; margin-bottom: 6px;">😟</div>
+          <div style="font-size: 12px; line-height: 1.6; color: rgba(0,0,0,.55); font-style: italic;">"I hope this app is worth it — moving is already so stressful."</div>
+        </div>
+        <div style="padding: 0 20px 20px; border-right: 1px solid rgba(0,0,0,.06); background: rgba(0,0,0,.015);">
+          <div style="font-size: 22px; margin-bottom: 6px;">😐</div>
+          <div style="font-size: 12px; line-height: 1.6; color: rgba(0,0,0,.55); font-style: italic;">"I just want to get through this part quickly."</div>
+        </div>
+        <div style="padding: 0 20px 20px; border-right: 1px solid rgba(0,0,0,.06); background: rgba(0,0,0,.015);">
+          <div style="font-size: 22px; margin-bottom: 6px;">🤔</div>
+          <div style="font-size: 12px; line-height: 1.6; color: rgba(0,0,0,.55); font-style: italic;">"Will the scan be accurate? I need a fair price."</div>
+        </div>
+        <div style="padding: 0 20px 20px; border-right: 1px solid rgba(0,0,0,.06); background: rgba(0,0,0,.015);">
+          <div style="font-size: 22px; margin-bottom: 6px;">😬</div>
+          <div style="font-size: 12px; line-height: 1.6; color: rgba(0,0,0,.55); font-style: italic;">"How do I know which mover to trust?"</div>
+        </div>
+        <div style="padding: 0 20px 20px; border-right: 1px solid rgba(0,0,0,.06); background: rgba(0,0,0,.015);">
+          <div style="font-size: 22px; margin-bottom: 6px;">😌</div>
+          <div style="font-size: 12px; line-height: 1.6; color: rgba(0,0,0,.55); font-style: italic;">"Good — I found someone. Now I just need it to go smoothly."</div>
+        </div>
+        <div style="padding: 0 20px 20px; border-right: 1px solid rgba(0,0,0,.06); background: rgba(0,0,0,.015);">
+          <div style="font-size: 22px; margin-bottom: 6px;">😰</div>
+          <div style="font-size: 12px; line-height: 1.6; color: rgba(0,0,0,.55); font-style: italic;">"There's so much to do — I hope I haven't forgotten anything."</div>
+        </div>
+        <div style="padding: 0 20px 20px; border-right: 1px solid rgba(0,0,0,.06); background: rgba(0,0,0,.015);">
+          <div style="font-size: 22px; margin-bottom: 6px;">😤</div>
+          <div style="font-size: 12px; line-height: 1.6; color: rgba(0,0,0,.55); font-style: italic;">"I need to make sure nothing gets damaged or misplaced."</div>
+        </div>
+        <div style="padding: 0 20px 20px; border-right: 1px solid rgba(0,0,0,.06); background: rgba(0,0,0,.015);">
+          <div style="font-size: 22px; margin-bottom: 6px;">😤</div>
+          <div style="font-size: 12px; line-height: 1.6; color: rgba(0,0,0,.55); font-style: italic;">"I hope the final price matches what was quoted."</div>
+        </div>
+        <div style="padding: 0 20px 20px; background: rgba(0,0,0,.015);">
+          <div style="font-size: 22px; margin-bottom: 6px;">😊</div>
+          <div style="font-size: 12px; line-height: 1.6; color: rgba(0,0,0,.55); font-style: italic;">"That actually went well — I'd use ARGO again."</div>
+        </div>
+
+        <!-- PAIN POINTS ROW -->
+        <div style="grid-column: 1 / -1; background: #fff; border-top: 1px solid rgba(0,0,0,.08); padding: 10px 20px 6px; display: grid; grid-template-columns: repeat(9, 1fr);">
+          <div style="grid-column: 1 / -1; font-size: 8px; letter-spacing: .22em; text-transform: uppercase; color: rgba(0,0,0,.35); margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid rgba(0,0,0,.06);">Pain Points</div>
+        </div>
+        <div style="padding: 0 20px 24px; border-right: 1px solid rgba(0,0,0,.06);">
+          <div style="display: inline-block; background: rgba(220,50,50,.08); color: rgba(180,30,30,.8); border-radius: 6px; padding: 4px 10px; font-size: 11px; line-height: 1.6;">Long sign-up forms are off-putting</div>
+        </div>
+        <div style="padding: 0 20px 24px; border-right: 1px solid rgba(0,0,0,.06);">
+          <div style="display: inline-block; background: rgba(220,50,50,.08); color: rgba(180,30,30,.8); border-radius: 6px; padding: 4px 10px; font-size: 11px; line-height: 1.6;">Too many required fields up front</div>
+        </div>
+        <div style="padding: 0 20px 24px; border-right: 1px solid rgba(0,0,0,.06);">
+          <div style="display: inline-block; background: rgba(220,50,50,.08); color: rgba(180,30,30,.8); border-radius: 6px; padding: 4px 10px; font-size: 11px; line-height: 1.6;">Unclear what's included in price</div>
+        </div>
+        <div style="padding: 0 20px 24px; border-right: 1px solid rgba(0,0,0,.06);">
+          <div style="display: inline-block; background: rgba(220,50,50,.08); color: rgba(180,30,30,.8); border-radius: 6px; padding: 4px 10px; font-size: 11px; line-height: 1.6;">Hard to compare unverified movers</div>
+        </div>
+        <div style="padding: 0 20px 24px; border-right: 1px solid rgba(0,0,0,.06);">
+          <div style="display: inline-block; background: rgba(220,50,50,.08); color: rgba(180,30,30,.8); border-radius: 6px; padding: 4px 10px; font-size: 11px; line-height: 1.6;">No in-app payment — resorts to cash</div>
+        </div>
+        <div style="padding: 0 20px 24px; border-right: 1px solid rgba(0,0,0,.06);">
+          <div style="display: inline-block; background: rgba(220,50,50,.08); color: rgba(180,30,30,.8); border-radius: 6px; padding: 4px 10px; font-size: 11px; line-height: 1.6;">No structured pre-move checklist</div>
+        </div>
+        <div style="padding: 0 20px 24px; border-right: 1px solid rgba(0,0,0,.06);">
+          <div style="display: inline-block; background: rgba(220,50,50,.08); color: rgba(180,30,30,.8); border-radius: 6px; padding: 4px 10px; font-size: 11px; line-height: 1.6;">No real-time mover tracking</div>
+        </div>
+        <div style="padding: 0 20px 24px; border-right: 1px solid rgba(0,0,0,.06);">
+          <div style="display: inline-block; background: rgba(220,50,50,.08); color: rgba(180,30,30,.8); border-radius: 6px; padding: 4px 10px; font-size: 11px; line-height: 1.6;">Last-minute price changes at payment</div>
+        </div>
+        <div style="padding: 0 20px 24px;">
+          <div style="display: inline-block; background: rgba(220,50,50,.08); color: rgba(180,30,30,.8); border-radius: 6px; padding: 4px 10px; font-size: 11px; line-height: 1.6;">Review flow feels like an afterthought</div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+  <!-- APP SCREENS: 7 FLOWS -->
+  <section id="screens" style="background:#f4f4f4; padding: 100px 0;">
+    <div style="padding: 0 60px 60px;">
+      <p style="font-size:10px; letter-spacing:.3em; text-transform:uppercase; color:rgba(0,0,0,.35); margin-bottom:16px;">App Design</p>
+      <h2 style="font-family:'Fraunces',serif; font-size:clamp(40px,6vw,80px); font-weight:900; letter-spacing:-.03em; color:#111; line-height:.9;">All Screens</h2>
+    </div>
+
+    <!-- Row 1 -->
+    <div class="screen-row">
+      <div class="screen-row-label">01 — Search Mover</div>
+      <div class="screen-strip">
+        <img src="assets/argo/screens/s1_01.png" class="screen-img" style="--r:-3deg; --y:16px">
+        <img src="assets/argo/screens/s1_04.png" class="screen-img" style="--r:0deg; --y:0px">
+        <img src="assets/argo/screens/s1_07.png" class="screen-img" style="--r:3deg; --y:16px">
+      </div>
+    </div>
+
+    <!-- Row 2 -->
+    <div class="screen-row">
+      <div class="screen-row-label">02 — Change Move Details</div>
+      <div class="screen-strip">
+        <img src="assets/argo/screens/s2_01.png" class="screen-img" style="--r:-3deg; --y:16px">
+        <img src="assets/argo/screens/s2_03.png" class="screen-img" style="--r:0deg; --y:0px">
+        <img src="assets/argo/screens/s2_06.png" class="screen-img" style="--r:3deg; --y:16px">
+      </div>
+    </div>
+
+    <!-- Row 3 -->
+    <div class="screen-row">
+      <div class="screen-row-label">03 — Home Scan</div>
+      <div class="screen-strip">
+        <img src="assets/argo/screens/s3_01.png" class="screen-img" style="--r:-3deg; --y:16px">
+        <img src="assets/argo/screens/s3_04.png" class="screen-img" style="--r:0deg; --y:0px">
+        <img src="assets/argo/screens/s3_07.png" class="screen-img" style="--r:3deg; --y:16px">
+      </div>
+    </div>
+
+    <!-- Row 4 -->
+    <div class="screen-row">
+      <div class="screen-row-label">04 — Find a Move</div>
+      <div class="screen-strip">
+        <img src="assets/argo/screens/s4_01.png" class="screen-img" style="--r:-3deg; --y:16px">
+        <img src="assets/argo/screens/s4_04.png" class="screen-img" style="--r:0deg; --y:0px">
+        <img src="assets/argo/screens/s4_07.png" class="screen-img" style="--r:3deg; --y:16px">
+      </div>
+    </div>
+
+    <!-- Row 5 -->
+    <div class="screen-row">
+      <div class="screen-row-label">05 — Close a Move</div>
+      <div class="screen-strip">
+        <img src="assets/argo/screens/s5_01.png" class="screen-img" style="--r:-3deg; --y:16px">
+        <img src="assets/argo/screens/s5_03.png" class="screen-img" style="--r:0deg; --y:0px">
+        <img src="assets/argo/screens/s5_06.png" class="screen-img" style="--r:3deg; --y:16px">
+      </div>
+    </div>
+
+    <!-- Row 6 -->
+    <div class="screen-row">
+      <div class="screen-row-label">06 — Add Items</div>
+      <div class="screen-strip">
+        <img src="assets/argo/screens/s6_01.png" class="screen-img" style="--r:-3deg; --y:16px">
+        <img src="assets/argo/screens/s6_03.png" class="screen-img" style="--r:0deg; --y:0px">
+        <img src="assets/argo/screens/s6_05.png" class="screen-img" style="--r:3deg; --y:16px">
+      </div>
+    </div>
+
+    <!-- Row 7 -->
+    <div class="screen-row" style="border-bottom: none;">
+      <div class="screen-row-label">07 — Chat with Mover</div>
+      <div class="screen-strip">
+        <img src="assets/argo/screens/s7_01.png" class="screen-img" style="--r:-3deg; --y:16px">
+        <img src="assets/argo/screens/s7_04.png" class="screen-img" style="--r:0deg; --y:0px">
+        <img src="assets/argo/screens/s7_07.png" class="screen-img" style="--r:3deg; --y:16px">
+      </div>
+    </div>
+  </section>
+
+  <!-- WEBSITE DESIGN -->
+  <section style="background:#fff; padding: 100px 60px;">
+    <p style="font-size:10px; letter-spacing:.3em; text-transform:uppercase; color:rgba(0,0,0,.35); margin-bottom:16px;">Web Design</p>
+    <h2 style="font-family:'Fraunces',serif; font-size:clamp(40px,6vw,80px); font-weight:900; letter-spacing:-.03em; color:#111; line-height:.9; margin-bottom:60px;">The Website</h2>
+    <div style="border-radius:16px; overflow:hidden; box-shadow: 0 24px 80px rgba(0,0,0,.12), 0 4px 16px rgba(0,0,0,.06);">
+      <img src="assets/argo/extra_web.png" alt="ARGO Website Design" style="width:100%; display:block;">
+    </div>
+  </section>
+
+
+  <!-- SECTION 05: SOLUTION FEATURES -->
+  <section class="case-section">
+    <div class="section-num">05</div>
+    <div class="section-eyebrow">The Solution</div>
+    <h2 class="section-heading fade-in">Why download ARGO?</h2>
+    <p class="section-subheading fade-in">The solutions the app provides &mdash; what makes ARGO worth downloading</p>
+
+    <div class="features-grid">
+      <div class="feature-item fade-in">
+        <div class="feature-tag">Feature 01</div>
+        <div class="feature-title">Transparent Pricing</div>
+        <div class="feature-desc">You know exactly what to expect &mdash; no surprises, no hidden costs. Fair quotes without the last-minute price changes that plague traditional moves. 27% cheaper on average for large furniture compared to competitors.</div>
+      </div>
+      <div class="feature-item fade-in" style="transition-delay:.1s">
+        <div class="feature-tag">Feature 02</div>
+        <div class="feature-title">Home Scanning</div>
+        <div class="feature-desc">Save time and energy by scanning your home and receiving an accurate, itemized price estimate. No more sending photos over WhatsApp to multiple movers in parallel &mdash; one scan, one inventory, shared automatically.</div>
+      </div>
+      <div class="feature-item fade-in" style="transition-delay:.15s">
+        <div class="feature-tag">Feature 03</div>
+        <div class="feature-title">Continuous Mover Communication</div>
+        <div class="feature-desc">Receive ongoing updates, full transparency, and confidence throughout the entire moving process. Real-time tracking on moving day &mdash; know where your movers are, what's been loaded, and when to expect arrival.</div>
+      </div>
+      <div class="feature-item fade-in" style="transition-delay:.2s">
+        <div class="feature-tag">Feature 04</div>
+        <div class="feature-title">Everything in One Place</div>
+        <div class="feature-desc">Consolidate the entire moving process under one platform for efficient, convenient management. Moving checklists, mover chat, booking confirmation, and real-time tracking &mdash; all unified in a single app.</div>
+      </div>
+      <div class="feature-item fade-in" style="transition-delay:.25s">
+        <div class="feature-tag">Feature 05</div>
+        <div class="feature-title">Additional Moving Services</div>
+        <div class="feature-desc">Find extra services for your move: professional packing, home organization, purchasing moving supplies, crane and heavy lift services. We unpack, organize, and fit the space so you enjoy your new home from day one.</div>
+      </div>
+      <div class="feature-item fade-in" style="transition-delay:.3s">
+        <div class="feature-tag">Feature 06</div>
+        <div class="feature-title">Moving Day Checklist</div>
+        <div class="feature-desc">Organized checklists so nothing gets forgotten. Stay updated throughout moving day &mdash; from pickup to delivery, with everything tracked and confirmed. All your move management in one organized place.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 06: PAIN POINTS SOLVED -->
+  <section class="case-section" style="background: #f8f8f8;">
+    <div class="section-num">06</div>
+    <div class="section-eyebrow">Design Decisions</div>
+    <h2 class="section-heading fade-in">Pain Points &amp; How We Solved Them</h2>
+    <p class="section-subheading fade-in">How ARGO directly addresses each friction point in the moving journey</p>
+
+    <div class="pain-list">
+      <div class="pain-item fade-in">
+        <div class="pain-step">
+          Step 01<br>
+          <span style="font-size: 9px; opacity: .5;">Mover Search</span>
+        </div>
+        <div>
+          <div class="pain-title">Long, Irrelevant Phone Calls</div>
+          <div class="pain-problem">"I spent hours calling movers, only to find out they don't work in my area or aren't available on my date."</div>
+          <div class="pain-solution">The user enters move details first and receives a list of only the movers who are available and work in their area &mdash; eliminating all the wasted calls upfront. No more calling around blindly.</div>
+        </div>
+      </div>
+      <div class="pain-item fade-in">
+        <div class="pain-step">
+          Step 02<br>
+          <span style="font-size: 9px; opacity: .5;">Home Scan</span>
+        </div>
+        <div>
+          <div class="pain-title">Disorder &amp; Scattered Communication</div>
+          <div class="pain-problem">"I had to send photos of every piece of furniture to each mover separately. Everything was in WhatsApp and Facebook, across multiple parallel conversations. Exhausting and time-consuming."</div>
+          <div class="pain-solution">ARGO's home scanning feature creates a comprehensive inventory in minutes. One scan, shared automatically with all relevant movers &mdash; multi-platform coordination eliminated entirely.</div>
+        </div>
+      </div>
+      <div class="pain-item fade-in">
+        <div class="pain-step">
+          Step 03<br>
+          <span style="font-size: 9px; opacity: .5;">Pricing</span>
+        </div>
+        <div>
+          <div class="pain-title">The Price Always Changes on Moving Day</div>
+          <div class="pain-problem">"The quote changed on the actual day of the move. The price was set over the phone based on a rough estimate of 'approximately what's in the apartment.' There was no way to dispute it."</div>
+          <div class="pain-solution">Quotes are generated from the actual scanned inventory &mdash; itemized and locked in before the move begins. Transparent pricing breakdown per item category. No more unpleasant surprises.</div>
+        </div>
+      </div>
+      <div class="pain-item fade-in">
+        <div class="pain-step">
+          Step 04<br>
+          <span style="font-size: 9px; opacity: .5;">Moving Day</span>
+        </div>
+        <div>
+          <div class="pain-title">Emotional Overwhelm on the Day Itself</div>
+          <div class="pain-problem">"Moving day is emotionally charged &mdash; enormous stress, fear, and uncertainty. How long will this take? Where are the movers right now? Did they take all my things? What if something breaks?"</div>
+          <div class="pain-solution">Real-time tracking and continuous updates throughout moving day. Know exactly where your movers are at every moment. Checklists keep everything organized so nothing gets forgotten or left behind.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 07: FOR MOVERS -->
+  <section class="case-section">
+    <div class="section-num">07</div>
+    <div class="section-eyebrow">The Mover Side</div>
+    <h2 class="section-heading fade-in">Built for Professionals Too</h2>
+    <p class="section-subheading fade-in">ARGO serves both sides of the marketplace</p>
+
+    <div class="fade-in">
+      <p class="body-text">
+        If you're a professional, experienced mover &mdash; we're looking for you. Join our platform and enjoy working with clients that match your expertise, fast payment, and support every step of the way. We enable you to focus on what you do best: helping people move their home.
+      </p>
+      <p class="body-text" style="margin-top: 24px;">
+        ARGO handles the matching, transparent pricing, and client communication &mdash; you show up, do great work, and build your reputation on a platform built to help you succeed.
+      </p>
+      <div style="margin-top: 48px; display: flex; flex-direction: column; gap: 20px; max-width: 600px;">
+        <div style="display: flex; gap: 20px; align-items: flex-start;">
+          <span style="font-family: 'Fraunces', serif; font-size: 32px; font-weight: 900; font-style: italic; color: rgba(0,0,0,.15); line-height: 1; flex-shrink: 0;">&#8594;</span>
+          <div>
+            <div style="font-size: 15px; font-weight: 500; color: #111; margin-bottom: 6px;">Client Matching</div>
+            <div style="font-size: 13px; color: rgba(0,0,0,.45); line-height: 1.6;">Matched with clients in your service area and availability window &mdash; only relevant, real jobs</div>
+          </div>
+        </div>
+        <div style="display: flex; gap: 20px; align-items: flex-start;">
+          <span style="font-family: 'Fraunces', serif; font-size: 32px; font-weight: 900; font-style: italic; color: rgba(0,0,0,.15); line-height: 1; flex-shrink: 0;">&#8594;</span>
+          <div>
+            <div style="font-size: 15px; font-weight: 500; color: #111; margin-bottom: 6px;">Fast Payment</div>
+            <div style="font-size: 13px; color: rgba(0,0,0,.45); line-height: 1.6;">Quick, reliable payment processing directly through the platform &mdash; no chasing clients</div>
+          </div>
+        </div>
+        <div style="display: flex; gap: 20px; align-items: flex-start;">
+          <span style="font-family: 'Fraunces', serif; font-size: 32px; font-weight: 900; font-style: italic; color: rgba(0,0,0,.15); line-height: 1; flex-shrink: 0;">&#8594;</span>
+          <div>
+            <div style="font-size: 15px; font-weight: 500; color: #111; margin-bottom: 6px;">Community &amp; Recognition</div>
+            <div style="font-size: 13px; color: rgba(0,0,0,.45); line-height: 1.6;">Ratings, green choice recognition, mover of the month highlights, and a dedicated movers forum</div>
+          </div>
+        </div>
+        <div style="display: flex; gap: 20px; align-items: flex-start;">
+          <span style="font-family: 'Fraunces', serif; font-size: 32px; font-weight: 900; font-style: italic; color: rgba(0,0,0,.15); line-height: 1; flex-shrink: 0;">&#8594;</span>
+          <div>
+            <div style="font-size: 15px; font-weight: 500; color: #111; margin-bottom: 6px;">Business Service</div>
+            <div style="font-size: 13px; color: rgba(0,0,0,.45); line-height: 1.6;">Join the business tier for enhanced visibility, comparison tools, and priority placement</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CLOSING SECTION -->
+  <section class="case-section" style="padding-bottom: 60px;">
+    <div class="pull-quote fade-in">
+      <div class="pull-quote-text">
+        Everything you need for your move,<br>
+        <span class="outline">in one place.</span>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; margin-top: 60px;" class="fade-in">
+      <div>
+        <div style="font-size: 9px; letter-spacing: .28em; text-transform: uppercase; color: rgba(0,0,0,.35); margin-bottom: 16px;">Services Available</div>
+        <ul style="list-style: none; display: flex; flex-direction: column; gap: 10px;">
+          <li style="font-size: 14px; color: rgba(0,0,0,.5);">&#8594; Packing Services</li>
+          <li style="font-size: 14px; color: rgba(0,0,0,.5);">&#8594; Home Organization</li>
+          <li style="font-size: 14px; color: rgba(0,0,0,.5);">&#8594; Moving Equipment</li>
+          <li style="font-size: 14px; color: rgba(0,0,0,.5);">&#8594; Crane &amp; Heavy Lifts</li>
+        </ul>
+      </div>
+      <div>
+        <div style="font-size: 9px; letter-spacing: .28em; text-transform: uppercase; color: rgba(0,0,0,.35); margin-bottom: 16px;">Mover Community</div>
+        <ul style="list-style: none; display: flex; flex-direction: column; gap: 10px;">
+          <li style="font-size: 14px; color: rgba(0,0,0,.5);">&#8594; Mover Ratings &amp; Reviews</li>
+          <li style="font-size: 14px; color: rgba(0,0,0,.5);">&#8594; Green Choice Recognition</li>
+          <li style="font-size: 14px; color: rgba(0,0,0,.5);">&#8594; Mover of the Month</li>
+          <li style="font-size: 14px; color: rgba(0,0,0,.5);">&#8594; Movers Forum</li>
+        </ul>
+      </div>
+      <div>
+        <div style="font-size: 9px; letter-spacing: .28em; text-transform: uppercase; color: rgba(0,0,0,.35); margin-bottom: 16px;">For the User</div>
+        <ul style="list-style: none; display: flex; flex-direction: column; gap: 10px;">
+          <li style="font-size: 14px; color: rgba(0,0,0,.5);">&#8594; Moving Checklists</li>
+          <li style="font-size: 14px; color: rgba(0,0,0,.5);">&#8594; Real-Time Tracking</li>
+          <li style="font-size: 14px; color: rgba(0,0,0,.5);">&#8594; Itemized Quotes</li>
+          <li style="font-size: 14px; color: rgba(0,0,0,.5);">&#8594; Moving Blog &amp; Resources</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="case-footer">
+    <div class="footer-note">ARGO &mdash; UX / Product Design &mdash; 02 / 2025</div>
+    <a class="footer-back" href="index.html">&#8592; Back to All Work</a>
+  </footer>
+
+  <script>
+    // Cursor
+    const cur = document.getElementById('cur');
+    document.addEventListener('mousemove', function(e) {
+      cur.style.left = e.clientX + 'px';
+      cur.style.top = e.clientY + 'px';
+    });
+    document.querySelectorAll('a, .problem-card, .feature-item').forEach(function(el) {
+      el.addEventListener('mouseenter', function() { cur.classList.add('expanded'); });
+      el.addEventListener('mouseleave', function() { cur.classList.remove('expanded'); });
+    });
+
+    // IntersectionObserver
+    var observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+    document.querySelectorAll(
+      '.problem-card, .persona-card, .flow-step, .feature-item, .pain-item, .fade-in'
+    ).forEach(function(el) { observer.observe(el); });
+
+    // Parallax on hero bg text
+    var heroBg = document.querySelector('.hero-bg-text');
+    window.addEventListener('scroll', function() {
+      var y = window.scrollY;
+      if (heroBg) heroBg.style.transform = 'translate(-50%, calc(-50% + ' + (y * 0.3) + 'px))';
+    }, { passive: true });
+  </script>
+</body>
+</html>

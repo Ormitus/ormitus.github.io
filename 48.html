@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>4.8 — Case Study / Ori Mor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,800;0,9..144,900;1,9..144,300;1,9..144,800&family=Space+Grotesk:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    @font-face {
+      font-family: 'Asphalt';
+      src: url('assets/48/fonts/Asphalt-Black.otf') format('opentype');
+      font-weight: 900;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'AsphaltCondensed';
+      src: url('assets/48/fonts/Asphalt-BlackCondensed.otf') format('opentype');
+      font-weight: 900;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'KiyaHandwrite';
+      src: url('assets/48/fonts/KiyaHandwrite.otf') format('opentype');
+      font-weight: 400;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'PilKachol';
+      src: url('assets/48/fonts/PilKachol.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Galil';
+      src: url('assets/48/fonts/Galil-Light.otf') format('opentype');
+      font-weight: 300;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Galil';
+      src: url('assets/48/fonts/Galil-Regular.otf') format('opentype');
+      font-weight: 400;
+      font-style: normal;
+    }
+  </style>
+
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    :root {
+      --asphalt: #262626;
+      --canvas: #F7F5E9;
+      --green: #2E493B;
+      --asphalt-mid: #3a3a3a;
+    }
+
+    body {
+      background: var(--canvas);
+      color: var(--asphalt);
+      font-family: 'Space Grotesk', sans-serif;
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* ─── CURSOR ─── */
+    #cur {
+      position: fixed; z-index: 9999; pointer-events: none;
+      width: 8px; height: 8px; background: var(--asphalt); border-radius: 50%;
+      transform: translate(-50%, -50%);
+      transition: width .2s, height .2s;
+      mix-blend-mode: difference;
+    }
+    #cur.expanded { width: 48px; height: 48px; }
+
+    /* ─── NAV ─── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 500;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 32px 60px;
+      mix-blend-mode: difference;
+    }
+    .nav-logo {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 13px; font-weight: 500; letter-spacing: .22em;
+      text-transform: uppercase; color: #fff; text-decoration: none;
+    }
+    .nav-back {
+      font-size: 11px; letter-spacing: .2em; text-transform: uppercase;
+      color: rgba(255,255,255,.5); text-decoration: none; transition: color .3s;
+    }
+    .nav-back:hover { color: #fff; }
+
+    /* ─── HERO ─── */
+    #hero {
+      min-height: 100vh;
+      background: var(--asphalt);
+      display: flex; flex-direction: column; justify-content: flex-end;
+      padding: 0 60px 80px;
+      position: relative; overflow: hidden;
+    }
+    .hero-bg-text {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: 'AsphaltCondensed', 'Fraunces', serif;
+      font-size: clamp(200px, 30vw, 460px);
+      font-weight: 900; letter-spacing: .06em;
+      color: rgba(255,255,255,.03);
+      white-space: nowrap; user-select: none; pointer-events: none;
+    }
+    .hero-meta {
+      font-size: 11px; letter-spacing: .28em; text-transform: uppercase;
+      color: rgba(255,255,255,.3); margin-bottom: 24px;
+      opacity: 0; transform: translateY(20px);
+      animation: fadeUp .8s .2s forwards;
+    }
+    .hero-title {
+      font-family: 'AsphaltCondensed', 'Fraunces', serif;
+      font-size: clamp(110px, 20vw, 280px);
+      font-weight: 900; line-height: .82;
+      letter-spacing: .05em; color: var(--canvas);
+      opacity: 0; transform: translateY(60px);
+      animation: fadeUp .9s .35s forwards;
+    }
+    .hero-title-italic {
+      font-style: italic;
+      -webkit-text-stroke: 2px rgba(247,245,233,.4);
+      color: transparent; display: block;
+    }
+    .hero-subtitle {
+      font-size: 13px; letter-spacing: .18em; text-transform: uppercase;
+      color: rgba(255,255,255,.25); margin-top: 32px;
+      opacity: 0; transform: translateY(20px);
+      animation: fadeUp .8s .55s forwards;
+    }
+    .hero-divider {
+      display: inline-block; width: 40px; height: 1px;
+      background: rgba(255,255,255,.15); vertical-align: middle; margin: 0 16px;
+    }
+
+    /* ─── OVERVIEW STRIP ─── */
+    .overview-strip {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      border-bottom: 1px solid rgba(38,38,38,.12);
+      background: var(--canvas);
+    }
+    .overview-item {
+      padding: 48px 40px;
+      border-right: 1px solid rgba(38,38,38,.12);
+    }
+    .overview-item:last-child { border-right: none; }
+    .overview-label {
+      font-size: 9px; letter-spacing: .3em; text-transform: uppercase;
+      color: rgba(38,38,38,.4); margin-bottom: 12px;
+    }
+    .overview-value {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(15px, 1.8vw, 22px);
+      font-weight: 300; font-style: italic;
+      color: var(--asphalt); line-height: 1.3;
+    }
+
+    /* ─── SECTIONS ─── */
+    .case-section {
+      padding: 120px 60px;
+      border-bottom: 1px solid rgba(38,38,38,.1);
+      position: relative;
+    }
+    .case-section.dark {
+      background: var(--asphalt);
+      border-bottom-color: rgba(255,255,255,.06);
+    }
+    .case-section.green-bg { background: var(--green); }
+    .case-section.canvas-bg { background: var(--canvas); }
+
+    .section-eyebrow {
+      font-size: 9px; letter-spacing: .32em; text-transform: uppercase;
+      color: rgba(38,38,38,.35); margin-bottom: 40px;
+      display: flex; align-items: center; gap: 20px;
+    }
+    .dark .section-eyebrow,
+    .green-bg .section-eyebrow { color: rgba(255,255,255,.35); }
+    .section-eyebrow::before {
+      content: ''; display: inline-block;
+      width: 32px; height: 1px; background: rgba(38,38,38,.2);
+    }
+    .dark .section-eyebrow::before,
+    .green-bg .section-eyebrow::before { background: rgba(255,255,255,.2); }
+
+    .section-num {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(60px, 9vw, 130px);
+      font-weight: 900; line-height: .85; letter-spacing: -.04em;
+      color: rgba(38,38,38,.05);
+      position: absolute; right: 60px; top: 120px; pointer-events: none;
+    }
+    .dark .section-num { color: rgba(255,255,255,.04); }
+
+    .section-heading {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(40px, 5.5vw, 80px);
+      font-weight: 900; line-height: .9;
+      letter-spacing: -.03em; color: var(--asphalt); margin-bottom: 20px;
+    }
+    .dark .section-heading,
+    .green-bg .section-heading { color: var(--canvas); }
+
+    .section-subheading {
+      font-size: clamp(16px, 1.8vw, 22px);
+      color: rgba(38,38,38,.45);
+      font-weight: 300; margin-bottom: 60px;
+      max-width: 600px; line-height: 1.6;
+    }
+    .dark .section-subheading { color: rgba(255,255,255,.4); }
+    .green-bg .section-subheading { color: rgba(247,245,233,.5); }
+
+    .body-text {
+      font-size: 16px; line-height: 1.75;
+      color: rgba(38,38,38,.65); max-width: 720px;
+    }
+    .dark .body-text { color: rgba(247,245,233,.55); }
+
+    /* ─── TWO-COL ─── */
+    .two-col {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 80px; align-items: start;
+    }
+    .two-col-3-2 {
+      display: grid; grid-template-columns: 3fr 2fr;
+      gap: 80px; align-items: start;
+    }
+
+    /* ─── MOTTO BLOCK ─── */
+    .motto {
+      border-left: 3px solid var(--canvas);
+      padding-left: 32px; margin-top: 60px;
+    }
+    .motto-label {
+      font-size: 9px; letter-spacing: .28em; text-transform: uppercase;
+      color: rgba(255,255,255,.3); margin-bottom: 16px;
+    }
+    .motto-text {
+      font-family: 'KiyaHandwrite', 'Fraunces', serif;
+      font-size: clamp(28px, 3.8vw, 52px);
+      font-weight: 400; line-height: 1.2;
+      letter-spacing: .01em; color: var(--canvas);
+    }
+    .motto-sub {
+      margin-top: 20px; font-size: 15px;
+      line-height: 1.75; color: rgba(255,255,255,.45);
+    }
+
+    /* ─── TOV ─── */
+    .tov-row {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 2px; margin-top: 60px;
+    }
+    .tov-card {
+      padding: 40px 48px;
+      border: 1px solid rgba(255,255,255,.08);
+    }
+    .tov-label {
+      font-size: 9px; letter-spacing: .24em; text-transform: uppercase;
+      color: rgba(255,255,255,.3); margin-bottom: 16px;
+    }
+    .tov-text {
+      font-size: 15px; line-height: 1.8; color: rgba(255,255,255,.6);
+    }
+
+    /* ─── SAMPLE COPY ─── */
+    .copy-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 2px; margin-top: 40px;
+    }
+    .copy-item {
+      padding: 28px 32px;
+      border: 1px solid rgba(255,255,255,.06);
+      font-family: 'AsphaltCondensed', 'Fraunces', serif;
+      font-size: clamp(20px, 2.5vw, 32px);
+      font-weight: 900; color: var(--canvas);
+      letter-spacing: .08em;
+    }
+
+    /* ─── COLOR SWATCHES ─── */
+    .color-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 24px; margin-top: 60px;
+    }
+    .color-card {
+      border-radius: 16px; overflow: hidden;
+      border: 1px solid rgba(38,38,38,.1);
+    }
+    .color-block { height: 200px; }
+    .color-info { padding: 24px 28px; background: #fff; }
+    .color-name {
+      font-family: 'Fraunces', serif;
+      font-size: 20px; font-weight: 900; color: var(--asphalt); margin-bottom: 6px;
+    }
+    .color-hex {
+      font-size: 12px; letter-spacing: .1em;
+      color: rgba(38,38,38,.4); margin-bottom: 12px;
+    }
+    .color-desc {
+      font-size: 13px; line-height: 1.7; color: rgba(38,38,38,.55);
+    }
+
+    /* ─── TYPE SYSTEM ─── */
+    .type-list {
+      margin-top: 60px; display: flex; flex-direction: column; gap: 2px;
+    }
+    .type-item {
+      display: grid; grid-template-columns: 180px 1fr;
+      gap: 40px; padding: 32px 40px;
+      border: 1px solid rgba(38,38,38,.08);
+      align-items: center; background: #fff;
+    }
+    .type-role {
+      font-size: 9px; letter-spacing: .22em; text-transform: uppercase;
+      color: rgba(38,38,38,.4);
+    }
+    .type-specimen { font-size: clamp(18px, 2.5vw, 32px); color: var(--asphalt); line-height: 1; }
+
+    /* ─── SLIDE IMAGES ─── */
+    .slide-img {
+      width: 100%; display: block; border-radius: 12px;
+      box-shadow: 0 16px 60px rgba(38,38,38,.12);
+    }
+    .slide-img-dark {
+      box-shadow: 0 16px 60px rgba(0,0,0,.35);
+    }
+    .slide-caption {
+      font-size: 11px; letter-spacing: .18em; text-transform: uppercase;
+      color: rgba(38,38,38,.3); margin-top: 14px; text-align: center;
+    }
+    .dark .slide-caption { color: rgba(255,255,255,.25); }
+
+    /* ─── ANIMATIONS ─── */
+    @keyframes fadeUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-in {
+      opacity: 0; transform: translateY(40px);
+      transition: opacity .8s ease, transform .8s ease;
+    }
+    .fade-in.visible { opacity: 1; transform: translateY(0); }
+
+    /* ─── FOOTER ─── */
+    .case-footer {
+      padding: 80px 60px;
+      background: var(--asphalt);
+      display: flex; justify-content: space-between; align-items: flex-end;
+      border-top: 1px solid rgba(255,255,255,.06);
+    }
+    .footer-label {
+      font-size: 9px; letter-spacing: .3em; text-transform: uppercase;
+      color: rgba(255,255,255,.3); margin-bottom: 20px;
+    }
+    .footer-cta {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(28px, 4vw, 56px);
+      font-weight: 900; color: var(--canvas); line-height: .9;
+      letter-spacing: -.03em; text-decoration: none; transition: color .3s;
+    }
+    .footer-cta:hover { color: rgba(247,245,233,.5); }
+    .footer-right {
+      font-size: 11px; letter-spacing: .15em; text-transform: uppercase;
+      color: rgba(255,255,255,.2);
+    }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 768px) {
+      nav { padding: 24px 28px; }
+      #hero { padding: 0 28px 60px; }
+      .overview-strip { grid-template-columns: 1fr 1fr; }
+      .case-section { padding: 80px 28px; }
+      .two-col, .two-col-3-2, .tov-row, .copy-grid { grid-template-columns: 1fr; }
+      .color-grid { grid-template-columns: 1fr; }
+      .type-item { grid-template-columns: 1fr; gap: 8px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="cur"></div>
+
+  <nav>
+    <a href="index.html" class="nav-logo">Ori Mor</a>
+    <a href="index.html" class="nav-back">← Back to Work</a>
+  </nav>
+
+  <!-- HERO -->
+  <section id="hero">
+    <div class="hero-bg-text">4.8</div>
+    <div class="hero-meta">Brand Identity &nbsp;&mdash;&nbsp; Tel Mond &nbsp;&mdash;&nbsp; 2026</div>
+    <h1 class="hero-title">
+      4.8
+      <span class="hero-title-italic">Case Study</span>
+    </h1>
+    <div class="hero-subtitle">
+      Brand Strategy <span class="hero-divider"></span> Visual Identity <span class="hero-divider"></span> Art Direction
+    </div>
+  </section>
+
+  <!-- OVERVIEW STRIP -->
+  <div class="overview-strip fade-in">
+    <div class="overview-item">
+      <div class="overview-label">Project Type</div>
+      <div class="overview-value">Brand Identity</div>
+    </div>
+    <div class="overview-item">
+      <div class="overview-label">Client</div>
+      <div class="overview-value">4.8 Bar — Tel Mond</div>
+    </div>
+    <div class="overview-item">
+      <div class="overview-label">Year</div>
+      <div class="overview-value">2026</div>
+    </div>
+    <div class="overview-item">
+      <div class="overview-label">Scope</div>
+      <div class="overview-value">Strategy, Logo, Color, Type, Art Direction</div>
+    </div>
+  </div>
+
+  <!-- SECTION 01: BRAND STORY -->
+  <section class="case-section canvas-bg">
+    <div class="section-num">01</div>
+    <div class="section-eyebrow">Brand Story</div>
+    <h2 class="section-heading fade-in">The End of the<br>Compromise</h2>
+    <p class="section-subheading fade-in">Tel Mond finally has its first real cocktail bar. 4.8 is built for the neighborhood — not for anyone else.</p>
+
+    <div class="two-col-3-2 fade-in">
+      <div class="body-text">
+        <p>For decades, the residents of Tel Mond have had a simple choice: drive to the city for a drink, or stay home. 4.8 is the end of that compromise.</p>
+        <br>
+        <p style="margin-top:24px;">We are the first true cocktail bar in the neighborhood — a milestone for the community and a "third place" for the locals. 4.8 was born from a return to basics. Founded by Noam, a former professional bartender who spent years in the high-tech industry, the bar represents a shift from the digital back to the manual.</p>
+        <br>
+        <p style="margin-top:24px;">It is a rejection of corporate sterility in favor of human warmth. We serve high-end cocktails, but we do it without the white gloves.</p>
+      </div>
+      <div style="padding-top: 8px;">
+        <div style="border-left: 3px solid var(--asphalt); padding-left: 28px;">
+          <p style="font-size:9px; letter-spacing:.28em; text-transform:uppercase; color:var(--green); margin-bottom:16px;">The Name</p>
+          <p style="font-family:'AsphaltCondensed',sans-serif; font-size:clamp(48px,7vw,96px); font-weight:900; line-height:.85; letter-spacing:.06em; color:var(--asphalt);">4.8</p>
+          <p style="font-size:14px; line-height:1.8; color:rgba(38,38,38,.5); margin-top:16px;">The bar's address — <strong style="color:var(--asphalt);">Dekel 48</strong>, Tel Mond. Named after the street it calls home, rooting the brand firmly in the neighborhood it was built for.</p>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:60px;" class="fade-in">
+      <img src="assets/48/slides/hero.png" alt="4.8 Bar" class="slide-img">
+    </div>
+  </section>
+
+  <!-- SECTION 02: PERSONALITY -->
+  <section class="case-section dark">
+    <div class="section-num">02</div>
+    <div class="section-eyebrow">Personality</div>
+    <h2 class="section-heading fade-in">Not Enthusiastic.</h2>
+    <p class="section-subheading fade-in">Our internal motto. It doesn't mean we don't care — it means we don't try too hard to impress.</p>
+
+    <div class="motto fade-in">
+      <div class="motto-label">The Ethos</div>
+      <div class="motto-text">"We don't use<br>buzzwords. We don't<br>do gimmicks.<br>We are effortless."</div>
+      <div class="motto-sub">This is a bar built by someone who has seen every trend and rejected all of them. Noam spent years as a professional bartender, then more years in high-tech. 4.8 is what happens when someone who knows better comes home.</div>
+    </div>
+
+    <div style="margin-top:80px;" class="fade-in">
+      <img src="assets/48/slides/personality_img.png" alt="4.8 Personality" class="slide-img slide-img-dark">
+    </div>
+
+    <div class="tov-row fade-in">
+      <div class="tov-card">
+        <div class="tov-label">Tone & Voice</div>
+        <div class="tov-text">Our voice is the verbal equivalent of our logo: Bold, solid, but human. We speak like Noam — a professional who has seen it all and doesn't need to shout to get attention. We are the opposite of "Salesy." We are <strong style="color:var(--canvas);">"Dugri."</strong></div>
+      </div>
+      <div class="tov-card">
+        <div class="tov-label">What We're Not</div>
+        <div class="tov-text" style="color:rgba(255,255,255,.4);">We don't hashtag. We don't "Cheers to the weekend 🎉." We don't promise "the best cocktail you've ever had." We just make great drinks, and let the neighborhood figure it out.</div>
+      </div>
+    </div>
+
+    <div style="margin-top:40px;">
+      <p style="font-size:9px; letter-spacing:.24em; text-transform:uppercase; color:rgba(255,255,255,.25); margin-bottom:20px;">Sample Copy</p>
+      <div class="copy-grid">
+        <div class="copy-item">Finally<br>Local</div>
+        <div class="copy-item">Cocktails.<br>Friends. 48</div>
+        <div class="copy-item">Drink<br>Local</div>
+        <div class="copy-item">Your<br>48</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 03: LOGO -->
+  <section class="case-section canvas-bg">
+    <div class="section-num">03</div>
+    <div class="section-eyebrow">Logo</div>
+    <h2 class="section-heading fade-in">The Mark</h2>
+    <p class="section-subheading fade-in">Unapologetic. Industrial. Built to command space without needing to shout.</p>
+
+    <div class="two-col-3-2 fade-in">
+      <div class="body-text">
+        <p>The 4.8 logo serves as the unapologetic anchor of the brand's visual identity. Set in the heavy, industrial <strong>'Asphalt Black Condensed'</strong> typeface, the geometric mark is designed to command space without needing to shout.</p>
+        <br>
+        <p style="margin-top:24px;">Stripped of any unnecessary containers or borders, this solid, permanent structure stands in deliberate contrast to the brand's messy, handwritten 'ink' elements — perfectly capturing the effortless, unpretentious vibe of the neighborhood.</p>
+      </div>
+      <div style="padding: 48px; background: var(--asphalt); border-radius: 16px; display:flex; flex-direction:column; gap:24px;">
+        <p style="font-size:9px; letter-spacing:.22em; text-transform:uppercase; color:rgba(255,255,255,.3);">The concept</p>
+        <div>
+          <p style="font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:rgba(255,255,255,.3); margin-bottom:8px;">Asphalt</p>
+          <p style="font-size:14px; color:rgba(255,255,255,.5); line-height:1.7;">Heavy, industrial, permanent — the solid foundation of the brand.</p>
+        </div>
+        <div style="width:100%; height:1px; background:rgba(255,255,255,.08);"></div>
+        <div>
+          <p style="font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:rgba(255,255,255,.3); margin-bottom:8px;">+ Ink</p>
+          <p style="font-size:14px; color:rgba(255,255,255,.5); line-height:1.7;">Handwritten, messy, human — the warmth and soul underneath.</p>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:60px;" class="fade-in">
+      <img src="assets/48/slides/logo_primary.png" alt="4.8 Logo Primary" class="slide-img">
+      <p class="slide-caption">Primary Lockup</p>
+    </div>
+
+    <div style="margin-top:24px; display:grid; grid-template-columns:1fr 1fr; gap:24px;" class="fade-in">
+      <div>
+        <img src="assets/48/slides/logo_round.png" alt="4.8 Round Mark" class="slide-img">
+        <p class="slide-caption">Round Mark</p>
+      </div>
+      <div>
+        <img src="assets/48/slides/logo_rect.png" alt="4.8 Horizontal Lockup" class="slide-img">
+        <p class="slide-caption">Horizontal Lockup</p>
+      </div>
+    </div>
+
+    <div style="margin-top:24px;" class="fade-in">
+      <img src="assets/48/slides/logo_diagram.png" alt="4.8 Logo System" class="slide-img">
+      <p class="slide-caption">Logo System — Clearspace & Usage Rules</p>
+    </div>
+  </section>
+
+  <!-- SECTION 04: COLOR -->
+  <section class="case-section dark">
+    <div class="section-num">04</div>
+    <div class="section-eyebrow">Color</div>
+    <h2 class="section-heading fade-in">The Palette</h2>
+    <p class="section-subheading fade-in">Three core shades. Intentionally grounded. Zero enthusiasm for neon.</p>
+
+    <div class="body-text fade-in">
+      The color palette of 4.8 is intentionally grounded and mature, perfectly balancing industrial weight with inviting warmth. It completely avoids "enthusiastic" or flashy neon colors — together, these colors quietly set the mood without demanding attention, perfectly executing the "unpretentious excellence" the brand stands for.
+    </div>
+
+    <div class="color-grid fade-in">
+      <div class="color-card">
+        <div class="color-block" style="background:#262626;"></div>
+        <div class="color-info">
+          <div class="color-name">The Asphalt</div>
+          <div class="color-hex">#262626</div>
+          <div class="color-desc">A deep, rich charcoal rather than a harsh digital pure black. Urban edge — the heavy anchor for primary typography and logo.</div>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-block" style="background:#F7F5E9;"></div>
+        <div class="color-info">
+          <div class="color-name">The Canvas</div>
+          <div class="color-hex">#F7F5E9</div>
+          <div class="color-desc">A warm, unbleached off-white. Gives menus and backgrounds the analog, tactile warmth of raw paper — instantly communicating the "living room" vibe.</div>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-block" style="background:#2E493B;"></div>
+        <div class="color-info">
+          <div class="color-name">The Local Touch</div>
+          <div class="color-hex">#2E493B</div>
+          <div class="color-desc">A sophisticated deep moss green. Adds depth without being loud. A nod to the agricultural roots of the Sharon region.</div>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- SECTION 05: TYPOGRAPHY -->
+  <section class="case-section canvas-bg">
+    <div class="section-num">05</div>
+    <div class="section-eyebrow">Typography</div>
+    <h2 class="section-heading fade-in">Asphalt & Ink</h2>
+    <p class="section-subheading fade-in">A deliberate tension between stable structure and human spontaneity.</p>
+
+    <div class="two-col-3-2 fade-in">
+      <div class="body-text">
+        <p>The typographic system of 4.8 is based on a deliberate tension between stable structure and human spontaneity. The heavy, dominant Asphalt font projects a blunt, unapologetic, industrial presence for the logo and main headlines.</p>
+        <br>
+        <p style="margin-top:24px;">To break this rigidity, we integrate handwritten fonts — Kiya Handwrite in English and Pil Kachol in Hebrew — used for cocktail names and personal side notes, giving the brand its soul.</p>
+        <br>
+        <p style="margin-top:24px;">Technical information like drink ingredients and prices is displayed in the clean, minimalist Helvetica Neue Light and Galil Light fonts. This combination creates typography that feels established and serious on one hand, yet completely eye-level and unpretentious on the other.</p>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:16px;">
+        <div style="padding:28px 32px; background:var(--asphalt); border-radius:12px;">
+          <p style="font-size:9px; letter-spacing:.2em; text-transform:uppercase; color:rgba(255,255,255,.3); margin-bottom:12px;">Primary — Asphalt Black</p>
+          <p style="font-family:'AsphaltCondensed',sans-serif; font-size:clamp(48px,6vw,80px); font-weight:900; line-height:.9; letter-spacing:.06em; color:var(--canvas);">4.8</p>
+          <p style="font-size:11px; color:rgba(255,255,255,.3); margin-top:8px;">Heavy · Industrial · Permanent</p>
+        </div>
+        <div style="padding:28px 32px; background:#fff; border-radius:12px; border:1px solid rgba(38,38,38,.08);">
+          <p style="font-size:9px; letter-spacing:.2em; text-transform:uppercase; color:rgba(38,38,38,.35); margin-bottom:12px;">Secondary — Kiya Handwrite</p>
+          <p style="font-family:'KiyaHandwrite',cursive; font-size:clamp(28px,3.5vw,44px); font-weight:400; line-height:1.1; color:var(--asphalt);">drink local</p>
+          <p style="font-size:11px; color:rgba(38,38,38,.3); margin-top:8px;">Handwritten · Human · Warm</p>
+        </div>
+        <div style="padding:28px 32px; background:#fff; border-radius:12px; border:1px solid rgba(38,38,38,.08);">
+          <p style="font-size:9px; letter-spacing:.2em; text-transform:uppercase; color:rgba(38,38,38,.35); margin-bottom:12px;">Hebrew Handwrite — Pil Kachol</p>
+          <p style="font-family:'PilKachol',cursive; font-size:clamp(28px,3.5vw,44px); font-weight:400; line-height:1.2; color:var(--asphalt); direction:rtl; text-align:right;">שתה מקומי</p>
+          <p style="font-size:11px; color:rgba(38,38,38,.3); margin-top:8px;">Hebrew · Handwritten · Soul</p>
+        </div>
+        <div style="padding:28px 32px; background:#fff; border-radius:12px; border:1px solid rgba(38,38,38,.08);">
+          <p style="font-size:9px; letter-spacing:.2em; text-transform:uppercase; color:rgba(38,38,38,.35); margin-bottom:12px;">Technical — Helvetica Neue Light / Galil Light</p>
+          <p style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:clamp(12px,1.4vw,15px); font-weight:200; line-height:1.6; color:rgba(38,38,38,.55); letter-spacing:.04em;">Vodka · Elderflower · Lime · Soda<br>₪ 52</p>
+          <p style="font-family:'Galil',sans-serif; font-size:clamp(12px,1.4vw,15px); font-weight:300; line-height:1.6; color:rgba(38,38,38,.55); letter-spacing:.02em; margin-top:6px; direction:rtl; text-align:right;">וודקה · פרחי ברקן · ליים · סודה</p>
+          <p style="font-size:11px; color:rgba(38,38,38,.3); margin-top:8px;">Clean · Precise · Readable</p>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:60px;" class="fade-in">
+      <img src="assets/48/slides/menu.png" alt="4.8 Menu Design" class="slide-img">
+      <p class="slide-caption">Menu Design — 'Zine Aesthetic</p>
+    </div>
+
+    <div style="margin-top:40px; padding:40px 48px; background:#fff; border-radius:16px; border:1px solid rgba(38,38,38,.08);" class="fade-in">
+      <p style="font-size:9px; letter-spacing:.24em; text-transform:uppercase; color:rgba(38,38,38,.35); margin-bottom:20px;">The Menu Concept</p>
+      <p class="body-text">The menu design for 4.8 abandons the stiff, corporate brochure look in favor of an authentic, local 'zine' aesthetic. Embracing our "Not Enthusiastic" ethos, it features rough, hand-drawn illustrations of glassware rather than polished photography. The content acts as a conversation with the neighborhood — highlighting deeply personal touches like the signature <strong>"10 Years Too Late"</strong> cocktail (a witty nod to Noam's high-tech hiatus) and drinks named directly after friends and locals, like Adi and Itamar.</p>
+    </div>
+  </section>
+
+  <!-- SECTION 06: ART DIRECTION -->
+  <section class="case-section dark">
+    <div class="section-num">06</div>
+    <div class="section-eyebrow">Art Direction</div>
+    <h2 class="section-heading fade-in">Disposable Camera Realness</h2>
+    <p class="section-subheading fade-in">Grainy. High contrast. Black and white. Shot like a great night out, not a product launch.</p>
+
+    <div class="body-text fade-in">
+      Rejecting the glossy, staged, and perfectly lit aesthetic typical of high-end mixology bars, we use grainy, high contrast black and white imagery that feels like it was captured on a disposable camera during a great night out. The focus is entirely on honest, candid moments — the texture of condensation on a cold glass, the blur of a bartender shaking a drink, genuine laughter between friends, the unglamorous reality of cracking eggs for a cocktail.
+    </div>
+
+    <div style="margin-top:60px;" class="fade-in">
+      <img src="assets/48/slides/art_grid.png" alt="4.8 Art Direction" class="slide-img slide-img-dark">
+      <p class="slide-caption" style="color:rgba(255,255,255,.25);">Documentary photography — flash, grain, real moments only</p>
+    </div>
+  </section>
+
+  <!-- SECTION 07: DESIGN LANGUAGE -->
+  <section class="case-section canvas-bg">
+    <div class="section-num">07</div>
+    <div class="section-eyebrow">Design Language</div>
+    <h2 class="section-heading fade-in">Asphalt & Ink</h2>
+    <p class="section-subheading fade-in">Every touchpoint is built from the same tension — heavy and industrial, but hand-drawn and human.</p>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:2px; margin-bottom:60px;" class="fade-in">
+      <div style="padding:40px 48px; background:#fff; border:1px solid rgba(38,38,38,.08);">
+        <p style="font-size:9px; letter-spacing:.22em; text-transform:uppercase; color:rgba(38,38,38,.35); margin-bottom:16px;">Design Language</p>
+        <p style="font-size:15px; line-height:1.8; color:rgba(38,38,38,.6);">The design language of 4.8 heavily relies on asymmetrical, organic layouts — raw, black-and-white documentary photography as backdrop, with stark typographic contrasts. Instead of rigid, sterile grids, the posters and social media assets look like indie gig posters or local community flyers.</p>
+      </div>
+      <div style="padding:40px 48px; background:#fff; border:1px solid rgba(38,38,38,.08);">
+        <p style="font-size:9px; letter-spacing:.22em; text-transform:uppercase; color:rgba(38,38,38,.35); margin-bottom:16px;">Illustrative Language</p>
+        <p style="font-size:15px; line-height:1.8; color:rgba(38,38,38,.6);">The illustrative language acts as the 'Ink' to our 'Asphalt.' Featuring quick, unrefined doodles of glassware, pouring hands, and the bar's physical exterior — messy, zine-like, completely human. It makes high-end cocktails feel accessible and distinctly local.</p>
+      </div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px;" class="fade-in">
+      <div>
+        <img src="assets/48/slides/design_lang.png" alt="4.8 Design Language" class="slide-img">
+        <p class="slide-caption">Design Language — Asphalt & Ink applied</p>
+      </div>
+      <div>
+        <img src="assets/48/slides/illustrative.png" alt="4.8 Illustrative Language" class="slide-img">
+        <p class="slide-caption">Illustrative Language — Raw hand-drawn elements</p>
+      </div>
+    </div>
+
+    <div style="margin-top:24px;" class="fade-in">
+      <img src="assets/48/slides/sizing.png" alt="4.8 Applied Design" class="slide-img">
+      <p class="slide-caption">Applied Design — Posters & Social Assets</p>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="case-footer">
+    <div>
+      <div class="footer-label">Next Project</div>
+      <a href="index.html" class="footer-cta">Back to<br>Work →</a>
+    </div>
+    <div class="footer-right">
+      Ori Mor — Brand & Marketing Designer<br>
+      Tel Aviv · 2025
+    </div>
+  </footer>
+
+  <script>
+    const cur = document.getElementById('cur');
+    document.addEventListener('mousemove', e => {
+      cur.style.left = e.clientX + 'px';
+      cur.style.top = e.clientY + 'px';
+    });
+    document.querySelectorAll('a, button, .color-card, .tov-card, .copy-item').forEach(el => {
+      el.addEventListener('mouseenter', () => cur.classList.add('expanded'));
+      el.addEventListener('mouseleave', () => cur.classList.remove('expanded'));
+    });
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+  </script>
+</body>
+</html>

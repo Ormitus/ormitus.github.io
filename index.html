@@ -1,0 +1,1435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ori Mor — Designer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Caveat:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
+
+  <style>
+    @font-face {
+      font-family: 'YiddishAnarchy';
+      src: url('assets/fonts/YiddishAnarchy.otf') format('opentype');
+      font-weight: 400;
+    }
+    @font-face {
+      font-family: 'ClockworkTapoz';
+      src: url('assets/fonts/clockwork-tapoz.otf') format('opentype');
+      font-weight: 400;
+    }
+    @font-face {
+      font-family: 'Shlumpy';
+      src: url('assets/fonts/shlumpy.otf') format('opentype');
+      font-weight: 400;
+    }
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: auto; } /* Lenis handles smooth scroll */
+
+    :root {
+      --bg:   #f0ede7;
+      --ink:  #0a0907;
+      --mid:  rgba(10,9,7,.08);
+      --dim:  rgba(10,9,7,.3);
+      --hapoel: #C8001A;
+    }
+
+    /* ─── HAPOEL MODE — RED + WHITE ONLY ─── */
+    body.hapoel-mode {
+      --bg:  #C8001A;
+      --ink: #ffffff;
+      --mid: rgba(255,255,255,.18);
+      --dim: rgba(255,255,255,.5);
+    }
+    /* Hover sweep white, text flips to red */
+    body.hapoel-mode .project-row::before { background: #fff; }
+    body.hapoel-mode .project-row:hover .proj-num,
+    body.hapoel-mode .project-row:hover .proj-name,
+    body.hapoel-mode .project-row:hover .proj-cat,
+    body.hapoel-mode .project-row:hover .proj-year,
+    body.hapoel-mode .project-row:hover .proj-arrow { color: #C8001A; }
+    /* Loader */
+    body.hapoel-mode #loader { background: #C8001A; }
+    /* Faint grays → white-transparent */
+    body.hapoel-mode .proj-num,
+    body.hapoel-mode .proj-year,
+    body.hapoel-mode .proj-arrow { color: rgba(255,255,255,.35); }
+    body.hapoel-mode .work-count,
+    body.hapoel-mode .fonts-count,
+    body.hapoel-mode .posters-count { color: rgba(255,255,255,.3); }
+    body.hapoel-mode .scroll-hint { color: rgba(255,255,255,.4); }
+    body.hapoel-mode .scroll-hint::after { background: linear-gradient(to bottom, rgba(255,255,255,.3), transparent); }
+    body.hapoel-mode footer span { color: rgba(255,255,255,.35); }
+    /* Contact */
+    body.hapoel-mode .contact-headline .outline { -webkit-text-stroke-color: #fff; }
+    body.hapoel-mode .contact-link-item:hover { background: rgba(255,255,255,.1); }
+    body.hapoel-mode .contact-type { color: rgba(255,255,255,.5); }
+    /* Fonts section */
+    body.hapoel-mode .font-tagline { color: rgba(255,255,255,.5); }
+    body.hapoel-mode .font-desc { color: rgba(255,255,255,.55); }
+    body.hapoel-mode .font-display { color: #fff; }
+    body.hapoel-mode .glyph-row-label { color: rgba(255,255,255,.4); }
+    body.hapoel-mode .glyph-row { color: rgba(255,255,255,.45); }
+    body.hapoel-mode .glyph-cell { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.18); color: #fff; }
+    body.hapoel-mode .glyph-cell:hover { background: #fff; color: #C8001A; }
+    body.hapoel-mode .font-tester-wrap { background: rgba(0,0,0,.25); }
+    body.hapoel-mode .font-tester { color: #fff; }
+    body.hapoel-mode .font-tester-label { color: rgba(255,255,255,.3); }
+    body.hapoel-mode .font-tester-hint { color: rgba(255,255,255,.4); border-top-color: rgba(255,255,255,.12); }
+    /* Posters */
+    body.hapoel-mode #posters { border-top-color: rgba(255,255,255,.15); }
+    body.hapoel-mode .posters-hd { border-bottom-color: rgba(255,255,255,.15); }
+    /* Toggle */
+    body.hapoel-mode #hapoel-pill { background: rgba(255,255,255,.25); border-color: rgba(255,255,255,.3); }
+    /* Kill mix-blend-mode on red bg — would create cyan artifacts */
+    body.hapoel-mode nav { mix-blend-mode: normal; }
+    body.hapoel-mode .nav-logo { color: #fff; }
+    body.hapoel-mode .nav-links a { color: rgba(255,255,255,.55); }
+    body.hapoel-mode .nav-links a:hover { color: #fff; }
+    body.hapoel-mode .hero-inner { mix-blend-mode: normal; }
+    body.hapoel-mode .hero-tag { color: rgba(255,255,255,.55); }
+    body.hapoel-mode .hero-name { color: #fff; }
+    body.hapoel-mode .hero-name .line-outline { -webkit-text-stroke-color: #fff; }
+    body.hapoel-mode .hero-sub p { color: rgba(255,255,255,.55); }
+    body.hapoel-mode .hero-sub-line { background: rgba(255,255,255,.25); }
+    body.hapoel-mode #cur { background: #fff; mix-blend-mode: normal; }
+    body.hapoel-mode #cur-txt { color: #C8001A; }
+
+    /* ─── HAPOEL TOGGLE ─── */
+    #hapoel-toggle-wrap {
+      position: fixed; bottom: 36px; right: 48px; z-index: 600;
+      display: flex; flex-direction: column; align-items: flex-end; gap: 8px;
+    }
+    #hapoel-label {
+      font-size: 9px; letter-spacing: .22em; text-transform: uppercase;
+      color: var(--dim); transition: color .3s;
+    }
+    #hapoel-pill {
+      width: 96px; height: 50px; border-radius: 25px;
+      background: rgba(10,9,7,.1);
+      position: relative; cursor: pointer;
+      transition: background .4s;
+      border: 1px solid rgba(10,9,7,.1);
+    }
+    /* hapoel-pill override handled above */
+    #hapoel-knob {
+      position: absolute; top: 4px; left: 4px;
+      width: 40px; height: 40px; border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 2px 12px rgba(0,0,0,.2);
+      transition: transform .4s cubic-bezier(.34,1.3,.64,1);
+      overflow: hidden; display: flex; align-items: center; justify-content: center;
+    }
+    body.hapoel-mode #hapoel-knob { transform: translateX(46px); }
+    #hapoel-knob-off { width: 100%; height: 100%; object-fit: cover; position: absolute; transition: opacity .3s; }
+    #hapoel-knob-on  { width: 100%; height: 100%; object-fit: cover; position: absolute; opacity: 0; transition: opacity .3s; }
+    body.hapoel-mode #hapoel-knob-off { opacity: 0; }
+    body.hapoel-mode #hapoel-knob-on  { opacity: 1; }
+    body.hapoel-mode #hapoel-label { color: rgba(255,255,255,.6); }
+
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: 'Space Grotesk', sans-serif;
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* ─── LOADER ─── */
+    #loader {
+      position: fixed; inset: 0; z-index: 9000;
+      background: var(--ink);
+      display: flex; flex-direction: column;
+      align-items: flex-start; justify-content: flex-end;
+      padding: 64px;
+    }
+    #loader-num {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 22vw; font-weight: 700; line-height: .9;
+      color: #fff; letter-spacing: -.05em;
+      opacity: .07;
+    }
+    #loader-bar-track {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      height: 2px; background: rgba(255,255,255,.08);
+    }
+    #loader-bar { height: 100%; width: 0%; background: #fff; transition: width .05s linear; }
+    #loader-label {
+      position: absolute; top: 64px; left: 64px;
+      font-size: 11px; letter-spacing: .28em; text-transform: uppercase; color: rgba(255,255,255,.3);
+    }
+
+    /* ─── CURSOR ─── */
+    #cur {
+      position: fixed; z-index: 9999; pointer-events: none;
+      width: 8px; height: 8px; background: var(--ink); border-radius: 50%;
+      transform: translate(-50%,-50%);
+      transition: width .2s, height .2s;
+      mix-blend-mode: difference;
+    }
+    #cur.expanded { width: 60px; height: 60px; }
+    #cur-txt {
+      position: fixed; z-index: 9998; pointer-events: none;
+      font-size: 9px; letter-spacing: .22em; text-transform: uppercase;
+      color: var(--bg); transform: translate(-50%,-50%);
+      opacity: 0; transition: opacity .2s;
+      white-space: nowrap; font-family: 'Space Grotesk', sans-serif;
+    }
+    #cur.expanded + #cur-txt { opacity: 1; }
+
+    /* ─── NAV ─── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 500;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 32px 60px; mix-blend-mode: difference;
+    }
+    .nav-logo {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 13px; font-weight: 500; letter-spacing: .22em;
+      text-transform: uppercase; color: #fff; text-decoration: none;
+    }
+    .nav-links { display: flex; gap: 40px; list-style: none; }
+    .nav-links a {
+      font-size: 11px; letter-spacing: .2em; text-transform: uppercase;
+      color: rgba(255,255,255,.5); text-decoration: none;
+      transition: color .3s;
+    }
+    .nav-links a:hover { color: #fff; }
+
+    /* ─── HERO ─── */
+    #hero {
+      position: relative; height: 100vh; overflow: hidden;
+      display: flex; flex-direction: column; justify-content: flex-end;
+      background: #0a0907;
+    }
+    body.hapoel-mode #hero { background: #C8001A; }
+    #schnauzer-canvas {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+    }
+
+    /* ─── SHLUMPY ANNOTATION ─── */
+    .dog-annotation {
+      position: absolute; z-index: 11;
+      top: 25%; right: 34%;
+      pointer-events: none;
+      display: flex; flex-direction: column; align-items: flex-end; gap: 6px;
+    }
+    .annotation-label {
+      font-family: 'Caveat', cursive;
+      font-size: clamp(16px, 1.7vw, 22px);
+      color: rgba(255,255,255,.55);
+      line-height: 1.25; text-align: right;
+      transform: rotate(4deg);
+    }
+    .annotation-svg {
+      width: clamp(80px, 9vw, 130px);
+      align-self: flex-start;
+      margin-left: 14px;
+      opacity: .5;
+    }
+    body.hapoel-mode .annotation-label { color: rgba(255,255,255,.7); }
+    body.hapoel-mode .annotation-svg path { stroke: rgba(255,255,255,.7); }
+    .hero-inner {
+      position: relative; z-index: 10;
+      padding: 0 60px 70px;
+      mix-blend-mode: difference;
+    }
+    .hero-tag {
+      font-size: 11px; letter-spacing: .28em; text-transform: uppercase;
+      color: rgba(255,255,255,.5); margin-bottom: 16px;
+      opacity: 0; transform: translateY(20px);
+    }
+    .hero-name {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(88px, 14vw, 208px);
+      font-weight: 700; line-height: .86;
+      letter-spacing: -.04em; color: #fff;
+    }
+    .hero-name .line-fill {
+      display: block;
+      opacity: 0; transform: translateY(60px);
+    }
+    .hero-name .line-outline {
+      display: block;
+      -webkit-text-stroke: 2px #fff;
+      color: transparent;
+      opacity: 0; transform: translateY(60px);
+    }
+    .hero-sub {
+      display: flex; align-items: center; gap: 32px;
+      margin-top: 32px;
+      opacity: 0; transform: translateY(20px);
+    }
+    .hero-sub p {
+      font-size: 13px; letter-spacing: .1em; color: rgba(255,255,255,.5);
+      text-transform: uppercase;
+    }
+    .hero-sub-line {
+      flex: 1; max-width: 120px; height: 1px;
+      background: rgba(255,255,255,.2);
+    }
+    .scroll-hint {
+      position: absolute; right: 60px; bottom: 70px; z-index: 10;
+      display: flex; flex-direction: column; align-items: center; gap: 14px;
+      color: rgba(255,255,255,.3);
+      font-size: 9px; letter-spacing: .26em; text-transform: uppercase;
+      writing-mode: vertical-rl;
+      opacity: 0;
+    }
+    .scroll-hint::after {
+      content: '';
+      width: 1px; height: 60px;
+      background: linear-gradient(to bottom, rgba(255,255,255,.22), transparent);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:.3} 50%{opacity:.9} }
+
+    /* ─── FLOATING PROJECT IMAGE ─── */
+    #float-img {
+      position: fixed; z-index: 800; pointer-events: none;
+      width: 380px; height: 240px; overflow: hidden;
+      transform: translate(-50%, -65%) scale(0) rotate(4deg);
+      opacity: 0;
+      transition: opacity .35s, transform .45s cubic-bezier(.34,1.56,.64,1);
+      border-radius: 4px;
+      box-shadow: 0 24px 80px rgba(10,9,7,.18), 0 0 0 1px rgba(10,9,7,.06);
+    }
+    #float-img.visible {
+      opacity: 1;
+      transform: translate(-50%, -65%) scale(1) rotate(-1.5deg);
+    }
+    #float-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+    /* ─── WORK SECTION ─── */
+    #work { padding: 100px 60px; border-top: 1px solid var(--mid); }
+    .work-hd {
+      display: flex; justify-content: space-between; align-items: flex-end;
+      margin-bottom: 16px; padding-bottom: 20px;
+      border-bottom: 1px solid var(--mid);
+    }
+    .work-label {
+      font-size: 10px; letter-spacing: .3em; text-transform: uppercase; color: var(--dim);
+    }
+    .work-count {
+      font-size: 10px; letter-spacing: .22em; color: rgba(10,9,7,.2); text-transform: uppercase;
+    }
+    .project-row {
+      display: grid;
+      grid-template-columns: 54px 1fr auto 60px 40px;
+      gap: 0 28px; align-items: center;
+      padding: 26px 0; border-bottom: 1px solid var(--mid);
+      cursor: none; position: relative; overflow: hidden;
+    }
+    .project-row::before {
+      content: ''; position: absolute; inset: 0;
+      background: var(--ink); transform: scaleX(0); transform-origin: left;
+      transition: transform .45s cubic-bezier(.76,0,.24,1);
+      z-index: 0;
+    }
+    .project-row:hover::before { transform: scaleX(1); }
+    .project-row > * { position: relative; z-index: 1; transition: color .25s; }
+    .proj-num {
+      font-size: 11px; color: var(--dim); letter-spacing: .12em;
+      font-variant-numeric: tabular-nums;
+    }
+    .proj-name {
+      font-size: clamp(28px, 3.2vw, 52px);
+      font-weight: 700; letter-spacing: -.04em; line-height: 1; color: var(--ink);
+    }
+    .proj-cat {
+      font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--dim);
+      white-space: nowrap;
+    }
+    .proj-year {
+      font-size: 11px; letter-spacing: .1em;
+      color: rgba(10,9,7,.2); transition: color .25s;
+      font-variant-numeric: tabular-nums;
+      min-width: 40px; text-align: right;
+    }
+    .proj-arrow {
+      font-size: 20px; color: rgba(10,9,7,.2);
+      transition: color .25s, transform .3s;
+      text-align: right;
+    }
+    .project-row:hover .proj-num,
+    .project-row:hover .proj-name,
+    .project-row:hover .proj-cat,
+    .project-row:hover .proj-year,
+    .project-row:hover .proj-arrow { color: #fff; }
+    .project-row:hover .proj-arrow { transform: rotate(-45deg); }
+
+
+    /* ─── POSTERS SECTION ─── */
+    #posters {
+      padding: 56px 60px 0;
+      border-top: 1px solid var(--mid);
+    }
+    .posters-hd {
+      display: flex; justify-content: space-between; align-items: flex-end;
+      margin-bottom: 0; padding-bottom: 20px;
+      border-bottom: 1px solid var(--mid);
+    }
+    .posters-label {
+      font-size: 10px; letter-spacing: .3em; text-transform: uppercase; color: var(--dim);
+    }
+    .posters-count {
+      font-size: 10px; letter-spacing: .22em; color: rgba(10,9,7,.2); text-transform: uppercase;
+    }
+    .posters-grid {
+      columns: 5 200px;
+      column-gap: 10px;
+    }
+    .poster-item {
+      break-inside: avoid;
+      margin-bottom: 10px;
+      overflow: hidden;
+      border-radius: 6px;
+    }
+    .poster-item img {
+      width: 100%; display: block;
+      transition: transform .5s cubic-bezier(.25,.46,.45,.94), opacity .3s;
+      opacity: .92;
+    }
+    .poster-item:hover img { transform: scale(1.04); opacity: 1; }
+    body.hapoel-mode #posters { border-top-color: rgba(255,255,255,.15); }
+    body.hapoel-mode .posters-hd { border-bottom-color: rgba(255,255,255,.15); }
+
+    /* ─── FONTS SECTION ─── */
+    #fonts {
+      padding: 56px 60px 0;
+      border-top: 1px solid var(--mid);
+    }
+    .fonts-hd {
+      display: flex; justify-content: space-between; align-items: flex-end;
+      margin-bottom: 0; padding-bottom: 20px;
+      border-bottom: 1px solid var(--mid);
+    }
+    .fonts-label {
+      font-size: 10px; letter-spacing: .3em; text-transform: uppercase;
+      color: var(--dim);
+    }
+    .fonts-count {
+      font-size: 10px; letter-spacing: .22em; color: rgba(10,9,7,.2);
+      text-transform: uppercase;
+    }
+
+    .font-item { margin-bottom: 100px; }
+    .font-item-sep { border-top: 1px solid var(--mid); padding-top: 80px; }
+
+    .font-meta {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      gap: 40px; margin-bottom: 48px;
+    }
+    .font-name-block {}
+    .font-name {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(32px, 4vw, 56px);
+      font-weight: 700; letter-spacing: -.03em; line-height: 1;
+      color: var(--ink);
+    }
+    .font-tagline {
+      font-size: 12px; letter-spacing: .18em; text-transform: uppercase;
+      color: var(--dim); margin-top: 10px;
+    }
+    .font-desc {
+      max-width: 360px;
+      font-size: 14px; line-height: 1.75; color: rgba(10,9,7,.5);
+    }
+
+    /* Big display sample */
+    .font-display {
+      font-family: 'YiddishAnarchy', sans-serif;
+      font-size: clamp(60px, 10vw, 140px);
+      line-height: 1; letter-spacing: -.01em;
+      color: var(--ink); margin-bottom: 60px;
+      direction: rtl;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+
+    /* Per-font overrides */
+    .font-item[data-font="tapoz"] .font-display,
+    .font-item[data-font="tapoz"] .glyph-cell,
+    .font-item[data-font="tapoz"] .font-tester { font-family: 'ClockworkTapoz', sans-serif; }
+    .font-item[data-font="shlumpy"] .font-display,
+    .font-item[data-font="shlumpy"] .glyph-cell,
+    .font-item[data-font="shlumpy"] .font-tester { font-family: 'Shlumpy', sans-serif; }
+
+    /* Glyph grid */
+    .glyph-grid {
+      display: flex; flex-wrap: wrap; gap: 2px;
+      margin-bottom: 48px;
+    }
+    .glyph-cell {
+      width: 64px; height: 64px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'YiddishAnarchy', sans-serif;
+      font-size: 32px;
+      color: var(--ink);
+      border: 1px solid var(--mid);
+      border-radius: 4px;
+      background: #fff;
+      transition: background .2s, color .2s;
+      direction: rtl;
+    }
+    .glyph-cell:hover { background: var(--ink); color: var(--bg); }
+
+    /* Font tester */
+    .font-tester-wrap {
+      background: var(--ink);
+      border-radius: 16px;
+      padding: 48px 52px;
+      position: relative;
+    }
+    .font-tester-label {
+      font-size: 9px; letter-spacing: .28em; text-transform: uppercase;
+      color: rgba(255,255,255,.25); margin-bottom: 20px;
+    }
+    .font-tester {
+      font-family: 'YiddishAnarchy', sans-serif;
+      font-size: clamp(36px, 5vw, 72px);
+      line-height: 1.2;
+      color: #fff;
+      background: transparent; border: none; outline: none;
+      width: 100%; resize: none;
+      direction: rtl;
+      caret-color: rgba(255,255,255,.6);
+    }
+    .font-tester::placeholder { color: rgba(255,255,255,.35); }
+    .font-tester-hint {
+      font-size: 10px; letter-spacing: .18em; text-transform: uppercase;
+      color: rgba(255,255,255,.45); margin-top: 20px;
+      display: flex; justify-content: space-between;
+      border-top: 1px solid rgba(255,255,255,.12); padding-top: 16px;
+    }
+    /* ─ Tester controls ─ */
+    .tester-controls {
+      display: flex; gap: 32px; margin-bottom: 28px; flex-wrap: wrap;
+    }
+    .tester-control {
+      display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 140px;
+    }
+    .tester-control-label {
+      font-size: 9px; letter-spacing: .24em; text-transform: uppercase;
+      color: rgba(255,255,255,.3);
+      display: flex; justify-content: space-between;
+    }
+    .tester-control-label span { color: rgba(255,255,255,.55); }
+    input[type=range].tester-range {
+      -webkit-appearance: none; appearance: none;
+      width: 100%; height: 2px;
+      background: rgba(255,255,255,.15); border-radius: 2px; outline: none;
+      cursor: pointer;
+    }
+    input[type=range].tester-range::-webkit-slider-thumb {
+      -webkit-appearance: none; appearance: none;
+      width: 14px; height: 14px; border-radius: 50%;
+      background: #fff; cursor: pointer;
+      box-shadow: 0 0 0 3px rgba(255,255,255,.15);
+      transition: box-shadow .2s;
+    }
+    input[type=range].tester-range::-webkit-slider-thumb:hover {
+      box-shadow: 0 0 0 5px rgba(255,255,255,.25);
+    }
+    /* ─ Section collapse (fonts / posters) ─ */
+    .section-toggle {
+      cursor: pointer; user-select: none;
+      display: flex; justify-content: space-between; align-items: flex-end;
+    }
+    .section-toggle-arrow {
+      font-size: 18px; color: var(--dim); line-height: 1;
+      transition: transform .45s cubic-bezier(.4,0,.2,1);
+      margin-left: auto; padding-left: 20px; padding-right: 14px;
+      display: inline-block;
+    }
+    .section-toggle.open .section-toggle-arrow { transform: rotate(90deg); }
+    .section-collapse {
+      display: grid; grid-template-rows: 0fr;
+      transition: grid-template-rows .52s cubic-bezier(.4,0,.2,1);
+    }
+    .section-collapse.open { grid-template-rows: 1fr; }
+    .section-collapse > .collapse-inner { overflow: hidden; }
+    .section-collapse > .collapse-inner > .collapse-pad { padding: 56px 0 80px; }
+    body.hapoel-mode .section-toggle-arrow { color: rgba(255,255,255,.4); }
+
+    /* Specimen row: alphabet small */
+    .glyph-row-label {
+      font-size: 9px; letter-spacing: .22em; text-transform: uppercase;
+      color: var(--dim); margin-bottom: 16px; margin-top: 32px;
+    }
+    .glyph-row {
+      font-family: 'YiddishAnarchy', sans-serif;
+      font-size: 28px; letter-spacing: .06em;
+      color: rgba(10,9,7,.55); line-height: 1.8;
+      direction: rtl;
+    }
+
+    /* ─── CONTACT ─── */
+    #contact {
+      padding: 120px 60px 100px;
+      border-top: 1px solid var(--mid);
+    }
+    .contact-eyebrow {
+      font-size: 10px; letter-spacing: .3em; text-transform: uppercase;
+      color: var(--dim); margin-bottom: 40px;
+    }
+    .contact-headline {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(52px, 8vw, 130px);
+      font-weight: 700; line-height: .88; letter-spacing: -.04em;
+      color: var(--ink); margin-bottom: 80px;
+    }
+    .contact-headline .outline {
+      -webkit-text-stroke: 2px var(--ink);
+      color: transparent;
+      display: block;
+    }
+    .contact-links {
+      display: flex; gap: 0; align-items: stretch;
+      border-top: 1px solid var(--mid);
+    }
+    .contact-link-item {
+      flex: 1; padding: 36px 0;
+      border-right: 1px solid var(--mid);
+      text-decoration: none;
+      display: flex; flex-direction: column; gap: 10px;
+      transition: background .3s; cursor: none;
+      padding-left: 4px;
+    }
+    .contact-link-item:last-child { border-right: none; }
+    .contact-link-item:hover { background: var(--mid); }
+    .contact-type {
+      font-size: 9px; letter-spacing: .28em; text-transform: uppercase;
+      color: var(--dim);
+    }
+    .contact-val {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(15px, 2vw, 26px);
+      font-weight: 500; color: var(--ink);
+      transition: letter-spacing .3s;
+    }
+    .contact-link-item:hover .contact-val { letter-spacing: .03em; }
+
+    /* ─── FOOTER ─── */
+    footer {
+      padding: 28px 60px;
+      display: flex; justify-content: space-between; align-items: center;
+      border-top: 1px solid var(--mid);
+    }
+    footer span {
+      font-size: 10px; letter-spacing: .18em; text-transform: uppercase;
+      color: rgba(10,9,7,.2);
+    }
+
+    /* ─── REVEAL utility ─── */
+    .reveal { opacity: 0; transform: translateY(40px); }
+
+    /* ─── RESPONSIVE ─── */
+    @media(max-width: 1024px) {
+      nav { padding: 28px 40px; }
+      .hero-inner { padding: 0 40px 60px; }
+      #work, #contact, #loader { padding: 100px 40px 80px; }
+      #fonts, #posters { padding: 48px 40px 0; }
+      #loader { padding: 48px; }
+      .posters-grid { columns: 4 160px; }
+      .font-tester-wrap { padding: 36px 40px; }
+    }
+
+    @media(max-width: 768px) {
+      nav { padding: 22px 24px; }
+      .nav-links { gap: 24px; }
+      .nav-links a { font-size: 10px; }
+      .hero-inner { padding: 0 24px 52px; }
+      #work { padding: 80px 24px 60px; }
+      #contact { padding: 70px 24px 60px; }
+      #fonts, #posters { padding: 44px 24px 0; }
+      #loader { padding: 32px; }
+      footer { padding: 22px 24px; }
+
+      /* Hero */
+      .dog-annotation { top: 8%; right: 4%; }
+      .scroll-hint { right: 24px; bottom: 40px; }
+
+      /* Project rows — compact 3-col */
+      .project-row { grid-template-columns: 38px 1fr 36px; gap: 0 12px; padding: 20px 0; }
+      .proj-cat, .proj-year { display: none; }
+      .proj-name { font-size: clamp(22px, 6vw, 36px); }
+
+      /* Contact */
+      .contact-links { flex-direction: column; }
+      .contact-link-item { border-right: none; border-bottom: 1px solid var(--mid); }
+      .contact-headline { font-size: clamp(44px, 12vw, 80px); margin-bottom: 52px; }
+
+      /* Fonts */
+      .font-meta { flex-direction: column; gap: 20px; }
+      .font-desc { max-width: 100%; }
+      .glyph-cell { width: 48px; height: 48px; font-size: 24px; }
+      .font-item { margin-bottom: 60px; }
+      .font-display { font-size: clamp(48px, 10vw, 100px); }
+      .font-tester-wrap { padding: 28px 24px; }
+      .tester-controls { gap: 20px; }
+
+      /* Posters */
+      .posters-grid { columns: 2 120px; column-gap: 6px; }
+      .poster-item { margin-bottom: 6px; }
+
+      /* Float image hidden on touch */
+      #float-img { display: none; }
+      #cur, #cur-txt { display: none; }
+      body { cursor: auto; }
+      .project-row { cursor: pointer; }
+
+      /* Hapoel toggle smaller */
+      #hapoel-toggle-wrap { bottom: 24px; right: 24px; }
+    }
+
+    @media(max-width: 480px) {
+      /* Nav */
+      .nav-links li:nth-child(n+3) { display: none; }
+      .nav-logo { font-size: 12px; }
+
+      /* Hero */
+      .hero-name { font-size: clamp(56px, 18vw, 88px); }
+      .hero-sub { gap: 16px; margin-top: 20px; }
+      .hero-sub p { font-size: 10px; }
+      .scroll-hint { right: 16px; bottom: 28px; font-size: 8px; }
+      .dog-annotation { top: 6%; right: 2%; }
+      .annotation-label { font-size: clamp(12px, 3.2vw, 16px); }
+      .annotation-svg { width: clamp(50px, 12vw, 80px); }
+
+      /* Work */
+      #work { padding: 60px 16px 40px; }
+      .project-row { grid-template-columns: 30px 1fr 28px; gap: 0 8px; padding: 16px 0; }
+      .proj-num { font-size: 9px; }
+      .proj-name { font-size: clamp(18px, 5vw, 28px); }
+
+      /* Fonts */
+      #fonts, #posters { padding: 36px 16px 0; }
+      .font-name { font-size: clamp(24px, 7vw, 40px); }
+      .font-display { font-size: clamp(36px, 9vw, 72px); }
+      .glyph-cell { width: 40px; height: 40px; font-size: 18px; }
+      .font-item { margin-bottom: 40px; }
+      .font-meta { gap: 12px; }
+      .font-tester { font-size: clamp(24px, 6vw, 48px); }
+      .font-tester-wrap { padding: 20px 16px; }
+      .tester-controls { flex-direction: column; gap: 12px; }
+
+      /* Contact */
+      #contact { padding: 50px 16px 40px; }
+      .contact-headline { font-size: clamp(36px, 10vw, 64px); margin-bottom: 36px; }
+      .contact-link-item { padding: 24px 0; }
+      .contact-val { font-size: clamp(13px, 3.5vw, 20px); }
+
+      /* Footer */
+      footer { padding: 18px 16px; }
+
+      /* Posters */
+      .posters-grid { columns: 2 100px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- LOADER -->
+  <div id="loader">
+    <span id="loader-label">Loading</span>
+    <div id="loader-num">0</div>
+    <div id="loader-bar-track"><div id="loader-bar"></div></div>
+  </div>
+
+  <!-- CURSOR -->
+  <div id="cur"></div>
+  <div id="cur-txt">View</div>
+
+  <!-- FLOATING PROJECT IMAGE -->
+  <div id="float-img"><img src="" alt="" id="float-img-el"></div>
+
+  <!-- NAV -->
+  <nav>
+    <a href="#" class="nav-logo">Ori Mor</a>
+    <ul class="nav-links">
+      <li><a href="#work">Work</a></li>
+      <li><a href="#fonts">Fonts</a></li>
+      <li><a href="#posters">Posters</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+  </nav>
+
+  <!-- HERO -->
+  <section id="hero">
+    <canvas id="schnauzer-canvas"></canvas>
+    <div class="dog-annotation">
+      <div class="annotation-label">this is shlumpy<br>my dog</div>
+      <svg class="annotation-svg" viewBox="0 0 110 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M 98,6 C 88,10 74,16 60,26 C 44,37 32,50 24,64 C 21,70 19,74 18,77"
+              stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M 18,77 L 8,66 M 18,77 L 30,70"
+              stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- extra wobble tick for hand-drawn feel -->
+        <path d="M 60,26 C 59,24 61,22 60,26" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
+      </svg>
+    </div>
+    <div class="hero-inner">
+      <p class="hero-tag">Brand · UX · Art Direction</p>
+      <h1 class="hero-name">
+        <span class="line-fill">Ori</span>
+        <span class="line-outline">Mor.</span>
+      </h1>
+      <div class="hero-sub">
+        <div class="hero-sub-line"></div>
+        <p>Brand &amp; Visual Designer · Tel Aviv</p>
+      </div>
+    </div>
+    <div class="scroll-hint">Scroll</div>
+  </section>
+
+  <!-- WORK -->
+  <section id="work">
+    <div class="work-hd reveal">
+      <span class="work-label">Selected Work</span>
+      <span class="work-count">07 Projects</span>
+    </div>
+    <div class="project-row" data-href="48.html" data-img="assets/screens/48.jpg">
+      <span class="proj-num">01</span>
+      <h3 class="proj-name">4.8 Bar</h3>
+      <span class="proj-cat">Brand · Identity</span>
+      <span class="proj-year">2026</span>
+      <span class="proj-arrow">↗</span>
+    </div>
+    <div class="project-row" data-href="argo.html" data-img="assets/screens/argo.jpg">
+      <span class="proj-num">02</span>
+      <h3 class="proj-name">ARGO</h3>
+      <span class="proj-cat">Product · UX</span>
+      <span class="proj-year">2025</span>
+      <span class="proj-arrow">↗</span>
+    </div>
+    <div class="project-row" data-href="haggadah.html" data-img="assets/screens/haggadah.jpg">
+      <span class="proj-num">03</span>
+      <h3 class="proj-name">Asufa Passover Haggadah</h3>
+      <span class="proj-cat">Book Design · Editorial</span>
+      <span class="proj-year">2026</span>
+      <span class="proj-arrow">↗</span>
+    </div>
+    <div class="project-row" data-href="rootswings.html" data-img="assets/screens/rootswings.jpg">
+      <span class="proj-num">04</span>
+      <h3 class="proj-name">Roots &amp; Wings</h3>
+      <span class="proj-cat">Art Direction · Music</span>
+      <span class="proj-year">2025</span>
+      <span class="proj-arrow">↗</span>
+    </div>
+    <div class="project-row" data-href="germany.html" data-img="assets/screens/germany.jpg">
+      <span class="proj-num">05</span>
+      <h3 class="proj-name">German Embassy Competition Winner Logo</h3>
+      <span class="proj-cat">Logo · Diplomatic</span>
+      <span class="proj-year">2025</span>
+      <span class="proj-arrow">↗</span>
+    </div>
+    <div class="project-row" data-href="perrier.html" data-img="assets/screens/perrier.jpg">
+      <span class="proj-num">06</span>
+      <h3 class="proj-name">Perrier</h3>
+      <span class="proj-cat">Brand · Campaign</span>
+      <span class="proj-year">2024</span>
+      <span class="proj-arrow">↗</span>
+    </div>
+    <div class="project-row" data-href="https://www.tetristypo.com/" data-external="true" data-img="assets/tetris.png">
+      <span class="proj-num">07</span>
+      <h3 class="proj-name">Tetris Typo</h3>
+      <span class="proj-cat">Typography · Interactive</span>
+      <span class="proj-year">2024</span>
+      <span class="proj-arrow">↗</span>
+    </div>
+  </section>
+
+  <!-- FONTS -->
+  <section id="fonts">
+    <div class="fonts-hd section-toggle reveal" data-target="fonts-body">
+      <span class="fonts-label">Type Design</span>
+      <span class="section-toggle-arrow">→</span>
+      <span class="fonts-count">03 Typefaces</span>
+    </div>
+    <div class="section-collapse" id="fonts-body">
+    <div class="collapse-inner">
+    <div class="collapse-pad">
+    <!-- Yiddish Anarchy -->
+    <div class="font-item reveal">
+      <div class="font-name-block">
+        <div class="font-name">Yiddish Anarchy</div>
+        <div class="font-tagline">Hebrew Script · Anarchist Influence · 2025</div>
+      </div>
+      <div class="font-display">אנרכיה</div>
+      <div class="glyph-grid" id="glyph-grid-heb"></div>
+      <div class="glyph-grid" id="glyph-grid-finals"></div>
+      <div class="glyph-grid" id="glyph-grid-nums"></div>
+      <div class="font-tester-wrap">
+        <div class="font-tester-label">Type to test</div>
+        <div class="tester-controls">
+          <div class="tester-control">
+            <div class="tester-control-label">Size <span id="tester-size-label">72px</span></div>
+            <input type="range" class="tester-range" id="tester-size" min="24" max="160" value="72">
+          </div>
+          <div class="tester-control">
+            <div class="tester-control-label">Spacing <span id="tester-spacing-label">0em</span></div>
+            <input type="range" class="tester-range" id="tester-spacing" min="-5" max="30" value="0">
+          </div>
+        </div>
+        <textarea class="font-tester" rows="2" placeholder="כתוב כאן..."></textarea>
+        <div class="font-tester-hint"><span>Yiddish Anarchy — Hebrew script</span></div>
+      </div>
+    </div>
+
+    <!-- Clockwork Tapoz -->
+    <div class="font-item reveal font-item-sep" data-font="tapoz">
+      <div class="font-name-block">
+        <div class="font-name">Clockwork Tapoz</div>
+        <div class="font-tagline">Hebrew Script · Mechanical · 2024</div>
+      </div>
+      <div class="font-display">תפוז</div>
+      <div class="glyph-grid" id="glyph-grid-tapoz-heb"></div>
+      <div class="glyph-grid" id="glyph-grid-tapoz-finals"></div>
+      <div class="font-tester-wrap">
+        <div class="font-tester-label">Type to test</div>
+        <div class="tester-controls">
+          <div class="tester-control">
+            <div class="tester-control-label">Size <span id="tester-tapoz-size-label">72px</span></div>
+            <input type="range" class="tester-range" id="tester-tapoz-size" min="24" max="160" value="72">
+          </div>
+          <div class="tester-control">
+            <div class="tester-control-label">Spacing <span id="tester-tapoz-spacing-label">0em</span></div>
+            <input type="range" class="tester-range" id="tester-tapoz-spacing" min="-5" max="30" value="0">
+          </div>
+        </div>
+        <textarea class="font-tester" id="tester-tapoz" rows="2" placeholder="כתוב כאן..."></textarea>
+        <div class="font-tester-hint"><span>Clockwork Tapoz — Hebrew script</span></div>
+      </div>
+    </div>
+
+    <!-- Shlumpy -->
+    <div class="font-item reveal font-item-sep" data-font="shlumpy">
+      <div class="font-name-block">
+        <div class="font-name">Shlumpy</div>
+        <div class="font-tagline">Hebrew Script · Comics &amp; Illustration · 2024</div>
+      </div>
+      <div class="font-display">שלומפי</div>
+      <div class="glyph-grid" id="glyph-grid-shlumpy-heb"></div>
+      <div class="glyph-grid" id="glyph-grid-shlumpy-finals"></div>
+      <div class="glyph-grid" id="glyph-grid-shlumpy-nums"></div>
+      <div class="font-tester-wrap">
+        <div class="font-tester-label">Type to test</div>
+        <div class="tester-controls">
+          <div class="tester-control">
+            <div class="tester-control-label">Size <span id="tester-shlumpy-size-label">72px</span></div>
+            <input type="range" class="tester-range" id="tester-shlumpy-size" min="24" max="160" value="72">
+          </div>
+          <div class="tester-control">
+            <div class="tester-control-label">Spacing <span id="tester-shlumpy-spacing-label">0em</span></div>
+            <input type="range" class="tester-range" id="tester-shlumpy-spacing" min="-5" max="30" value="0">
+          </div>
+        </div>
+        <textarea class="font-tester" id="tester-shlumpy" rows="2" placeholder="כתוב כאן..."></textarea>
+        <div class="font-tester-hint"><span>Shlumpy — Hebrew script</span></div>
+      </div>
+    </div>
+
+    </div><!-- /collapse-pad -->
+    </div><!-- /collapse-inner -->
+    </div><!-- /section-collapse -->
+  </section>
+
+  <!-- POSTERS -->
+  <section id="posters">
+    <div class="posters-hd section-toggle" data-target="posters-body">
+      <span class="posters-label">Posters &amp; Visuals</span>
+      <span class="section-toggle-arrow">→</span>
+      <span class="posters-count">70 works</span>
+    </div>
+    <div class="section-collapse" id="posters-body">
+    <div class="collapse-inner">
+    <div class="collapse-pad">
+    <div class="posters-grid">
+      <div class="poster-item"><img src="assets/posters/1.jpeg" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/2.jpeg" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/3.jpeg" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/4.jpeg" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/5.jpeg" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/6.jpeg" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/ACID_VS_DAMIAN_Large.jpeg" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/ADAM_VS_VIVIANO_Large.jpeg" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/ALL_ARTIST_Large.jpeg" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/BONTAN_IMAGE_1_Large.jpeg" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/CdW_LA_6thStreetBridge_4x5_1_Large.jpeg" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/DENNIS_VS_AGAMI_Large.jpeg" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/ECHO_VS_JENIA_Large.jpeg" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/END_OF_THE_YEAR_Large.jpeg" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/FINAL_POSTER.jpeg" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/MISHELL_POST_Large.jpeg" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/NOY_ARGENTINA_Large.jpeg" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/PAGE_1.jpeg" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/PAGE_1_Large.png" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/PAGE_2.png" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/PAGE_2_Large.png" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/POST.jpeg" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/POST26_Large.jpeg" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/POST_10_Large.jpeg" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/POST_11_Large.jpeg" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/POST_12_Large.jpeg" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/POST_13_Large.jpeg" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/POST_16_Large.jpeg" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/POST_17_Large.jpeg" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/POST_18_Large.jpeg" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/POST_2_Large.jpeg" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/POST_3_Large.jpeg" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/POST_4_Large.jpeg" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/POST_5_Large.jpeg" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/POST_6_Large.jpeg" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/POST_7_Large.jpeg" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/POST_8_Large.jpeg" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/POST_9_Large.jpeg" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/POST_Large.jpeg" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/POST_SIZE.jpeg" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/RAKKASVII_Large.jpeg" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/RDDL_VALENTINE_POST.jpeg" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/SHLIFF_X_SAMSARA_POST_Large.jpeg" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/messfromhell.jpeg" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/page_2_Large.jpeg" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/post_14_Large.jpeg" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/post_15_Large.jpeg" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/post_final_Large.jpeg" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/rddl_post_2.jpeg" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/%D7%91%D7%9E%D7%A8%D7%97%D7%A7_%D7%A0%D7%92%D7%99%D7%A2%D7%94_%D7%9E%D7%9B%D7%90%D7%9F_copy.png" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/%D7%97%D7%99%D7%99%D7%9D_%D7%92%D7%A8%D7%90%D7%A0%D7%92_Large.png" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/%D7%98%D7%99%D7%96%D7%A8_%D7%A4%D7%95%D7%A1%D7%98_%D7%9C%D7%90%D7%99%D7%A0%D7%A1%D7%98%D7%92%D7%A8%D7%9D.jpeg" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/%D7%99%D7%95%D7%9D_%D7%97%D7%9E%D7%99%D7%A9%D7%99_%D7%A4%D7%95%D7%A1%D7%98.png" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/%D7%9C%D7%99%D7%99%D7%9F_%D7%90%D7%A4_%D7%90%D7%95%D7%9E%D7%A0%D7%99%D7%9D_%D7%A1%D7%98%D7%95%D7%A8%D7%99_Large.png" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/%D7%9E%D7%90%D7%99%D7%94_%D7%97%D7%91%D7%99%D7%91_%D7%92%D7%95%D7%93%D7%9C_%D7%A8%D7%99%D7%91%D7%95%D7%A2_Large.jpeg" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/%D7%9E%D7%9B%D7%91%D7%99_%D7%A4%D7%95%D7%A1%D7%98_Large.jpeg" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/%D7%9E%D7%A4%D7%94_%D7%9E%D7%99%D7%93%D7%91%D7%A8%D7%9F_Large.jpeg" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/%D7%A2%D7%9E%D7%95%D7%93_2_Large.png" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/%D7%A4%D7%95%D7%A1%D7%98.jpeg" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/%D7%A4%D7%95%D7%A1%D7%98.png" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/%D7%A4%D7%95%D7%A1%D7%98_-_%D7%A4%D7%95%D7%A1%D7%98%D7%A8_%D7%A8%D7%90%D7%A9%D7%99_Large.jpeg" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/%D7%A4%D7%95%D7%A1%D7%98_%D7%90%D7%9E%D7%A0%D7%99%D7%9D_Large.jpeg" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/%D7%A4%D7%95%D7%A1%D7%98_%D7%9C%D7%90%D7%99%D7%A0%D7%A1%D7%98%D7%92%D7%A8%D7%9D_copy_2_Large.jpeg" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/%D7%A4%D7%95%D7%A1%D7%98_%D7%A2%D7%9D_%D7%9C%D7%99%D7%99%D7%9F_%D7%90%D7%A4__Large.jpeg" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/%D7%A8%D7%99%D7%91%D7%95%D7%A2_%D7%9C%D7%94%D7%A4%D7%A6%D7%94_Large.jpeg" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/%D7%A8%D7%99%D7%91%D7%95%D7%A2_%D7%9C%D7%99%D7%99%D7%9F_%D7%90%D7%A4__Large.png" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/%D7%A9%D7%99%D7%A8%D7%91%D7%95%D7%A9%D7%A7%D7%94_Large.jpeg" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/%D7%A9%D7%99%D7%A9%D7%99_%D7%A4%D7%95%D7%A1%D7%98.png" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/%D7%A9%D7%9C%D7%99%D7%A9%D7%99_%D7%A4%D7%95%D7%A1%D7%98.png" loading="lazy" alt=""></div>
+      <div class="poster-item"><img src="assets/posters/%D7%A9%D7%A0%D7%99_Large.jpeg" loading="lazy" alt=""></div>
+    </div><!-- /posters-grid -->
+    </div><!-- /collapse-pad -->
+    </div><!-- /collapse-inner -->
+    </div><!-- /section-collapse -->
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact">
+    <p class="contact-eyebrow reveal">Let's Work Together</p>
+    <h2 class="contact-headline reveal">
+      Got a<br>project in<br><span class="outline">mind?</span>
+    </h2>
+    <div class="contact-links reveal">
+      <a href="mailto:ormitus@gmail.com" class="contact-link-item">
+        <span class="contact-type">Email</span>
+        <span class="contact-val">ormitus@gmail.com</span>
+      </a>
+      <a href="https://www.linkedin.com/in/ori-mor-3a751a1a7/" class="contact-link-item" target="_blank">
+        <span class="contact-type">LinkedIn</span>
+        <span class="contact-val">Ori Mor</span>
+      </a>
+      <a href="https://www.instagram.com/ormituss/" class="contact-link-item" target="_blank">
+        <span class="contact-type">Instagram</span>
+        <span class="contact-val">@ormituss</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- HAPOEL TOGGLE -->
+  <div id="hapoel-toggle-wrap">
+    <span id="hapoel-label">Hapoel Mode</span>
+    <div id="hapoel-pill">
+      <div id="hapoel-knob">
+        <img id="hapoel-knob-off" src="assets/hapoel_badge.png" alt="">
+        <img id="hapoel-knob-on"  src="assets/hapoel_logo.png"  alt="הפועל ת״א">
+      </div>
+    </div>
+  </div>
+
+  <!-- AUDIO -->
+  <audio id="hapoel-audio" src="assets/hapoel.mp3" loop preload="none"></audio>
+
+  <!-- FOOTER -->
+  <footer>
+    <span>© 2026 Ori Mor</span>
+    <span>Brand · UX · Art Direction</span>
+  </footer>
+
+
+  <!-- ══════════════════ SCRIPTS ══════════════════ -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/loaders/MTLLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/loaders/OBJLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+  <script>
+  window.addEventListener('load', function() {
+
+  /* ── LOADER ── */
+  var loaderEl  = document.getElementById('loader');
+  var loaderBar = document.getElementById('loader-bar');
+  var loaderNum = document.getElementById('loader-num');
+  var loadVal   = 0;
+
+  var loadTick = setInterval(function() {
+    loadVal += Math.random() * 9 + 2;
+    if (loadVal >= 100) {
+      loadVal = 100;
+      clearInterval(loadTick);
+      loaderBar.style.width = '100%';
+      loaderNum.textContent = '100';
+      setTimeout(function() {
+        gsap.to(loaderEl, {
+          yPercent: -100, duration: .85, ease: 'power3.inOut',
+          onComplete: function() { loaderEl.style.display = 'none'; startPage(); }
+        });
+      }, 320);
+    }
+    loaderBar.style.width = loadVal + '%';
+    loaderNum.textContent = Math.floor(loadVal);
+  }, 55);
+
+  /* ── CURSOR ── */
+  var curEl  = document.getElementById('cur');
+  var curTxt = document.getElementById('cur-txt');
+  var mouseX = 0, mouseY = 0, curRingX = 0, curRingY = 0;
+
+  document.addEventListener('mousemove', function(e) { mouseX = e.clientX; mouseY = e.clientY; });
+
+  (function loopCursor() {
+    curRingX += (mouseX - curRingX) * .14;
+    curRingY += (mouseY - curRingY) * .14;
+    curEl.style.left = mouseX + 'px';
+    curEl.style.top  = mouseY + 'px';
+    curTxt.style.left = curRingX + 'px';
+    curTxt.style.top  = curRingY + 'px';
+    requestAnimationFrame(loopCursor);
+  })();
+
+  document.querySelectorAll('.project-row').forEach(function(r) {
+    r.addEventListener('mouseenter', function() { curEl.classList.add('expanded'); });
+    r.addEventListener('mouseleave', function() { curEl.classList.remove('expanded'); });
+  });
+
+  /* ── FLOATING PROJECT IMAGE ── */
+  var floatDiv = document.getElementById('float-img');
+  var floatImg = document.getElementById('float-img-el');
+  var floatX = 0, floatY = 0;
+
+  (function loopFloat() {
+    floatX += (mouseX - floatX) * .09;
+    floatY += (mouseY - floatY) * .09;
+    floatDiv.style.left = floatX + 'px';
+    floatDiv.style.top  = floatY + 'px';
+    requestAnimationFrame(loopFloat);
+  })();
+
+  document.querySelectorAll('.project-row').forEach(function(row) {
+    row.addEventListener('mouseenter', function() {
+      var src = row.dataset.img;
+      if (src) { floatImg.src = src; floatDiv.classList.add('visible'); }
+    });
+    row.addEventListener('mouseleave', function() {
+      floatDiv.classList.remove('visible');
+    });
+    row.addEventListener('click', function() {
+      var href = row.dataset.href;
+      if (href) {
+        if (row.dataset.external === 'true') {
+          window.open(href, '_blank');
+        } else {
+          window.location.href = href;
+        }
+      }
+    });
+  });
+
+  /* ── GLYPH GRID ── */
+  (function buildGlyphs() {
+    var heb = ['א','ב','ג','ד','ה','ו','ז','ח','ט','י','כ','ל','מ','נ','ס','ע','פ','צ','ק','ר','ש','ת'];
+    var finals = ['ך','ם','ן','ף','ץ'];
+    var nums = ['0','1','2','3','4','5','6','7','8','9','!','?','.','—','·'];
+
+    function fillGrid(id, chars) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      chars.forEach(function(ch) {
+        var div = document.createElement('div');
+        div.className = 'glyph-cell';
+        div.textContent = ch;
+        el.appendChild(div);
+      });
+    }
+    fillGrid('glyph-grid-heb', heb);
+    fillGrid('glyph-grid-finals', finals);
+    fillGrid('glyph-grid-nums', nums);
+
+    // Clockwork Tapoz — letters only
+    fillGrid('glyph-grid-tapoz-heb', heb);
+    fillGrid('glyph-grid-tapoz-finals', finals);
+
+    // Shlumpy — all glyphs
+    fillGrid('glyph-grid-shlumpy-heb', heb);
+    fillGrid('glyph-grid-shlumpy-finals', finals);
+    fillGrid('glyph-grid-shlumpy-nums', ['0','1','2','3','4','5','6','7','8','9','!','#','$','%','(',')','*','+',',','-','.','/',':',';','=','?','[',']','^','|','₪','€','׳','״']);
+  })();
+
+  /* ── FONT TESTER CONTROLS ── */
+  (function() {
+    var tester   = document.querySelector('.font-tester');
+    var sizeSlider    = document.getElementById('tester-size');
+    var spacingSlider = document.getElementById('tester-spacing');
+    var sizeLabel     = document.getElementById('tester-size-label');
+    var spacingLabel  = document.getElementById('tester-spacing-label');
+    if (!tester || !sizeSlider) return;
+
+    function applySize() {
+      var v = sizeSlider.value;
+      tester.style.fontSize = v + 'px';
+      sizeLabel.textContent = v + 'px';
+    }
+    function applySpacing() {
+      var v = spacingSlider.value;
+      var em = (v / 100).toFixed(2);
+      tester.style.letterSpacing = em + 'em';
+      spacingLabel.textContent = em + 'em';
+    }
+    sizeSlider.addEventListener('input', applySize);
+    spacingSlider.addEventListener('input', applySpacing);
+    applySize(); applySpacing();
+  })();
+
+  /* ── FONT TESTER — generic for all fonts ── */
+  [['tester-tapoz','tester-tapoz-size','tester-tapoz-spacing','tester-tapoz-size-label','tester-tapoz-spacing-label'],
+   ['tester-shlumpy','tester-shlumpy-size','tester-shlumpy-spacing','tester-shlumpy-size-label','tester-shlumpy-spacing-label']
+  ].forEach(function(ids) {
+    var tester = document.getElementById(ids[0]);
+    var szSlider = document.getElementById(ids[1]);
+    var spSlider = document.getElementById(ids[2]);
+    var szLabel  = document.getElementById(ids[3]);
+    var spLabel  = document.getElementById(ids[4]);
+    if (!tester || !szSlider) return;
+    szSlider.addEventListener('input', function() {
+      tester.style.fontSize = szSlider.value + 'px';
+      szLabel.textContent = szSlider.value + 'px';
+    });
+    spSlider.addEventListener('input', function() {
+      var em = (spSlider.value / 100).toFixed(2);
+      tester.style.letterSpacing = em + 'em';
+      spLabel.textContent = em + 'em';
+    });
+  });
+
+  /* ── SECTION DROPDOWNS (fonts / posters) ── */
+  document.querySelectorAll('.section-toggle').forEach(function(hd) {
+    var targetId = hd.dataset.target;
+    var body = document.getElementById(targetId);
+    if (!body) return;
+    hd.addEventListener('click', function() {
+      var open = body.classList.toggle('open');
+      hd.classList.toggle('open', open);
+    });
+  });
+
+  /* ── THREE.JS SCHNAUZER ── */
+  var cnv = document.getElementById('schnauzer-canvas');
+  var rnd = new THREE.WebGLRenderer({ canvas: cnv, antialias: true, alpha: true });
+  rnd.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  rnd.setSize(window.innerWidth, window.innerHeight);
+  rnd.shadowMap.enabled = true;
+  rnd.shadowMap.type = THREE.PCFSoftShadowMap;
+  rnd.toneMapping = THREE.ACESFilmicToneMapping;
+  rnd.toneMappingExposure = 1.2;
+
+  var sc = new THREE.Scene();
+  var cam = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, .1, 100);
+  cam.position.set(0, 0.5, 11);
+  cam.lookAt(1.2, 0, 0);
+
+  sc.add(new THREE.AmbientLight(0xffffff, .08));
+  // Strong key light from upper left — sculpts form
+  var keyLight = new THREE.DirectionalLight(0xfff8f0, 5.5);
+  keyLight.position.set(-4, 5, 7); keyLight.castShadow = true;
+  keyLight.shadow.mapSize.width = 2048; keyLight.shadow.mapSize.height = 2048;
+  sc.add(keyLight);
+  // Rim light from right — creates silhouette edge
+  var rimLight1 = new THREE.DirectionalLight(0xffffff, 3.8);
+  rimLight1.position.set(6, 2, -5); sc.add(rimLight1);
+  // Cool fill from below
+  var rimLight2 = new THREE.DirectionalLight(0xe0eeff, 0.7);
+  rimLight2.position.set(-2, -3, -2); sc.add(rimLight2);
+  // Top catch light
+  var topLight = new THREE.DirectionalLight(0xffffff, 2.0);
+  topLight.position.set(1, 10, 4); sc.add(topLight);
+
+  // ── GLB SCHNAUZER ──
+  window._dogFurMeshes  = [];
+  window._dogOrigMats   = [];
+  window._dog           = null;
+
+  (new THREE.GLTFLoader()).load('assets/dog-schnauzer.glb', function(gltf) {
+    var model = gltf.scene;
+
+    // Centre model at origin, then fit inside a ~3.5-unit sphere
+    var box    = new THREE.Box3().setFromObject(model);
+    var center = box.getCenter(new THREE.Vector3());
+    var size   = box.getSize(new THREE.Vector3());
+    model.position.sub(center);   // move centroid to world origin
+
+    var g = new THREE.Group();
+    g.add(model);
+    g.scale.setScalar(4.8 / Math.max(size.x, size.y, size.z));
+    g.position.set(1.0, -0.1, 0);
+    g.rotation.set(0.02, 0.06, 0);
+
+    // Collect all meshes for Hapoel colour toggle
+    model.traverse(function(child) {
+      if (!child.isMesh) return;
+      child.castShadow = true;
+      child.receiveShadow = true;
+      window._dogFurMeshes.push(child);
+      window._dogOrigMats.push(child.material);
+    });
+
+    sc.add(g);
+    window._dog = g;
+  });
+
+  // Subtle dark particles on light bg
+  var pN = 220, pPos = new Float32Array(pN * 3);
+  for (var pi = 0; pi < pN; pi++) {
+    pPos[pi*3]   = (Math.random()-.5)*24;
+    pPos[pi*3+1] = (Math.random()-.5)*20;
+    pPos[pi*3+2] = (Math.random()-.5)*14 - 5;
+  }
+  var pGeo = new THREE.BufferGeometry();
+  pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
+  sc.add(new THREE.Points(pGeo, new THREE.PointsMaterial({
+    color: 0x0a0907, size: .022, transparent: true, opacity: .12, sizeAttenuation: true
+  })));
+
+  // Mouse / animation
+  var tRX = 0, tRY = 0, cRX = 0, cRY = 0;
+  document.addEventListener('mousemove', function(e) {
+    tRY = (e.clientX / window.innerWidth  - .5) * .60;
+    tRX = -(e.clientY / window.innerHeight - .5) * .32;
+  });
+
+  window.addEventListener('resize', function() {
+    cam.aspect = window.innerWidth / window.innerHeight;
+    cam.updateProjectionMatrix();
+    rnd.setSize(window.innerWidth, window.innerHeight);
+  });
+
+  var clk = new THREE.Clock();
+  function renderLoop() {
+    requestAnimationFrame(renderLoop);
+    var t = clk.getElapsedTime();
+    cRX += (tRX - cRX) * .055;
+    cRY += (tRY - cRY) * .055;
+    var activeDog = window._dog;
+    if (activeDog) {
+      activeDog.rotation.x = 0.02 + cRX;
+      activeDog.rotation.y = 0.06 + cRY;
+      activeDog.position.y = -0.15 + Math.sin(t * .72) * .09;
+    }
+    keyLight.position.set(-3 + Math.sin(t*.2)*.5, 4, 5);
+    rnd.render(sc, cam);
+  }
+  renderLoop();
+
+  /* ── HAPOEL TOGGLE ── */
+  var hapoelPill  = document.getElementById('hapoel-pill');
+  var hapoelAudio = document.getElementById('hapoel-audio');
+
+  // Dog colour toggle — red in Hapoel mode, original textures otherwise
+  var dogMatRed = new THREE.MeshStandardMaterial({ color:0xC8001A, roughness:0.75, metalness:0, emissive:0xC8001A, emissiveIntensity:0.65 });
+
+  function setDogColor(red) {
+    if (!window._dogFurMeshes) return;
+    window._dogFurMeshes.forEach(function(m, i) {
+      m.material = red ? dogMatRed : (window._dogOrigMats[i] || m.material);
+    });
+  }
+
+  hapoelPill.addEventListener('click', function() {
+    document.body.classList.toggle('hapoel-mode');
+    if (document.body.classList.contains('hapoel-mode')) {
+      hapoelAudio.play().catch(function(){});
+      setDogColor(true);
+    } else {
+      hapoelAudio.pause();
+      hapoelAudio.currentTime = 0;
+      setDogColor(false);
+    }
+  });
+
+  /* ── PAGE ANIMATIONS (runs after loader exits) ── */
+  function startPage() {
+    gsap.registerPlugin(ScrollTrigger);
+
+    gsap.timeline({ delay: .1 })
+      .to('.hero-tag',     { opacity:1, y:0, duration:.7, ease:'power3.out' })
+      .to('.line-fill',    { opacity:1, y:0, duration:1.0, ease:'power3.out' }, '-=.4')
+      .to('.line-outline', { opacity:1, y:0, duration:1.0, ease:'power3.out' }, '-=.75')
+      .to('.hero-sub',     { opacity:1, y:0, duration:.7,  ease:'power3.out' }, '-=.5')
+      .to('.scroll-hint',  { opacity:1, duration:.6 }, '-=.3');
+
+    document.querySelectorAll('.reveal').forEach(function(el, i) {
+      gsap.to(el, {
+        scrollTrigger: { trigger: el, start: 'top 87%' },
+        opacity: 1, y: 0, duration: .9,
+        delay: (i % 4) * .06, ease: 'power3.out',
+      });
+    });
+
+    gsap.utils.toArray('.project-row').forEach(function(row, i) {
+      gsap.from(row, {
+        scrollTrigger: { trigger: '#work', start: 'top 75%' },
+        opacity: 0, x: -30, duration: .7,
+        delay: i * .1 + .2, ease: 'power3.out',
+      });
+    });
+
+    document.querySelectorAll('.contact-link-item').forEach(function(el) {
+      el.addEventListener('mousemove', function(e) {
+        var r = el.getBoundingClientRect();
+        var x = (e.clientX - r.left - r.width/2) * .18;
+        var y = (e.clientY - r.top  - r.height/2) * .18;
+        gsap.to(el, { x: x, y: y, duration: .4, ease: 'power2.out' });
+      });
+      el.addEventListener('mouseleave', function() {
+        gsap.to(el, { x: 0, y: 0, duration: .7, ease: 'elastic.out(1,.35)' });
+      });
+    });
+  }
+
+  /* ── LENIS SMOOTH SCROLL ── */
+  var lenis = new Lenis({
+    duration: 1.15,
+    easing: function(t) { return Math.min(1, 1.001 - Math.pow(2, -10 * t)); },
+    smoothWheel: true,
+  });
+  function lenisRaf(time) { lenis.raf(time); requestAnimationFrame(lenisRaf); }
+  requestAnimationFrame(lenisRaf);
+  // Sync GSAP ScrollTrigger with Lenis
+  lenis.on('scroll', function() { if (window.ScrollTrigger) ScrollTrigger.update(); });
+
+  }); // end window.load
+  </script>
+
+</body>
+</html>

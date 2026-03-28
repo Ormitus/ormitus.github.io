@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Asufa Passover Haggadah — Ori Mor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    :root {
+      --ink:    #0e0d0b;
+      --cream:  #f2ede5;
+      --dust:   #e8e2d8;
+      --pastel: #b8d0e8;
+      --blush:  #e8b8cc;
+      --dim:    rgba(14,13,11,.3);
+      --mid:    rgba(14,13,11,.08);
+    }
+
+    body {
+      background: var(--ink);
+      color: var(--cream);
+      font-family: 'Space Grotesk', sans-serif;
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* ─── CURSOR ─── */
+    #cur {
+      position: fixed; z-index: 9999; pointer-events: none;
+      width: 8px; height: 8px; background: var(--cream); border-radius: 50%;
+      transform: translate(-50%, -50%);
+      transition: width .22s, height .22s, opacity .22s;
+      mix-blend-mode: difference;
+    }
+    #cur.expanded { width: 52px; height: 52px; }
+
+    /* ─── NAV ─── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 500;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 32px 60px;
+      mix-blend-mode: difference;
+    }
+    .nav-logo {
+      font-size: 13px; font-weight: 500; letter-spacing: .22em;
+      text-transform: uppercase; color: #fff; text-decoration: none;
+    }
+    .nav-back {
+      font-size: 11px; letter-spacing: .2em; text-transform: uppercase;
+      color: rgba(255,255,255,.5); text-decoration: none; transition: color .3s;
+    }
+    .nav-back:hover { color: #fff; }
+
+    /* ─── HERO ─── */
+    #hero {
+      min-height: 100vh;
+      background: var(--ink);
+      display: flex; flex-direction: column; justify-content: flex-end;
+      padding: 0 60px 80px;
+      position: relative; overflow: hidden;
+    }
+    .hero-bg-glyph {
+      position: absolute; top: 50%; left: 55%;
+      transform: translate(-50%, -50%);
+      font-size: clamp(200px, 40vw, 580px);
+      font-weight: 700; letter-spacing: -.06em; line-height: 1;
+      color: rgba(255,255,255,.025);
+      white-space: nowrap; user-select: none; pointer-events: none;
+      direction: rtl;
+    }
+    .hero-meta {
+      font-size: 11px; letter-spacing: .28em; text-transform: uppercase;
+      color: rgba(255,255,255,.28); margin-bottom: 24px;
+      opacity: 0; transform: translateY(20px);
+      animation: fadeUp .8s .2s forwards;
+    }
+    .hero-title {
+      font-size: clamp(52px, 8vw, 120px);
+      font-weight: 700; line-height: .9;
+      letter-spacing: -.04em; color: var(--cream);
+      opacity: 0; transform: translateY(60px);
+      animation: fadeUp .9s .35s forwards;
+    }
+    .hero-title .outline {
+      -webkit-text-stroke: 1.5px rgba(242,237,229,.3);
+      color: transparent; display: block;
+    }
+    .hero-title .heb {
+      font-size: clamp(40px, 6vw, 88px);
+      direction: rtl; letter-spacing: .02em;
+      color: rgba(255,255,255,.35); display: block; margin-top: 8px;
+    }
+    .hero-subtitle {
+      font-size: 12px; letter-spacing: .22em; text-transform: uppercase;
+      color: rgba(255,255,255,.22); margin-top: 36px;
+      opacity: 0; transform: translateY(20px);
+      animation: fadeUp .8s .55s forwards;
+      display: flex; align-items: center; gap: 20px;
+    }
+    .hero-line {
+      display: inline-block; width: 40px; height: 1px;
+      background: rgba(255,255,255,.14);
+    }
+
+    /* ─── OVERVIEW STRIP ─── */
+    .overview-strip {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      border-bottom: 1px solid var(--mid);
+      background: var(--cream);
+    }
+    .overview-item {
+      padding: 48px 40px;
+      border-right: 1px solid var(--mid);
+    }
+    .overview-item:last-child { border-right: none; }
+    .overview-label {
+      font-size: 9px; letter-spacing: .3em; text-transform: uppercase;
+      color: rgba(14,13,11,.4); margin-bottom: 12px;
+    }
+    .overview-value {
+      font-size: clamp(14px, 1.6vw, 20px);
+      font-weight: 500; color: var(--ink); line-height: 1.3;
+    }
+
+    /* ─── INTRO SECTION ─── */
+    .intro-section {
+      padding: 120px 60px;
+      background: var(--cream);
+      border-bottom: 1px solid var(--mid);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 100px; align-items: start;
+    }
+    .intro-eyebrow {
+      font-size: 9px; letter-spacing: .32em; text-transform: uppercase;
+      color: rgba(14,13,11,.35); margin-bottom: 32px;
+      display: flex; align-items: center; gap: 16px;
+    }
+    .intro-eyebrow::before {
+      content: ''; display: inline-block;
+      width: 28px; height: 1px; background: rgba(14,13,11,.2);
+    }
+    .intro-heading {
+      font-size: clamp(40px, 5vw, 72px);
+      font-weight: 700; line-height: .9;
+      letter-spacing: -.04em; color: var(--ink);
+      margin-bottom: 40px;
+    }
+    .intro-body {
+      font-size: 16px; line-height: 1.8;
+      color: rgba(14,13,11,.6); max-width: 560px;
+    }
+    .intro-body p + p { margin-top: 20px; }
+    .edition-badge {
+      display: inline-flex; align-items: baseline; gap: 12px;
+      padding: 20px 28px;
+      border: 1px solid var(--mid);
+      margin-bottom: 48px; border-radius: 3px;
+    }
+    .edition-num {
+      font-size: clamp(64px, 10vw, 120px);
+      font-weight: 700; line-height: 1;
+      letter-spacing: -.06em; color: var(--ink);
+    }
+    .edition-label {
+      font-size: 11px; letter-spacing: .22em; text-transform: uppercase;
+      color: rgba(14,13,11,.35); max-width: 100px; line-height: 1.5;
+    }
+    .spread-info {
+      margin-top: 48px; padding-top: 40px;
+      border-top: 1px solid var(--mid);
+    }
+    .spread-info-label {
+      font-size: 9px; letter-spacing: .28em; text-transform: uppercase;
+      color: rgba(14,13,11,.35); margin-bottom: 14px;
+    }
+    .spread-info-value {
+      font-size: clamp(18px, 2.2vw, 28px);
+      font-weight: 600; letter-spacing: -.02em;
+      color: var(--ink); line-height: 1.2; direction: rtl;
+    }
+    .spread-info-en {
+      margin-top: 6px; font-size: 13px;
+      color: rgba(14,13,11,.4); letter-spacing: .04em;
+    }
+
+    /* ─── ARTWORK SECTION ─── */
+    .artwork-section {
+      padding: 100px 60px 120px;
+      background: var(--ink);
+      position: relative; overflow: hidden;
+    }
+    .artwork-eyebrow {
+      font-size: 9px; letter-spacing: .32em; text-transform: uppercase;
+      color: rgba(255,255,255,.28); margin-bottom: 60px;
+      display: flex; align-items: center; gap: 16px;
+    }
+    .artwork-eyebrow::before {
+      content: ''; display: inline-block;
+      width: 28px; height: 1px; background: rgba(255,255,255,.18);
+    }
+
+    /* ─── CSS 3D BOOK ─── */
+    .book-scene {
+      perspective: 1800px;
+      display: flex; justify-content: center; align-items: center;
+      padding: 40px 0 80px;
+    }
+    .book-wrap {
+      display: flex;
+      filter: drop-shadow(0 40px 100px rgba(0,0,0,.7));
+      transform-style: preserve-3d;
+      animation: bookFloat 5s ease-in-out infinite;
+    }
+    @keyframes bookFloat {
+      0%,100% { transform: translateY(0) rotateX(2deg); }
+      50%      { transform: translateY(-16px) rotateX(1deg); }
+    }
+    .book-page {
+      width: clamp(260px, 36vw, 520px);
+      aspect-ratio: 3/4;
+      overflow: hidden;
+      position: relative;
+    }
+    .book-page img {
+      position: absolute; top: 0; left: 0;
+      width: 200%; height: 100%;
+      display: block;
+    }
+    .book-left {
+      transform: rotateY(18deg);
+      transform-origin: right center;
+      border-radius: 3px 0 0 3px;
+      box-shadow: inset -8px 0 24px rgba(0,0,0,.5),
+                  -2px 0 0 rgba(0,0,0,.3);
+    }
+    /* left page: shows left half — img starts at left:0 */
+    .book-right {
+      transform: rotateY(-18deg);
+      transform-origin: left center;
+      border-radius: 0 3px 3px 0;
+      box-shadow: inset 8px 0 24px rgba(0,0,0,.3),
+                  2px 0 0 rgba(0,0,0,.15);
+    }
+    /* right page: shift image left by one page-width to reveal right half */
+    .book-right img { left: -100%; }
+    .book-spine {
+      width: 14px;
+      background: linear-gradient(to right, #0a0a08, #2a2622, #0a0a08);
+      align-self: stretch;
+      box-shadow: 0 0 12px rgba(0,0,0,.6);
+    }
+    .book-caption {
+      text-align: center; margin-top: 48px;
+      font-size: 11px; letter-spacing: .22em; text-transform: uppercase;
+      color: rgba(255,255,255,.22);
+    }
+
+    /* ─── FULL ARTWORK (below book) ─── */
+    .raw-artwork {
+      margin-top: 80px;
+    }
+    .raw-artwork img {
+      width: 100%; display: block;
+      border-radius: 4px;
+    }
+    .raw-caption {
+      font-size: 11px; letter-spacing: .18em; text-transform: uppercase;
+      color: rgba(255,255,255,.22); margin-top: 16px; text-align: center;
+    }
+
+    /* ─── MOCKUPS SECTION ─── */
+    .mockups-section {
+      padding: 0;
+      background: #e8e4de;
+    }
+    .mockup-full {
+      width: 100%; display: block;
+    }
+    .mockup-pair {
+      display: grid; grid-template-columns: 1fr 1fr;
+    }
+    .mockup-pair-item {
+      overflow: hidden; position: relative;
+    }
+    .mockup-pair-item img {
+      width: 100%; height: 100%; object-fit: cover;
+      display: block;
+      transition: transform .9s cubic-bezier(.25,.46,.45,.94);
+    }
+    .mockup-pair-item:hover img { transform: scale(1.04); }
+
+    /* ─── CONTEXT SECTION ─── */
+    .context-section {
+      padding: 120px 60px;
+      background: var(--cream);
+      border-top: 1px solid var(--mid);
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 100px; align-items: start;
+    }
+    .context-num {
+      font-size: clamp(120px, 22vw, 260px);
+      font-weight: 700; letter-spacing: -.08em; line-height: .85;
+      color: rgba(14,13,11,.05);
+    }
+    .context-content {}
+    .context-eyebrow {
+      font-size: 9px; letter-spacing: .32em; text-transform: uppercase;
+      color: rgba(14,13,11,.35); margin-bottom: 32px;
+      display: flex; align-items: center; gap: 16px;
+    }
+    .context-eyebrow::before {
+      content: ''; display: inline-block;
+      width: 28px; height: 1px; background: rgba(14,13,11,.2);
+    }
+    .context-heading {
+      font-size: clamp(36px, 4.5vw, 62px);
+      font-weight: 700; letter-spacing: -.04em; line-height: .9;
+      color: var(--ink); margin-bottom: 36px;
+    }
+    .context-body {
+      font-size: 16px; line-height: 1.8;
+      color: rgba(14,13,11,.6);
+    }
+    .context-body p + p { margin-top: 20px; }
+    .tradition-strip {
+      margin-top: 60px; padding-top: 40px;
+      border-top: 1px solid var(--mid);
+      display: grid; grid-template-columns: 1fr 1fr 1fr;
+      gap: 2px;
+    }
+    .tradition-item {
+      padding: 32px 28px;
+      border: 1px solid var(--mid);
+      background: #fff;
+    }
+    .tradition-label {
+      font-size: 9px; letter-spacing: .24em; text-transform: uppercase;
+      color: rgba(14,13,11,.35); margin-bottom: 12px;
+    }
+    .tradition-value {
+      font-size: clamp(14px, 1.6vw, 18px);
+      font-weight: 500; color: var(--ink); line-height: 1.4;
+    }
+
+    /* ─── FOOTER ─── */
+    .case-footer {
+      padding: 80px 60px;
+      background: var(--ink);
+      display: flex; justify-content: space-between; align-items: flex-end;
+      border-top: 1px solid rgba(255,255,255,.06);
+    }
+    .footer-label {
+      font-size: 9px; letter-spacing: .3em; text-transform: uppercase;
+      color: rgba(255,255,255,.3); margin-bottom: 20px;
+    }
+    .footer-cta {
+      font-size: clamp(28px, 4vw, 56px);
+      font-weight: 700; color: var(--cream); line-height: .9;
+      letter-spacing: -.04em; text-decoration: none; transition: color .3s;
+    }
+    .footer-cta:hover { color: rgba(242,237,229,.45); }
+    .footer-right {
+      font-size: 11px; letter-spacing: .15em; text-transform: uppercase;
+      color: rgba(255,255,255,.2); text-align: right;
+    }
+
+    /* ─── ANIMATIONS ─── */
+    @keyframes fadeUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-in {
+      opacity: 0; transform: translateY(40px);
+      transition: opacity .85s ease, transform .85s ease;
+    }
+    .fade-in.visible { opacity: 1; transform: translateY(0); }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 1024px) {
+      nav { padding: 28px 40px; }
+      #hero { padding: 0 40px 72px; }
+      .intro-section { padding: 80px 40px; gap: 60px; }
+      .artwork-section { padding: 80px 40px 100px; }
+      .context-section { padding: 80px 40px; gap: 60px; grid-template-columns: 240px 1fr; }
+      .case-footer { padding: 60px 40px; }
+    }
+    @media (max-width: 768px) {
+      nav { padding: 22px 24px; }
+      #hero { padding: 0 24px 56px; }
+      .overview-strip { grid-template-columns: 1fr 1fr; }
+      .overview-item { padding: 36px 28px; }
+      .intro-section { padding: 60px 24px; grid-template-columns: 1fr; gap: 40px; }
+      .artwork-section { padding: 60px 24px 80px; }
+      .book-page { width: 44vw; }
+      .mockup-pair { grid-template-columns: 1fr; }
+      .context-section { padding: 60px 24px; grid-template-columns: 1fr; gap: 0; }
+      .context-num { display: none; }
+      .tradition-strip { grid-template-columns: 1fr; }
+      .case-footer { padding: 48px 24px; flex-direction: column; gap: 40px; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="cur"></div>
+
+  <nav>
+    <a href="index.html" class="nav-logo">Ori Mor</a>
+    <a href="index.html" class="nav-back">← Back to Work</a>
+  </nav>
+
+  <!-- HERO -->
+  <section id="hero">
+    <div class="hero-bg-glyph">דם</div>
+    <div class="hero-meta">Editorial · Book Design &nbsp;—&nbsp; Asufa &nbsp;—&nbsp; 2026</div>
+    <h1 class="hero-title">
+      Asufa Passover
+      <span class="outline">Haggadah</span>
+      <span class="heb">דם ואש ותמרות עשן</span>
+    </h1>
+    <div class="hero-subtitle">
+      <span class="hero-line"></span>
+      Spread Design <span class="hero-line"></span> Illustration <span class="hero-line"></span> 13th Edition
+    </div>
+  </section>
+
+  <!-- OVERVIEW -->
+  <div class="overview-strip fade-in">
+    <div class="overview-item">
+      <div class="overview-label">Project Type</div>
+      <div class="overview-value">Editorial · Book Design</div>
+    </div>
+    <div class="overview-item">
+      <div class="overview-label">Client</div>
+      <div class="overview-value">Asufa</div>
+    </div>
+    <div class="overview-item">
+      <div class="overview-label">Year</div>
+      <div class="overview-value">2026</div>
+    </div>
+    <div class="overview-item">
+      <div class="overview-label">Role</div>
+      <div class="overview-value">Spread Design · Art Direction</div>
+    </div>
+  </div>
+
+  <!-- INTRO -->
+  <section class="intro-section">
+    <div class="fade-in">
+      <div class="intro-eyebrow">The Project</div>
+      <h2 class="intro-heading">A Tradition<br>of Designers</h2>
+      <div class="intro-body">
+        <p>This year I had the distinct honor of participating in the 13th edition of the Asufa Passover Haggadah. Each year the project invites designers from all over the country to individually design a double page spread for the traditional text.</p>
+        <p>I was thrilled to be chosen to design the artwork for the <strong>Blood, fire, and pillars of smoke</strong> spread — one of the most iconic and visceral passages of the Seder night. It was an absolute pleasure to take part in this unique and creative tradition alongside other talented creators.</p>
+      </div>
+    </div>
+    <div class="fade-in">
+      <div class="edition-badge">
+        <div class="edition-num">13</div>
+        <div class="edition-label">Asufa Haggadah Edition</div>
+      </div>
+      <div class="spread-info">
+        <div class="spread-info-label">My Spread</div>
+        <div class="spread-info-value">דם, ואש, ותמרות עשן</div>
+        <div class="spread-info-en">Blood, Fire, and Pillars of Smoke</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ARTWORK — 3D BOOK + RAW SCAN -->
+  <section class="artwork-section">
+    <div class="artwork-eyebrow fade-in">The Spread</div>
+
+    <!-- 3D CSS Book -->
+    <div class="book-scene fade-in">
+      <div class="book-wrap">
+        <div class="book-page book-left">
+          <img src="assets/haggadah/spread.png" alt="Blood Fire Smoke spread — left page">
+        </div>
+        <div class="book-spine"></div>
+        <div class="book-page book-right">
+          <img src="assets/haggadah/spread.png" alt="Blood Fire Smoke spread — right page">
+        </div>
+      </div>
+    </div>
+    <div class="book-caption fade-in">Double-page spread — Asufa Passover Haggadah XIII</div>
+
+    <!-- Raw scan full-width -->
+    <div class="raw-artwork fade-in">
+      <img src="assets/haggadah/spread.png" alt="Blood, Fire, and Pillars of Smoke — original artwork">
+      <div class="raw-caption">דם ואש ותמרות עשן — Original Artwork</div>
+    </div>
+  </section>
+
+  <!-- MOCKUPS -->
+  <section class="mockups-section">
+    <!-- Angle shot full width -->
+    <div class="fade-in">
+      <img src="assets/haggadah/mockup-angle.png" alt="Haggadah book — perspective mockup" class="mockup-full">
+    </div>
+    <!-- Flat + cover side by side -->
+    <div class="mockup-pair">
+      <div class="mockup-pair-item fade-in">
+        <img src="assets/haggadah/mockup-flat.png" alt="Haggadah book open — flat mockup">
+      </div>
+      <div class="mockup-pair-item fade-in">
+        <img src="assets/haggadah/cover.webp" alt="Asufa Haggadah — book cover">
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTEXT -->
+  <section class="context-section">
+    <div class="context-num fade-in">13</div>
+    <div class="context-content">
+      <div class="context-eyebrow fade-in">The Tradition</div>
+      <h2 class="context-heading fade-in">Thirteen Years<br>of Ink</h2>
+      <div class="context-body fade-in">
+        <p>The Asufa Haggadah is a beloved annual project in the Israeli design community. Each edition brings together a fresh cohort of designers — each assigned a different passage from the traditional Passover text — resulting in a wildly varied, deeply personal collective book.</p>
+        <p>For my spread, I drew from the raw, urgent energy of the passage itself. The words <em>blood, fire, and pillars of smoke</em> called for collage, stencil, and chaos. The result is a spread that feels pulled from a protest wall — reverent in subject, rebellious in form.</p>
+      </div>
+      <div class="tradition-strip fade-in">
+        <div class="tradition-item">
+          <div class="tradition-label">Medium</div>
+          <div class="tradition-value">Mixed media collage · Print</div>
+        </div>
+        <div class="tradition-item">
+          <div class="tradition-label">Text</div>
+          <div class="tradition-value">דם, ואש,<br>ותמרות עשן</div>
+        </div>
+        <div class="tradition-item">
+          <div class="tradition-label">Published</div>
+          <div class="tradition-value">Asufa Studio<br>Passover 2026</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="case-footer">
+    <div>
+      <div class="footer-label">Next Project</div>
+      <a href="rootswings.html" class="footer-cta">Roots &amp;<br>Wings</a>
+    </div>
+    <div class="footer-right">
+      <div>Ori Mor</div>
+      <div style="margin-top:8px; color:rgba(255,255,255,.12);">© 2026</div>
+    </div>
+  </footer>
+
+  <script>
+    /* ─── CURSOR ─── */
+    var cur = document.getElementById('cur');
+    var mx = 0, my = 0;
+    document.addEventListener('mousemove', function(e) { mx = e.clientX; my = e.clientY; });
+    (function tick() {
+      cur.style.left = mx + 'px';
+      cur.style.top  = my + 'px';
+      requestAnimationFrame(tick);
+    })();
+    document.querySelectorAll('a, .mockup-pair-item').forEach(function(el) {
+      el.addEventListener('mouseenter', function() { cur.classList.add('expanded'); });
+      el.addEventListener('mouseleave', function() { cur.classList.remove('expanded'); });
+    });
+
+    /* ─── SCROLL REVEAL ─── */
+    var obs = new IntersectionObserver(function(entries) {
+      entries.forEach(function(e) {
+        if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); }
+      });
+    }, { threshold: 0.12 });
+    document.querySelectorAll('.fade-in').forEach(function(el) { obs.observe(el); });
+
+    /* ─── PARALLAX BOOK ─── */
+    document.addEventListener('mousemove', function(e) {
+      var xf = (e.clientX / window.innerWidth  - .5) * 8;
+      var yf = (e.clientY / window.innerHeight - .5) * 4;
+      var bw = document.querySelector('.book-wrap');
+      if (bw) bw.style.transform = 'rotateY(' + xf + 'deg) rotateX(' + (-yf) + 'deg)';
+    });
+  </script>
+
+</body>
+</html>

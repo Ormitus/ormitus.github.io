@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>German Embassy Competition — Case Study / Ori Mor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,800;0,9..144,900;1,9..144,300;1,9..144,800&family=Space+Grotesk:wght@300;400;500&display=swap" rel="stylesheet">
+
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    :root {
+      --ink:    #0d0d0d;
+      --paper:  #f5f3ee;
+      --blue:   #003FA5;   /* Israel blue */
+      --gold:   #FFCE00;   /* German gold */
+      --red:    #DD0000;   /* German red */
+      --mid:    rgba(13,13,13,.08);
+    }
+
+    body {
+      background: var(--paper);
+      color: var(--ink);
+      font-family: 'Space Grotesk', sans-serif;
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* ─── CURSOR ─── */
+    #cur {
+      position: fixed; z-index: 9999; pointer-events: none;
+      width: 8px; height: 8px; background: var(--ink); border-radius: 50%;
+      transform: translate(-50%,-50%);
+      transition: width .2s, height .2s;
+      mix-blend-mode: difference;
+    }
+    #cur.expanded { width: 48px; height: 48px; }
+
+    /* ─── NAV ─── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 500;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 32px 60px;
+      mix-blend-mode: multiply;
+    }
+    .nav-logo {
+      font-size: 13px; font-weight: 500; letter-spacing: .22em;
+      text-transform: uppercase; color: var(--ink); text-decoration: none;
+    }
+    .nav-back {
+      font-size: 11px; letter-spacing: .2em; text-transform: uppercase;
+      color: rgba(13,13,13,.4); text-decoration: none; transition: color .3s;
+    }
+    .nav-back:hover { color: var(--ink); }
+
+    /* ─── HERO ─── */
+    #hero {
+      min-height: 100vh;
+      background: var(--ink);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+      padding: 120px 60px 80px;
+      gap: 80px;
+      position: relative; overflow: hidden;
+    }
+
+    /* German flag stripe at bottom */
+    #hero::after {
+      content: '';
+      position: absolute; bottom: 0; left: 0; right: 0;
+      height: 6px;
+      background: linear-gradient(to right,
+        var(--ink) 0%, var(--ink) 33.3%,
+        var(--red)  33.3%, var(--red)  66.6%,
+        var(--gold) 66.6%, var(--gold) 100%
+      );
+    }
+
+    .hero-left { position: relative; z-index: 1; }
+
+    .hero-eyebrow {
+      font-size: 10px; letter-spacing: .32em; text-transform: uppercase;
+      color: var(--gold); margin-bottom: 28px;
+      display: flex; align-items: center; gap: 16px;
+      opacity: 0; transform: translateY(20px);
+      animation: fadeUp .7s .1s forwards;
+    }
+    .hero-eyebrow::before {
+      content: ''; display: inline-block;
+      width: 32px; height: 1px; background: var(--gold); opacity: .6;
+    }
+
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 6px 14px 6px 6px;
+      background: var(--gold);
+      border-radius: 100px;
+      margin-bottom: 32px;
+      opacity: 0; animation: fadeUp .7s .2s forwards;
+    }
+    .hero-badge-dot {
+      width: 20px; height: 20px; border-radius: 50%;
+      background: var(--ink);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .hero-badge-dot::after {
+      content: '★';
+      color: var(--gold); font-size: 10px; line-height: 1;
+    }
+    .hero-badge-text {
+      font-size: 10px; font-weight: 500; letter-spacing: .14em;
+      text-transform: uppercase; color: var(--ink);
+    }
+
+    .hero-title {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(36px, 5vw, 68px);
+      font-weight: 900; line-height: .9;
+      letter-spacing: -.03em; color: var(--paper);
+      opacity: 0; transform: translateY(40px);
+      animation: fadeUp .9s .3s forwards;
+    }
+    .hero-title .accent { color: var(--gold); }
+
+    .hero-year {
+      margin-top: 28px;
+      font-size: 11px; letter-spacing: .28em; text-transform: uppercase;
+      color: rgba(245,243,238,.3);
+      opacity: 0; animation: fadeUp .7s .45s forwards;
+    }
+
+    .hero-divider {
+      width: 48px; height: 1px;
+      background: rgba(245,243,238,.12);
+      margin: 40px 0;
+      opacity: 0; animation: fadeUp .7s .5s forwards;
+    }
+
+    .hero-desc {
+      font-size: 15px; line-height: 1.85;
+      color: rgba(245,243,238,.5);
+      max-width: 500px;
+      opacity: 0; animation: fadeUp .8s .6s forwards;
+    }
+
+    .hero-meta-row {
+      display: flex; gap: 40px; margin-top: 48px;
+      opacity: 0; animation: fadeUp .7s .75s forwards;
+    }
+    .hero-meta-label {
+      font-size: 9px; letter-spacing: .28em; text-transform: uppercase;
+      color: rgba(245,243,238,.25); margin-bottom: 6px;
+    }
+    .hero-meta-value {
+      font-family: 'Fraunces', serif;
+      font-size: 15px; font-weight: 300; font-style: italic;
+      color: rgba(245,243,238,.65);
+    }
+
+    /* Hero right — logo display */
+    .hero-right {
+      position: relative; z-index: 1;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; animation: fadeUp .9s .35s forwards;
+    }
+    .hero-logo-wrap {
+      background: var(--paper);
+      border-radius: 20px;
+      padding: 48px;
+      width: 100%;
+      max-width: 440px;
+      box-shadow:
+        0 40px 100px rgba(0,0,0,.5),
+        0 0 0 1px rgba(255,255,255,.04);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .hero-logo-wrap img {
+      width: 100%; display: block; border-radius: 8px;
+    }
+
+    /* ─── SECTIONS ─── */
+    .case-section {
+      padding: 120px 60px;
+      border-bottom: 1px solid var(--mid);
+      position: relative;
+    }
+    .case-section.dark-section {
+      background: var(--ink);
+      border-bottom-color: rgba(255,255,255,.06);
+    }
+
+    .section-eyebrow {
+      font-size: 9px; letter-spacing: .32em; text-transform: uppercase;
+      color: rgba(13,13,13,.3); margin-bottom: 40px;
+      display: flex; align-items: center; gap: 20px;
+    }
+    .section-eyebrow::before {
+      content: ''; display: inline-block;
+      width: 32px; height: 1px; background: var(--mid);
+    }
+    .dark-section .section-eyebrow { color: rgba(255,255,255,.3); }
+    .dark-section .section-eyebrow::before { background: rgba(255,255,255,.12); }
+
+    .section-heading {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(40px, 5.5vw, 72px);
+      font-weight: 900; line-height: .9;
+      letter-spacing: -.03em; color: var(--ink); margin-bottom: 20px;
+    }
+    .dark-section .section-heading { color: var(--paper); }
+
+    .section-sub {
+      font-size: clamp(16px, 1.8vw, 22px);
+      color: rgba(13,13,13,.4); font-weight: 300; max-width: 600px;
+      line-height: 1.6; margin-bottom: 60px;
+    }
+    .dark-section .section-sub { color: rgba(245,243,238,.4); }
+
+    .body-text {
+      font-size: 16px; line-height: 1.8;
+      color: rgba(13,13,13,.6); max-width: 720px;
+    }
+    .dark-section .body-text { color: rgba(245,243,238,.55); }
+
+    /* ─── FLAG STRIPE ─── */
+    .flag-stripe {
+      display: flex; height: 5px; border-radius: 100px;
+      overflow: hidden; margin-bottom: 60px; width: 80px;
+    }
+    .flag-stripe span {
+      flex: 1;
+    }
+
+    /* ─── TWO COL ─── */
+    .two-col {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 80px; align-items: start;
+    }
+
+    /* ─── LOGO FULL ─── */
+    .logo-showcase {
+      background: #fff;
+      border-radius: 16px;
+      padding: 60px;
+      border: 1px solid var(--mid);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .logo-showcase img {
+      width: 100%; max-width: 420px; display: block;
+    }
+
+    /* ─── SLIDE IMGS ─── */
+    .slide-img {
+      width: 100%; display: block; border-radius: 12px;
+      box-shadow: 0 16px 60px rgba(13,13,13,.1);
+    }
+    .slide-caption {
+      font-size: 11px; letter-spacing: .18em; text-transform: uppercase;
+      color: rgba(13,13,13,.28); margin-top: 14px; text-align: center;
+    }
+    .dark-section .slide-caption { color: rgba(255,255,255,.25); }
+
+    /* ─── CONTEXT CARDS ─── */
+    .context-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 2px; margin-top: 60px;
+    }
+    .context-card {
+      padding: 40px 36px;
+      background: #fff;
+      border: 1px solid var(--mid);
+    }
+    .context-num {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(48px, 6vw, 80px);
+      font-weight: 900; line-height: .85; letter-spacing: -.03em;
+      color: rgba(13,13,13,.06); margin-bottom: 16px;
+    }
+    .context-label {
+      font-size: 9px; letter-spacing: .24em; text-transform: uppercase;
+      color: rgba(13,13,13,.35); margin-bottom: 10px;
+    }
+    .context-value {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(20px, 2.2vw, 30px);
+      font-weight: 900; color: var(--ink); line-height: 1.0;
+    }
+
+    /* ─── PRESS GRID ─── */
+    .press-grid {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      grid-template-rows: auto auto;
+      gap: 16px;
+      margin-top: 20px;
+    }
+    .press-card {
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 16px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .press-card--tall {
+      grid-row: 1 / 3;
+      justify-content: center;
+      align-items: center;
+      padding: 28px;
+    }
+    .press-card--wide {
+      padding: 0;
+    }
+    .press-card--quote {
+      padding: 36px 40px;
+      justify-content: space-between;
+      background: rgba(255,206,0,.06);
+      border-color: rgba(255,206,0,.15);
+    }
+    .press-img {
+      width: 100%;
+      display: block;
+      border-radius: 8px;
+    }
+    .press-card--tall .press-img {
+      width: auto;
+      max-width: 100%;
+      max-height: 340px;
+      object-fit: contain;
+    }
+    .press-label {
+      font-size: 10px;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.25);
+      padding: 14px 20px;
+    }
+    .press-quote-mark {
+      font-family: 'Fraunces', serif;
+      font-size: 80px;
+      line-height: .7;
+      color: var(--gold);
+      opacity: .5;
+      margin-bottom: 16px;
+    }
+    .press-quote-text {
+      font-size: 15px;
+      line-height: 1.75;
+      color: rgba(245,243,238,.7);
+      font-style: italic;
+      flex: 1;
+    }
+    .press-quote-src {
+      font-size: 10px;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.25);
+      margin-top: 24px;
+      display: block;
+      font-style: normal;
+    }
+
+    @media (max-width: 900px) {
+      .press-grid { grid-template-columns: 1fr; grid-template-rows: auto; }
+      .press-card--tall { grid-row: auto; }
+    }
+
+    /* ─── ANIMATIONS ─── */
+    @keyframes fadeUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-in {
+      opacity: 0; transform: translateY(40px);
+      transition: opacity .8s ease, transform .8s ease;
+    }
+    .fade-in.visible { opacity: 1; transform: translateY(0); }
+
+    /* ─── FOOTER ─── */
+    .case-footer {
+      padding: 80px 60px;
+      background: var(--ink);
+      display: flex; justify-content: space-between; align-items: flex-end;
+    }
+    .footer-label {
+      font-size: 9px; letter-spacing: .3em; text-transform: uppercase;
+      color: rgba(245,243,238,.25); margin-bottom: 20px;
+    }
+    .footer-cta {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(28px, 4vw, 56px);
+      font-weight: 900; color: var(--paper); line-height: .9;
+      letter-spacing: -.03em; text-decoration: none; transition: color .3s;
+    }
+    .footer-cta:hover { color: rgba(245,243,238,.4); }
+    .footer-right {
+      font-size: 11px; letter-spacing: .15em; text-transform: uppercase;
+      color: rgba(245,243,238,.18);
+    }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 900px) {
+      nav { padding: 24px 32px; }
+      #hero { grid-template-columns: 1fr; padding: 120px 32px 80px; gap: 60px; }
+      .case-section { padding: 80px 32px; }
+      .two-col, .context-grid { grid-template-columns: 1fr; }
+      .case-footer { padding: 60px 32px; flex-direction: column; gap: 40px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="cur"></div>
+
+  <nav>
+    <a href="index.html" class="nav-logo" style="color:#fff;">Ori Mor</a>
+    <a href="index.html" class="nav-back" style="color:rgba(255,255,255,.4);">← Back to Work</a>
+  </nav>
+
+  <!-- HERO -->
+  <section id="hero">
+    <div class="hero-left">
+      <div class="hero-eyebrow">Logo Design &nbsp;·&nbsp; Competition Winner</div>
+
+      <div class="hero-badge">
+        <div class="hero-badge-dot"></div>
+        <span class="hero-badge-text">Competition Winner</span>
+      </div>
+
+      <h1 class="hero-title">
+        German Embassy<br>
+        <span class="accent">Competition</span><br>
+        Winner Logo
+      </h1>
+
+      <div class="hero-year">Israel — Germany &nbsp;·&nbsp; 1965–2025</div>
+      <div class="hero-divider"></div>
+
+      <p class="hero-desc">
+        Logo designed to mark 60 years of diplomatic relations between Israel and Germany — chosen through a dedicated competition and selected as the official emblem for all joint activities throughout the milestone year.
+      </p>
+
+      <div class="hero-meta-row">
+        <div>
+          <div class="hero-meta-label">Scope</div>
+          <div class="hero-meta-value">Logo Design</div>
+        </div>
+        <div>
+          <div class="hero-meta-label">Client</div>
+          <div class="hero-meta-value">German Embassy, Israel</div>
+        </div>
+        <div>
+          <div class="hero-meta-label">Year</div>
+          <div class="hero-meta-value">2025</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-right">
+      <div class="hero-logo-wrap">
+        <img src="assets/germany/logo_final.png" alt="60 Years Israel–Germany Logo">
+      </div>
+    </div>
+  </section>
+
+  <!-- OVERVIEW STRIP -->
+  <div class="context-grid fade-in">
+    <div class="context-card">
+      <div class="context-num">60</div>
+      <div class="context-label">Years of Relations</div>
+      <div class="context-value">Diplomatic Milestone</div>
+    </div>
+    <div class="context-card">
+      <div class="context-num">2</div>
+      <div class="context-label">Nations</div>
+      <div class="context-value">Israel &amp; Germany</div>
+    </div>
+    <div class="context-card">
+      <div class="context-num">1</div>
+      <div class="context-label">Result</div>
+      <div class="context-value">Competition Winner</div>
+    </div>
+  </div>
+
+  <!-- SECTION: CONCEPT -->
+  <section class="case-section">
+    <div class="section-eyebrow">The Concept</div>
+    <h2 class="section-heading fade-in">60 Years of<br>Dialogue</h2>
+    <p class="section-sub fade-in">A mark that carries history, humanity, and hope.</p>
+
+    <div class="two-col fade-in">
+      <div class="body-text">
+        <p>The logo incorporates the number <strong>60</strong> in a design that reflects dialogue and collaboration between two nations. The numeral forms a ribbon — a universal symbol of solidarity — interweaving the colors of both flags: Israel blue and the German tricolor of black, red, and gold.</p>
+        <br>
+        <p style="margin-top:24px;">The logo also addresses the issue of the hostages, drawing inspiration from the solidarity expressed by German football fans, who highlighted this humanitarian cause with profound compassion and support. The ribbon form — traditionally associated with awareness and solidarity — carries this dual message: celebration of 60 years, and a call for human dignity.</p>
+        <br>
+        <p style="margin-top:24px;">Throughout this milestone year, the logo accompanies all joint activities — diplomatic, cultural, and civic — hosted by both the German and Israeli embassies, serving as the official emblem of this significant relationship.</p>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:16px;">
+        <div style="padding:36px; background:#fff; border-radius:14px; border:1px solid var(--mid);">
+          <div class="flag-stripe">
+            <span style="background:var(--ink);"></span>
+            <span style="background:var(--red);"></span>
+            <span style="background:var(--gold);"></span>
+          </div>
+          <p style="font-size:9px; letter-spacing:.22em; text-transform:uppercase; color:rgba(13,13,13,.35); margin-bottom:10px;">Germany</p>
+          <p style="font-size:14px; line-height:1.7; color:rgba(13,13,13,.55);">Black, Red, Gold — Representing unity, freedom, and strength through the German tricolor.</p>
+        </div>
+        <div style="padding:36px; background:#fff; border-radius:14px; border:1px solid var(--mid);">
+          <div class="flag-stripe">
+            <span style="background:var(--blue);"></span>
+            <span style="background:#fff; border:1px solid var(--mid);"></span>
+            <span style="background:var(--blue);"></span>
+          </div>
+          <p style="font-size:9px; letter-spacing:.22em; text-transform:uppercase; color:rgba(13,13,13,.35); margin-bottom:10px;">Israel</p>
+          <p style="font-size:14px; line-height:1.7; color:rgba(13,13,13,.55);">Blue and White — The Star of David embedded in the numeral, representing the Israeli identity at the heart of the mark.</p>
+        </div>
+        <div style="padding:36px; background:var(--ink); border-radius:14px;">
+          <p style="font-size:9px; letter-spacing:.22em; text-transform:uppercase; color:rgba(255,255,255,.3); margin-bottom:10px;">The Ribbon</p>
+          <p style="font-size:14px; line-height:1.7; color:rgba(255,255,255,.5);">The ribbon is a universal symbol of solidarity — here it simultaneously forms "60" and expresses the bond between two peoples.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION: LOGO FINAL -->
+  <section class="case-section" style="background:#fff;">
+    <div class="section-eyebrow">Final Mark</div>
+    <h2 class="section-heading fade-in">The Official Emblem</h2>
+    <p class="section-sub fade-in">Selected as the official logo for all joint Israeli-German activities in 2025.</p>
+
+    <div class="fade-in">
+      <img src="assets/germany/logo_final.png" alt="Final Logo" class="slide-img" style="max-width:700px; margin:0 auto; display:block; border:1px solid rgba(13,13,13,.06);">
+    </div>
+  </section>
+
+  <!-- SECTION: PROCESS -->
+  <section class="case-section dark-section">
+    <div class="section-eyebrow">Process</div>
+    <h2 class="section-heading fade-in">From Sketch<br>to Symbol</h2>
+    <p class="section-sub fade-in">The mark was developed through extensive exploration of geometric forms — all rooted in the visual logic of the number 60 as a ribbon.</p>
+
+    <div class="fade-in">
+      <img src="assets/germany/sketch.png" alt="Logo Sketches" class="slide-img" style="background:#fff; border-radius:12px; max-width:700px; margin:0 auto; display:block;">
+      <p class="slide-caption">Development sketches — exploring geometry and composition</p>
+    </div>
+  </section>
+
+  <!-- SECTION: COLOR SYSTEM -->
+  <section class="case-section">
+    <div class="section-eyebrow">Color System</div>
+    <h2 class="section-heading fade-in">Color &amp;<br>Composition</h2>
+    <p class="section-sub fade-in">Multiple color and typographic variations developed for different applications across diplomatic and cultural contexts.</p>
+
+    <div class="fade-in">
+      <img src="assets/germany/colors.png" alt="Color Options" class="slide-img" style="background:#fff; border:1px solid var(--mid); border-radius:12px; max-width:700px; margin:0 auto; display:block;">
+      <p class="slide-caption">Color options and typography compositions</p>
+    </div>
+  </section>
+
+  <!-- SECTION: IN THE WORLD -->
+  <section class="case-section dark-section">
+    <div class="section-eyebrow">In The World</div>
+    <h2 class="section-heading fade-in">The Logo<br>Goes Live</h2>
+    <p class="section-sub fade-in">From foreign ministers to embassy profiles — the mark became an official symbol across diplomatic channels worldwide.</p>
+
+    <div class="press-grid fade-in">
+
+      <!-- Tweet card -->
+      <div class="press-card press-card--tall">
+        <img src="assets/germany/press_tweet.png" alt="German Ambassador tweet" class="press-img">
+      </div>
+
+      <!-- LinkedIn card -->
+      <div class="press-card press-card--wide">
+        <img src="assets/germany/press_linkedin.png" alt="German Embassy Tel Aviv LinkedIn" class="press-img">
+        <p class="press-label">German Embassy Tel Aviv — official LinkedIn profile</p>
+      </div>
+
+      <!-- Quote card -->
+      <div class="press-card press-card--quote">
+        <div class="press-quote-mark">"</div>
+        <blockquote class="press-quote-text">
+          The two foreign ministers chose the design as a shared symbol to accompany all joint activities this year — diplomatic, cultural, and civic. The logo is not just a look back at the history of the 60th year, but also
+        </blockquote>
+        <cite class="press-quote-src">Jan Kronfeld, German Foreign Ministry · Steffen Seibert, @GerAmbTLV</cite>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="case-footer">
+    <div>
+      <div class="footer-label">Next Project</div>
+      <a href="index.html" class="footer-cta">Back to<br>Work →</a>
+    </div>
+    <div class="footer-right">
+      Ori Mor — Brand &amp; Marketing Designer<br>
+      Tel Aviv · 2025
+    </div>
+  </footer>
+
+  <script>
+    const cur = document.getElementById('cur');
+    document.addEventListener('mousemove', e => {
+      cur.style.left = e.clientX + 'px';
+      cur.style.top  = e.clientY + 'px';
+    });
+    document.querySelectorAll('a, button').forEach(el => {
+      el.addEventListener('mouseenter', () => cur.classList.add('expanded'));
+      el.addEventListener('mouseleave', () => cur.classList.remove('expanded'));
+    });
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+  </script>
+
+</body>
+</html>

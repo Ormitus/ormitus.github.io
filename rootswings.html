@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Roots / Wings — Case Study / Ori Mor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,800;0,9..144,900;1,9..144,300;1,9..144,800&family=Space+Grotesk:wght@300;400;500&display=swap" rel="stylesheet">
+
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    :root {
+      --ink:    #110f0e;
+      --sand:   #f0e6d0;
+      --warm:   #c5966a;
+      --sea:    #2b4a5e;
+      --mist:   rgba(240,230,208,.07);
+    }
+
+    body {
+      background: var(--ink);
+      color: var(--sand);
+      font-family: 'Space Grotesk', sans-serif;
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* ─── CURSOR ─── */
+    #cur {
+      position: fixed; z-index: 9999; pointer-events: none;
+      width: 8px; height: 8px; background: var(--sand);
+      border-radius: 50%; transform: translate(-50%,-50%);
+      transition: width .2s, height .2s, background .2s;
+      mix-blend-mode: difference;
+    }
+    #cur.expanded { width: 48px; height: 48px; }
+
+    /* ─── NAV ─── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 500;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 32px 60px;
+      mix-blend-mode: difference;
+    }
+    .nav-logo {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 13px; font-weight: 500; letter-spacing: .22em;
+      text-transform: uppercase; color: #fff; text-decoration: none;
+    }
+    .nav-back {
+      font-size: 11px; letter-spacing: .2em; text-transform: uppercase;
+      color: rgba(255,255,255,.5); text-decoration: none; transition: color .3s;
+    }
+    .nav-back:hover { color: #fff; }
+
+    /* ─── HERO ─── */
+    #hero {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+      padding: 120px 60px 80px;
+      gap: 80px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Grainy film texture overlay */
+    #hero::before {
+      content: '';
+      position: absolute; inset: 0; z-index: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      background-size: 200px;
+      pointer-events: none;
+      opacity: .6;
+    }
+
+    .hero-left {
+      position: relative; z-index: 1;
+      display: flex; flex-direction: column; justify-content: center;
+    }
+
+    .hero-eyebrow {
+      font-size: 10px; letter-spacing: .32em; text-transform: uppercase;
+      color: var(--warm); margin-bottom: 32px;
+      opacity: 0; transform: translateY(20px);
+      animation: fadeUp .7s .1s forwards;
+      display: flex; align-items: center; gap: 16px;
+    }
+    .hero-eyebrow::before {
+      content: ''; display: inline-block;
+      width: 32px; height: 1px; background: var(--warm); opacity: .5;
+    }
+
+    .hero-title {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(52px, 7vw, 100px);
+      font-weight: 900; line-height: .88;
+      letter-spacing: -.03em; color: var(--sand);
+      opacity: 0; transform: translateY(40px);
+      animation: fadeUp .9s .25s forwards;
+    }
+    .hero-title .slash {
+      color: var(--warm); font-weight: 300; font-style: italic;
+      display: inline-block; margin: 0 6px;
+    }
+    .hero-title-he {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(24px, 3vw, 42px);
+      font-weight: 300; font-style: italic;
+      color: rgba(240,230,208,.35);
+      letter-spacing: -.01em;
+      display: block; margin-top: 12px;
+    }
+
+    .hero-artist {
+      margin-top: 32px;
+      font-size: 12px; letter-spacing: .24em; text-transform: uppercase;
+      color: rgba(240,230,208,.4);
+      opacity: 0; animation: fadeUp .7s .4s forwards;
+    }
+
+    .hero-divider {
+      width: 48px; height: 1px;
+      background: rgba(240,230,208,.12);
+      margin: 48px 0;
+      opacity: 0; animation: fadeUp .7s .5s forwards;
+    }
+
+    .hero-desc {
+      font-size: 16px; line-height: 1.8;
+      color: rgba(240,230,208,.55);
+      max-width: 480px;
+      opacity: 0; animation: fadeUp .8s .6s forwards;
+    }
+
+    .hero-meta-row {
+      display: flex; gap: 40px; margin-top: 48px;
+      opacity: 0; animation: fadeUp .7s .75s forwards;
+    }
+    .hero-meta-item {}
+    .hero-meta-label {
+      font-size: 9px; letter-spacing: .28em; text-transform: uppercase;
+      color: rgba(240,230,208,.25); margin-bottom: 6px;
+    }
+    .hero-meta-value {
+      font-family: 'Fraunces', serif;
+      font-size: 15px; font-weight: 300; font-style: italic;
+      color: rgba(240,230,208,.7);
+    }
+
+    /* ─── 3D MOCKUP ─── */
+    .hero-right {
+      position: relative; z-index: 1;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; animation: fadeUp .9s .4s forwards;
+    }
+
+    .mockup-scene {
+      width: 100%;
+      max-width: 480px;
+      perspective: 1200px;
+      cursor: none;
+    }
+
+    .mockup-wrap {
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform .08s ease-out;
+      will-change: transform;
+    }
+
+    /* vinyl record behind the sleeve */
+    .vinyl-record {
+      position: absolute;
+      width: 88%;
+      aspect-ratio: 1;
+      background: radial-gradient(circle at 50% 50%,
+        #1a1a1a 0%, #1a1a1a 28%,
+        #0a0a0a 28%, #0a0a0a 30%,
+        #222 30%, #1a1a1a 35%,
+        #111 35%, #222 40%,
+        #1a1a1a 40%, #111 50%,
+        #222 50%, #1a1a1a 60%,
+        #111 60%, #222 65%,
+        #1a1a1a 65%, #111 75%,
+        #1a1a1a 75%, #111 100%
+      );
+      border-radius: 50%;
+      right: -18%;
+      top: 6%;
+      box-shadow:
+        0 20px 60px rgba(0,0,0,.7),
+        inset 0 0 40px rgba(0,0,0,.5);
+      transform: translateZ(-8px);
+      z-index: 0;
+    }
+    /* center label on vinyl */
+    .vinyl-record::after {
+      content: '';
+      position: absolute;
+      width: 28%; aspect-ratio: 1;
+      background: radial-gradient(circle, var(--warm) 0%, #8b5e35 100%);
+      border-radius: 50%;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 2px 8px rgba(0,0,0,.5);
+    }
+
+    /* album sleeve */
+    .album-sleeve {
+      position: relative; z-index: 1;
+      width: 100%; aspect-ratio: 1;
+      border-radius: 4px;
+      overflow: hidden;
+      box-shadow:
+        0 40px 100px rgba(0,0,0,.7),
+        0 0 0 1px rgba(255,255,255,.06);
+      transform: translateZ(0);
+    }
+    .album-sleeve img {
+      width: 100%; height: 100%;
+      object-fit: cover; display: block;
+    }
+
+    /* glare overlay */
+    .album-glare {
+      position: absolute; inset: 0; z-index: 2;
+      background: linear-gradient(135deg,
+        rgba(255,255,255,.12) 0%,
+        rgba(255,255,255,0) 50%,
+        rgba(0,0,0,.08) 100%
+      );
+      pointer-events: none;
+      border-radius: 4px;
+    }
+
+    /* ─── ANIMATIONS ─── */
+    @keyframes fadeUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-in {
+      opacity: 0; transform: translateY(40px);
+      transition: opacity .8s ease, transform .8s ease;
+    }
+    .fade-in.visible { opacity: 1; transform: translateY(0); }
+
+    /* ─── SINGLES ─── */
+    #singles {
+      padding: 120px 60px;
+      border-top: 1px solid rgba(240,230,208,.06);
+    }
+
+    .singles-header {
+      margin-bottom: 72px;
+    }
+    .singles-eyebrow {
+      font-size: 10px; letter-spacing: .32em; text-transform: uppercase;
+      color: var(--warm); margin-bottom: 16px;
+      display: flex; align-items: center; gap: 16px;
+    }
+    .singles-eyebrow::before {
+      content: ''; display: inline-block;
+      width: 32px; height: 1px; background: var(--warm); opacity: .5;
+    }
+    .singles-heading {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(36px, 5vw, 64px);
+      font-weight: 900; line-height: .9;
+      letter-spacing: -.03em; color: var(--sand);
+    }
+
+    .singles-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 40px;
+    }
+
+    .single-card { cursor: none; }
+
+    .single-mockup-scene {
+      width: 100%;
+      perspective: 900px;
+    }
+    .single-mockup-wrap {
+      transform-style: preserve-3d;
+      transition: transform .08s ease-out;
+      will-change: transform;
+    }
+    .single-sleeve {
+      position: relative;
+      width: 100%; aspect-ratio: 1;
+      border-radius: 4px; overflow: hidden;
+      box-shadow:
+        0 24px 64px rgba(0,0,0,.65),
+        0 0 0 1px rgba(255,255,255,.06);
+    }
+    .single-sleeve img {
+      width: 100%; height: 100%;
+      object-fit: cover; display: block;
+    }
+    .single-glare {
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg,
+        rgba(255,255,255,.1) 0%,
+        rgba(255,255,255,0) 50%,
+        rgba(0,0,0,.06) 100%
+      );
+      pointer-events: none;
+    }
+
+    .single-info {
+      margin-top: 20px;
+      padding: 0 4px;
+    }
+    .single-name {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(20px, 2vw, 28px);
+      font-weight: 900; letter-spacing: -.02em;
+      color: var(--sand); margin-bottom: 6px;
+      direction: rtl;
+    }
+    .single-sub {
+      font-size: 11px; letter-spacing: .16em;
+      text-transform: uppercase; color: rgba(240,230,208,.3);
+    }
+
+    @media (max-width: 768px) {
+      #singles { padding: 80px 32px; }
+      .singles-grid { grid-template-columns: 1fr; gap: 48px; }
+    }
+
+    /* ─── POSTERS ─── */
+    #posters {
+      padding: 120px 60px;
+      border-top: 1px solid rgba(240,230,208,.06);
+    }
+
+    .posters-header {
+      display: flex; justify-content: space-between; align-items: flex-end;
+      margin-bottom: 64px;
+    }
+
+    /* Toggle */
+    .poster-toggle {
+      display: flex; gap: 2px;
+      background: rgba(240,230,208,.05);
+      border: 1px solid rgba(240,230,208,.1);
+      border-radius: 8px; padding: 4px;
+    }
+    .toggle-btn {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 18px;
+      border: none; border-radius: 6px;
+      background: transparent;
+      color: rgba(240,230,208,.35);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+      cursor: none; transition: all .25s ease;
+    }
+    .toggle-btn.active {
+      background: rgba(240,230,208,.1);
+      color: var(--sand);
+    }
+    .toggle-btn svg { transition: opacity .25s; }
+
+    /* Poster grid */
+    .posters-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      max-width: 640px;
+    }
+    .posters-grid.wide-mode {
+      grid-template-columns: 1fr;
+      gap: 24px;
+      max-width: 720px;
+    }
+
+    .poster-set {}
+    .poster-img-wrap {
+      position: relative;
+      overflow: hidden;
+      border-radius: 8px;
+      box-shadow: 0 24px 64px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.05);
+    }
+
+    /* Each image: one is visible, one hidden */
+    .poster-img {
+      width: 100%; display: block;
+      border-radius: 6px;
+    }
+    .portrait-img { display: block; }
+    .wide-img     { display: none; }
+
+    /* Wide mode: swap which version shows */
+    .posters-grid.wide-mode .portrait-img { display: none; }
+    .posters-grid.wide-mode .wide-img     { display: block; }
+
+    .poster-caption {
+      margin-top: 14px;
+      font-size: 11px; letter-spacing: .18em; text-transform: uppercase;
+      color: rgba(240,230,208,.3); text-align: center;
+    }
+
+    @media (max-width: 768px) {
+      #posters { padding: 80px 32px; }
+      .posters-grid, .posters-grid.wide-mode { grid-template-columns: 1fr; }
+      .posters-header { flex-direction: column; align-items: flex-start; gap: 24px; }
+    }
+
+    /* ─── REAL LIFE ─── */
+    #reallife {
+      padding: 120px 60px;
+      border-top: 1px solid rgba(240,230,208,.06);
+    }
+
+    .rl-hero {
+      margin-bottom: 32px;
+      border-radius: 16px; overflow: hidden;
+      box-shadow: 0 32px 80px rgba(0,0,0,.6);
+      max-width: 680px;
+    }
+    .rl-hero-img {
+      width: 100%; display: block;
+    }
+
+    .rl-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 2fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .rl-item {}
+    .rl-img {
+      width: 100%; display: block;
+      border-radius: 10px;
+      box-shadow: 0 12px 40px rgba(0,0,0,.5);
+    }
+    .rl-caption {
+      margin-top: 10px;
+      font-size: 10px; letter-spacing: .16em; text-transform: uppercase;
+      color: rgba(240,230,208,.25); text-align: center;
+    }
+
+    @media (max-width: 768px) {
+      #reallife { padding: 80px 32px; }
+      .rl-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ─── FOOTER ─── */
+    .case-footer {
+      padding: 80px 60px;
+      background: rgba(240,230,208,.03);
+      display: flex; justify-content: space-between; align-items: flex-end;
+      border-top: 1px solid rgba(240,230,208,.06);
+    }
+    .footer-label {
+      font-size: 9px; letter-spacing: .3em; text-transform: uppercase;
+      color: rgba(240,230,208,.25); margin-bottom: 20px;
+    }
+    .footer-cta {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(28px, 4vw, 56px);
+      font-weight: 900; color: var(--sand); line-height: .9;
+      letter-spacing: -.03em; text-decoration: none; transition: color .3s;
+    }
+    .footer-cta:hover { color: rgba(240,230,208,.4); }
+    .footer-right {
+      font-size: 11px; letter-spacing: .15em; text-transform: uppercase;
+      color: rgba(240,230,208,.18);
+    }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 900px) {
+      #hero { grid-template-columns: 1fr; padding: 120px 32px 80px; gap: 60px; }
+      nav { padding: 24px 32px; }
+      .mockup-scene { max-width: 340px; }
+      .case-footer { padding: 60px 32px; flex-direction: column; gap: 40px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="cur"></div>
+
+  <nav>
+    <a href="index.html" class="nav-logo">Ori Mor</a>
+    <a href="index.html" class="nav-back">← Back to Work</a>
+  </nav>
+
+  <!-- HERO -->
+  <section id="hero">
+
+    <div class="hero-left">
+      <div class="hero-eyebrow">Album Visual Identity</div>
+
+      <h1 class="hero-title">
+        Roots<span class="slash">/</span>Wings
+        <span class="hero-title-he">שורשים / כנפיים</span>
+      </h1>
+
+      <div class="hero-artist">Guy &amp; Yahel</div>
+
+      <div class="hero-divider"></div>
+
+      <p class="hero-desc">
+        I had the privilege of working on the visual identity for Guy &amp; Yahel's new album — their first release in almost a decade. My work included designing the album cover, the singles, and the full tour schedule.
+      </p>
+
+      <div class="hero-meta-row">
+        <div class="hero-meta-item">
+          <div class="hero-meta-label">Scope</div>
+          <div class="hero-meta-value">Album Cover, Singles, Tour</div>
+        </div>
+        <div class="hero-meta-item">
+          <div class="hero-meta-label">Year</div>
+          <div class="hero-meta-value">2025</div>
+        </div>
+        <div class="hero-meta-item">
+          <div class="hero-meta-label">Client</div>
+          <div class="hero-meta-value">Guy &amp; Yahel</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-right">
+      <div class="mockup-scene" id="mockupScene">
+        <div class="mockup-wrap" id="mockupWrap">
+          <div class="vinyl-record"></div>
+          <div class="album-sleeve">
+            <img src="assets/rootswings/cover.png" alt="Roots / Wings — Guy & Yahel Album Cover">
+            <div class="album-glare"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- SINGLES -->
+  <section id="singles">
+    <div class="singles-header fade-in">
+      <div class="singles-eyebrow">Singles</div>
+      <h2 class="singles-heading">Released Works</h2>
+    </div>
+
+    <div class="singles-grid">
+
+      <div class="single-card fade-in" id="card1">
+        <div class="single-mockup-scene">
+          <div class="single-mockup-wrap" id="wrap1">
+            <div class="single-sleeve">
+              <img src="assets/rootswings/single1.png" alt="קופנגן">
+              <div class="single-glare"></div>
+            </div>
+          </div>
+        </div>
+        <div class="single-info">
+          <p class="single-name">קופנגן</p>
+          <p class="single-sub">Kopangan &nbsp;·&nbsp; Single &nbsp;·&nbsp; 2025</p>
+        </div>
+      </div>
+
+      <div class="single-card fade-in" id="card2">
+        <div class="single-mockup-scene">
+          <div class="single-mockup-wrap" id="wrap2">
+            <div class="single-sleeve">
+              <img src="assets/rootswings/single2.png" alt="קופנגן אקוסטי">
+              <div class="single-glare"></div>
+            </div>
+          </div>
+        </div>
+        <div class="single-info">
+          <p class="single-name">קופנגן אקוסטי</p>
+          <p class="single-sub">Kopangan Acoustic &nbsp;·&nbsp; Single &nbsp;·&nbsp; 2025</p>
+        </div>
+      </div>
+
+      <div class="single-card fade-in" id="card3">
+        <div class="single-mockup-scene">
+          <div class="single-mockup-wrap" id="wrap3">
+            <div class="single-sleeve album-cover-small">
+              <img src="assets/rootswings/cover.png" alt="שורשים / כנפיים">
+              <div class="single-glare"></div>
+            </div>
+          </div>
+        </div>
+        <div class="single-info">
+          <p class="single-name">שורשים / כנפיים</p>
+          <p class="single-sub">Roots / Wings &nbsp;·&nbsp; Album &nbsp;·&nbsp; 2025</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- POSTERS -->
+  <section id="posters">
+    <div class="posters-header fade-in">
+      <div>
+        <div class="singles-eyebrow">Tour &amp; Promotion</div>
+        <h2 class="singles-heading">Posters</h2>
+      </div>
+      <div class="poster-toggle" id="posterToggle">
+        <button class="toggle-btn active" data-view="portrait" id="btnPortrait">
+          <svg width="14" height="18" viewBox="0 0 14 18" fill="none"><rect x="0.5" y="0.5" width="13" height="17" rx="1.5" stroke="currentColor"/></svg>
+          Post
+        </button>
+        <button class="toggle-btn" data-view="wide" id="btnWide">
+          <svg width="20" height="13" viewBox="0 0 20 13" fill="none"><rect x="0.5" y="0.5" width="19" height="12" rx="1.5" stroke="currentColor"/></svg>
+          Landscape
+        </button>
+      </div>
+    </div>
+
+    <div class="posters-grid" id="postersGrid">
+
+      <!-- Poster set 1 -->
+      <div class="poster-set fade-in">
+        <div class="poster-img-wrap">
+          <img src="assets/rootswings/poster1_portrait.png" alt="Tel Aviv Show — Post" class="poster-img portrait-img">
+          <img src="assets/rootswings/poster1_wide.png"    alt="Tel Aviv Show — Wide" class="poster-img wide-img">
+        </div>
+        <p class="poster-caption">Tel Aviv — Amphitheater Gan Yehoshua</p>
+      </div>
+
+      <!-- Poster set 2 -->
+      <div class="poster-set fade-in">
+        <div class="poster-img-wrap">
+          <img src="assets/rootswings/poster2_square.png" alt="Acoustic Tour — Square" class="poster-img portrait-img">
+          <img src="assets/rootswings/poster2_wide.png"   alt="Acoustic Tour — Wide"   class="poster-img wide-img">
+        </div>
+        <p class="poster-caption">Special Acoustic Tour — 2025</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- REAL LIFE -->
+  <section id="reallife">
+    <div class="singles-header fade-in" style="margin-bottom:64px;">
+      <div class="singles-eyebrow">In the Wild</div>
+      <h2 class="singles-heading">Out There</h2>
+    </div>
+
+    <!-- CD Mockup — full width hero -->
+    <div class="rl-hero fade-in">
+      <img src="assets/rootswings/real_cd.png" alt="Album CD Mockup" class="rl-hero-img">
+    </div>
+
+    <!-- Spotify screenshots — 3-col grid -->
+    <div class="rl-grid fade-in">
+      <div class="rl-item">
+        <img src="assets/rootswings/real_spotify2.png" alt="Spotify Album" class="rl-img">
+        <p class="rl-caption">שורשים / כנפיים — Spotify</p>
+      </div>
+      <div class="rl-item">
+        <img src="assets/rootswings/real_spotify1.png" alt="Spotify Deluxe" class="rl-img">
+        <p class="rl-caption">Deluxe Version — Spotify</p>
+      </div>
+      <div class="rl-item rl-item-wide">
+        <img src="assets/rootswings/real_singles.png" alt="Singles on Spotify" class="rl-img">
+        <p class="rl-caption">Singles — Spotify</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="case-footer">
+    <div>
+      <div class="footer-label">Next Project</div>
+      <a href="index.html" class="footer-cta">Back to<br>Work →</a>
+    </div>
+    <div class="footer-right">
+      Ori Mor — Brand &amp; Marketing Designer<br>
+      Tel Aviv · 2025
+    </div>
+  </footer>
+
+  <script>
+    /* ── cursor ── */
+    const cur = document.getElementById('cur');
+    document.addEventListener('mousemove', e => {
+      cur.style.left = e.clientX + 'px';
+      cur.style.top  = e.clientY + 'px';
+    });
+    document.querySelectorAll('a, button').forEach(el => {
+      el.addEventListener('mouseenter', () => cur.classList.add('expanded'));
+      el.addEventListener('mouseleave', () => cur.classList.remove('expanded'));
+    });
+
+    /* ── 3D tilt ── */
+    const scene = document.getElementById('mockupScene');
+    const wrap  = document.getElementById('mockupWrap');
+
+    let targetX = 0, targetY = 0;
+    let currentX = 0, currentY = 0;
+    let rafId;
+
+    scene.addEventListener('mousemove', e => {
+      const rect = scene.getBoundingClientRect();
+      const nx = (e.clientX - rect.left) / rect.width  - 0.5; // -0.5 to 0.5
+      const ny = (e.clientY - rect.top)  / rect.height - 0.5;
+      targetX = ny * -22;   // tilt X axis
+      targetY = nx *  22;   // tilt Y axis
+    });
+
+    scene.addEventListener('mouseleave', () => {
+      targetX = 0;
+      targetY = 0;
+    });
+
+    function animate() {
+      currentX += (targetX - currentX) * 0.1;
+      currentY += (targetY - currentY) * 0.1;
+      wrap.style.transform = `perspective(1200px) rotateX(${currentX}deg) rotateY(${currentY}deg) scale3d(1.02,1.02,1.02)`;
+      rafId = requestAnimationFrame(animate);
+    }
+    animate();
+
+    /* ── singles 3D tilt ── */
+    [1,2,3].forEach(n => {
+      const scene = document.getElementById('card' + n)?.querySelector('.single-mockup-scene');
+      const wrap  = document.getElementById('wrap' + n);
+      if (!scene || !wrap) return;
+      let tx = 0, ty = 0, cx = 0, cy = 0;
+      scene.addEventListener('mousemove', e => {
+        const r = scene.getBoundingClientRect();
+        tx = ((e.clientY - r.top)  / r.height - .5) * -18;
+        ty = ((e.clientX - r.left) / r.width  - .5) *  18;
+      });
+      scene.addEventListener('mouseleave', () => { tx = 0; ty = 0; });
+      (function loop() {
+        cx += (tx - cx) * .1; cy += (ty - cy) * .1;
+        wrap.style.transform = `perspective(900px) rotateX(${cx}deg) rotateY(${cy}deg) scale3d(1.03,1.03,1.03)`;
+        requestAnimationFrame(loop);
+      })();
+    });
+
+    /* ── poster toggle ── */
+    const postersGrid = document.getElementById('postersGrid');
+    document.querySelectorAll('.toggle-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        postersGrid.style.opacity = '0';
+        postersGrid.style.transition = 'opacity .2s';
+        setTimeout(() => {
+          if (btn.dataset.view === 'wide') {
+            postersGrid.classList.add('wide-mode');
+          } else {
+            postersGrid.classList.remove('wide-mode');
+          }
+          postersGrid.style.opacity = '1';
+        }, 200);
+      });
+    });
+
+    /* ── scroll fade ── */
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+  </script>
+
+</body>
+</html>

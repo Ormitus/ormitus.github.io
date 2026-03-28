@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Perrier — Case Study / Ori Mor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,800;0,9..144,900;1,9..144,300;1,9..144,800&family=Space+Grotesk:wght@300;400;500&display=swap" rel="stylesheet">
+
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    :root {
+      --green: #319945;
+      --green-dark: #124E34;
+      --yellow: #FEF754;
+      --dark: #282825;
+      --cream: #FAFAF0;
+    }
+
+    body {
+      background: #fff;
+      color: #111;
+      font-family: 'Space Grotesk', sans-serif;
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* ─── CURSOR ─── */
+    #cur {
+      position: fixed; z-index: 9999; pointer-events: none;
+      width: 8px; height: 8px; background: #111; border-radius: 50%;
+      transform: translate(-50%, -50%);
+      transition: width .2s, height .2s;
+      mix-blend-mode: difference;
+    }
+    #cur.expanded { width: 48px; height: 48px; }
+
+    /* ─── NAV ─── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 500;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 32px 60px;
+      mix-blend-mode: difference;
+    }
+    .nav-logo {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 13px; font-weight: 500; letter-spacing: .22em;
+      text-transform: uppercase; color: #fff; text-decoration: none;
+    }
+    .nav-back {
+      font-size: 11px; letter-spacing: .2em; text-transform: uppercase;
+      color: rgba(255,255,255,.5); text-decoration: none;
+      transition: color .3s;
+    }
+    .nav-back:hover { color: #fff; }
+
+    /* ─── HERO ─── */
+    #hero {
+      min-height: 100vh;
+      display: flex; flex-direction: column; justify-content: flex-end;
+      padding: 0 60px 80px;
+      position: relative;
+      overflow: hidden;
+      background: var(--green-dark);
+    }
+    .hero-bg-text {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: 'Fraunces', serif;
+      font-size: clamp(160px, 22vw, 340px);
+      font-weight: 900;
+      color: rgba(255,255,255,.04);
+      letter-spacing: -.04em;
+      white-space: nowrap;
+      user-select: none;
+      pointer-events: none;
+    }
+    .hero-meta {
+      font-size: 11px; letter-spacing: .28em; text-transform: uppercase;
+      color: rgba(255,255,255,.35); margin-bottom: 24px;
+      opacity: 0; transform: translateY(20px);
+      animation: fadeUp .8s .2s forwards;
+    }
+    .hero-title {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(100px, 18vw, 260px);
+      font-weight: 900; line-height: .85;
+      letter-spacing: -.04em; color: #fff;
+      opacity: 0; transform: translateY(60px);
+      animation: fadeUp .9s .35s forwards;
+    }
+    .hero-title-italic {
+      font-style: italic;
+      -webkit-text-stroke: 2px var(--yellow);
+      color: transparent;
+      display: block;
+    }
+    .hero-subtitle {
+      font-size: 13px; letter-spacing: .18em; text-transform: uppercase;
+      color: rgba(255,255,255,.35); margin-top: 32px;
+      opacity: 0; transform: translateY(20px);
+      animation: fadeUp .8s .55s forwards;
+    }
+    .hero-divider {
+      display: inline-block; width: 40px; height: 1px;
+      background: rgba(255,255,255,.2); vertical-align: middle; margin: 0 16px;
+    }
+
+    /* ─── BRAND STRIP ─── */
+    .brand-strip {
+      padding: 48px 60px;
+      background: var(--dark);
+      display: flex; align-items: center; justify-content: space-between; gap: 40px;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .brand-strip-tagline {
+      font-size: 13px; letter-spacing: .16em; text-transform: uppercase;
+      color: rgba(255,255,255,.3); max-width: 280px; line-height: 1.8;
+    }
+    .brand-strip-tagline span {
+      color: var(--yellow);
+    }
+
+    /* ─── OVERVIEW STRIP ─── */
+    .overview-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      border-bottom: 1px solid rgba(0,0,0,.1);
+    }
+    .overview-item {
+      padding: 48px 40px;
+      border-right: 1px solid rgba(0,0,0,.1);
+    }
+    .overview-item:last-child { border-right: none; }
+    .overview-label {
+      font-size: 9px; letter-spacing: .3em; text-transform: uppercase;
+      color: rgba(0,0,0,.35); margin-bottom: 12px;
+    }
+    .overview-value {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(15px, 1.8vw, 22px);
+      font-weight: 300; font-style: italic;
+      color: #111; line-height: 1.3;
+    }
+
+    /* ─── SECTIONS ─── */
+    .case-section {
+      padding: 120px 60px;
+      border-bottom: 1px solid rgba(0,0,0,.08);
+      position: relative;
+    }
+    .case-section:last-of-type { border-bottom: none; }
+
+    .section-eyebrow {
+      font-size: 9px; letter-spacing: .32em; text-transform: uppercase;
+      color: rgba(0,0,0,.35); margin-bottom: 40px;
+      display: flex; align-items: center; gap: 20px;
+    }
+    .section-eyebrow::before {
+      content: '';
+      display: inline-block; width: 32px; height: 1px;
+      background: rgba(0,0,0,.2);
+    }
+    .section-num {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(60px, 9vw, 130px);
+      font-weight: 900; line-height: .85;
+      letter-spacing: -.04em;
+      color: rgba(0,0,0,.05);
+      position: absolute; right: 60px; top: 120px;
+      pointer-events: none;
+    }
+    .section-heading {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(40px, 5.5vw, 80px);
+      font-weight: 900; line-height: .9;
+      letter-spacing: -.03em; color: #111;
+      margin-bottom: 20px;
+    }
+    .section-subheading {
+      font-size: clamp(16px, 1.8vw, 22px);
+      color: rgba(0,0,0,.45);
+      font-weight: 300; margin-bottom: 60px;
+      max-width: 600px; line-height: 1.6;
+    }
+    .body-text {
+      font-size: 16px; line-height: 1.75;
+      color: rgba(0,0,0,.6); max-width: 720px;
+    }
+
+    /* ─── GREEN ACCENT SECTION ─── */
+    .section-green {
+      background: var(--green-dark);
+      color: #fff;
+    }
+    .section-green .section-eyebrow { color: rgba(255,255,255,.35); }
+    .section-green .section-eyebrow::before { background: rgba(255,255,255,.2); }
+    .section-green .section-num { color: rgba(255,255,255,.04); }
+    .section-green .section-heading { color: #fff; }
+    .section-green .section-subheading { color: rgba(255,255,255,.45); }
+    .section-green .body-text { color: rgba(255,255,255,.6); }
+
+    /* ─── CREAM SECTION ─── */
+    .section-cream { background: var(--cream); }
+
+    /* ─── DARK SECTION ─── */
+    .section-dark { background: var(--dark); color: #fff; }
+    .section-dark .section-eyebrow { color: rgba(255,255,255,.35); }
+    .section-dark .section-eyebrow::before { background: rgba(255,255,255,.2); }
+    .section-dark .section-num { color: rgba(255,255,255,.04); }
+    .section-dark .section-heading { color: #fff; }
+    .section-dark .section-subheading { color: rgba(255,255,255,.45); }
+    .section-dark .body-text { color: rgba(255,255,255,.55); }
+    .section-dark .case-section { border-bottom-color: rgba(255,255,255,.06); }
+
+    /* ─── TWO COLUMN ─── */
+    .two-col {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 80px; align-items: start;
+    }
+    .two-col-3-2 {
+      display: grid; grid-template-columns: 3fr 2fr;
+      gap: 80px; align-items: start;
+    }
+
+    /* ─── CHALLENGE CARDS ─── */
+    .challenge-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr);
+      gap: 2px; margin-top: 60px;
+    }
+    .challenge-card {
+      background: var(--cream);
+      border: 1px solid rgba(0,0,0,.08);
+      padding: 48px 40px;
+      transition: background .3s;
+    }
+    .challenge-card:hover { background: #f0f0e8; }
+    .challenge-num {
+      font-size: 9px; letter-spacing: .28em; text-transform: uppercase;
+      color: var(--green); margin-bottom: 20px;
+    }
+    .challenge-title {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(22px, 2.5vw, 32px);
+      font-weight: 800; line-height: 1.1; color: #111; margin-bottom: 16px;
+    }
+    .challenge-body {
+      font-size: 14px; line-height: 1.75; color: rgba(0,0,0,.55);
+    }
+
+    /* ─── VALUE PILLS ─── */
+    .values-row {
+      display: flex; gap: 16px; flex-wrap: wrap; margin-top: 48px;
+    }
+    .value-pill {
+      display: flex; align-items: center; gap: 12px;
+      background: rgba(49,153,69,.08);
+      border: 1px solid rgba(49,153,69,.2);
+      border-radius: 100px;
+      padding: 12px 28px;
+    }
+    .value-pill-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--green); flex-shrink: 0;
+    }
+    .value-pill-text {
+      font-family: 'Fraunces', serif;
+      font-size: 18px; font-weight: 800; font-style: italic;
+      color: var(--green-dark);
+    }
+
+    /* ─── PERSONALITY TRAITS ─── */
+    .traits-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr);
+      gap: 2px; margin-top: 60px;
+    }
+    .trait-card {
+      padding: 48px 40px;
+      border: 1px solid rgba(255,255,255,.08);
+      transition: background .3s;
+    }
+    .trait-card:hover { background: rgba(255,255,255,.04); }
+    .trait-num {
+      font-size: 9px; letter-spacing: .28em; text-transform: uppercase;
+      color: var(--yellow); opacity: .7; margin-bottom: 20px;
+    }
+    .trait-title {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(20px, 2.2vw, 28px);
+      font-weight: 800; line-height: 1.15; color: #fff; margin-bottom: 16px;
+    }
+    .trait-body {
+      font-size: 14px; line-height: 1.75; color: rgba(255,255,255,.5);
+    }
+
+    /* ─── MANIFESTO ─── */
+    .manifesto-block {
+      max-width: 860px; margin-top: 60px;
+    }
+    .manifesto-text {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(22px, 2.8vw, 38px);
+      font-weight: 300; font-style: italic;
+      line-height: 1.45; color: #fff;
+    }
+    .manifesto-text em {
+      font-style: normal; color: var(--yellow);
+    }
+
+    /* ─── COLOR SWATCHES ─── */
+    .color-swatches {
+      display: flex; gap: 16px; flex-wrap: wrap; margin-top: 60px;
+    }
+    .swatch {
+      display: flex; flex-direction: column; gap: 12px;
+    }
+    .swatch-block {
+      width: 100px; height: 100px; border-radius: 16px;
+    }
+    .swatch-hex {
+      font-size: 11px; letter-spacing: .08em; color: rgba(0,0,0,.45);
+    }
+    .swatch-name {
+      font-size: 12px; font-weight: 500; color: rgba(0,0,0,.65);
+    }
+
+    /* ─── SLIDE IMAGES ─── */
+    .slide-img {
+      width: 100%; display: block;
+      border-radius: 16px;
+      box-shadow: 0 24px 80px rgba(0,0,0,.12), 0 4px 16px rgba(0,0,0,.06);
+    }
+    .slide-img-dark {
+      box-shadow: 0 24px 80px rgba(0,0,0,.4), 0 4px 16px rgba(0,0,0,.2);
+    }
+    .slide-caption {
+      font-size: 11px; letter-spacing: .18em; text-transform: uppercase;
+      color: rgba(0,0,0,.3); margin-top: 16px; text-align: center;
+    }
+    .slide-caption-light { color: rgba(255,255,255,.3); }
+
+    /* ─── CONTENT PILLARS ─── */
+    .pillar-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr);
+      gap: 40px; margin-top: 60px;
+    }
+    .pillar-card {
+      overflow: hidden; border-radius: 16px;
+      position: relative;
+    }
+    .pillar-card img {
+      width: 100%; display: block;
+      transition: transform .6s cubic-bezier(.25,.46,.45,.94);
+    }
+    .pillar-card:hover img { transform: scale(1.03); }
+
+    /* ─── PILLAR FULL-WIDTH ─── */
+    .pillar-full {
+      margin-top: 40px; border-radius: 16px; overflow: hidden;
+    }
+    .pillar-full img { width: 100%; display: block; }
+
+    /* ─── MERCH GRID ─── */
+    .merch-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr);
+      gap: 24px; margin-top: 60px;
+    }
+    .merch-item {
+      border-radius: 16px; overflow: hidden;
+      box-shadow: 0 12px 48px rgba(0,0,0,.08);
+    }
+    .merch-item img { width: 100%; display: block; }
+    .merch-label {
+      padding: 20px 24px;
+      background: #fff;
+      border-top: 1px solid rgba(0,0,0,.06);
+    }
+    .merch-label-title {
+      font-family: 'Fraunces', serif; font-size: 18px; font-weight: 800;
+      color: #111; margin-bottom: 6px;
+    }
+    .merch-label-desc {
+      font-size: 12px; color: rgba(0,0,0,.45); line-height: 1.6;
+    }
+
+    /* ─── INFLUENCER LIST ─── */
+    .influencer-grid {
+      display: grid; grid-template-columns: repeat(5, 1fr);
+      gap: 16px; margin-top: 60px;
+    }
+    .influencer-card {
+      text-align: center; padding: 24px 16px;
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 12px;
+    }
+    .influencer-handle {
+      font-size: 13px; font-weight: 500; color: #fff; margin-bottom: 6px;
+    }
+    .influencer-count {
+      font-family: 'Fraunces', serif; font-size: 22px; font-weight: 900;
+      font-style: italic; color: var(--yellow);
+    }
+    .influencer-label {
+      font-size: 10px; letter-spacing: .16em; text-transform: uppercase;
+      color: rgba(255,255,255,.3); margin-top: 4px;
+    }
+
+    /* ─── TOV QUOTES ─── */
+    .tov-scroll {
+      display: flex; gap: 24px; overflow-x: auto;
+      padding-bottom: 20px; margin-top: 60px;
+    }
+    .tov-scroll::-webkit-scrollbar { height: 2px; }
+    .tov-scroll::-webkit-scrollbar-track { background: rgba(255,255,255,.05); }
+    .tov-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,.2); border-radius: 2px; }
+    .tov-card {
+      flex-shrink: 0;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 12px;
+      padding: 28px 32px;
+      min-width: 260px;
+    }
+    .tov-quote {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(16px, 1.8vw, 22px);
+      font-weight: 800; color: #fff; line-height: 1.25;
+    }
+    .tov-quote.yellow { color: var(--yellow); }
+
+    /* ─── TAGLINES ─── */
+    .taglines {
+      margin-top: 60px; display: flex; flex-direction: column; gap: 20px;
+    }
+    .tagline {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(32px, 5vw, 72px);
+      font-weight: 900; line-height: .95;
+      letter-spacing: -.03em; color: #fff;
+    }
+    .tagline-outline {
+      -webkit-text-stroke: 1.5px rgba(255,255,255,.4);
+      color: transparent;
+    }
+    .tagline-yellow { color: var(--yellow); }
+
+    /* ─── MARKET INSIGHTS ─── */
+    .insight-list {
+      margin-top: 60px; display: flex; flex-direction: column; gap: 2px;
+    }
+    .insight-item {
+      display: grid; grid-template-columns: 200px 1fr;
+      gap: 40px; padding: 32px 40px;
+      border: 1px solid rgba(0,0,0,.08);
+      background: #fff;
+      transition: background .3s;
+    }
+    .insight-item:hover { background: var(--cream); }
+    .insight-label {
+      font-size: 10px; letter-spacing: .22em; text-transform: uppercase;
+      color: var(--green); font-weight: 500; padding-top: 4px;
+    }
+    .insight-text {
+      font-size: 15px; line-height: 1.7; color: rgba(0,0,0,.65);
+    }
+
+    /* ─── AUDIENCE PROFILES ─── */
+    .audience-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 2px; margin-top: 60px;
+    }
+    .audience-card {
+      padding: 60px 48px;
+    }
+    .audience-card.b2c { background: var(--green-dark); color: #fff; }
+    .audience-card.b2b { background: var(--dark); color: #fff; }
+    .audience-type {
+      font-size: 9px; letter-spacing: .3em; text-transform: uppercase;
+      color: var(--yellow); margin-bottom: 24px;
+    }
+    .audience-heading {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(28px, 3.5vw, 48px);
+      font-weight: 900; line-height: 1; color: #fff; margin-bottom: 32px;
+    }
+    .audience-stats {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 32px;
+    }
+    .audience-stat-label {
+      font-size: 9px; letter-spacing: .2em; text-transform: uppercase;
+      color: rgba(255,255,255,.35); margin-bottom: 6px;
+    }
+    .audience-stat-value {
+      font-size: 14px; color: rgba(255,255,255,.8); line-height: 1.5;
+    }
+    .audience-body {
+      font-size: 14px; line-height: 1.8; color: rgba(255,255,255,.5);
+    }
+
+    /* ─── KEY MESSAGES ─── */
+    .message-list {
+      margin-top: 60px; display: flex; flex-direction: column; gap: 2px;
+    }
+    .message-item {
+      padding: 40px 48px;
+      border: 1px solid rgba(0,0,0,.08);
+      display: grid; grid-template-columns: 280px 1fr;
+      gap: 60px; align-items: start;
+      transition: background .3s;
+    }
+    .message-item:hover { background: var(--cream); }
+    .message-title {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(18px, 2vw, 26px);
+      font-weight: 900; line-height: 1.1;
+      color: #111; letter-spacing: -.01em;
+    }
+    .message-body {
+      font-size: 14px; line-height: 1.8; color: rgba(0,0,0,.55);
+    }
+
+    /* ─── ANIMATIONS ─── */
+    @keyframes fadeUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-in {
+      opacity: 0; transform: translateY(40px);
+      transition: opacity .8s ease, transform .8s ease;
+    }
+    .fade-in.visible { opacity: 1; transform: translateY(0); }
+
+    /* ─── FOOTER ─── */
+    .case-footer {
+      padding: 80px 60px;
+      background: var(--dark);
+      display: flex; justify-content: space-between; align-items: flex-end;
+      border-top: 1px solid rgba(255,255,255,.06);
+    }
+    .footer-left { max-width: 400px; }
+    .footer-label {
+      font-size: 9px; letter-spacing: .3em; text-transform: uppercase;
+      color: rgba(255,255,255,.3); margin-bottom: 20px;
+    }
+    .footer-cta {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(28px, 4vw, 56px);
+      font-weight: 900; color: #fff; line-height: .9;
+      letter-spacing: -.03em; text-decoration: none;
+      transition: color .3s;
+    }
+    .footer-cta:hover { color: var(--yellow); }
+    .footer-right {
+      font-size: 11px; letter-spacing: .15em; text-transform: uppercase;
+      color: rgba(255,255,255,.2);
+    }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 768px) {
+      nav { padding: 24px 28px; }
+      #hero { padding: 0 28px 60px; }
+      .brand-strip { flex-direction: column; padding: 40px 28px; gap: 24px; }
+      .overview-strip { grid-template-columns: 1fr 1fr; }
+      .case-section { padding: 80px 28px; }
+      .challenge-grid, .traits-grid, .two-col, .two-col-3-2 { grid-template-columns: 1fr; }
+      .audience-grid { grid-template-columns: 1fr; }
+      .pillar-grid { grid-template-columns: 1fr; }
+      .merch-grid { grid-template-columns: 1fr; }
+      .influencer-grid { grid-template-columns: repeat(3, 1fr); }
+      .message-item { grid-template-columns: 1fr; gap: 16px; }
+      .insight-item { grid-template-columns: 1fr; gap: 8px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="cur"></div>
+
+  <nav>
+    <a href="index.html" class="nav-logo">Ori Mor</a>
+    <a href="index.html" class="nav-back">← Back to Work</a>
+  </nav>
+
+  <!-- HERO -->
+  <section id="hero">
+    <div class="hero-bg-text">PERRIER</div>
+    <div class="hero-meta">Brand Strategy &nbsp;&mdash;&nbsp; Visual Identity &nbsp;&mdash;&nbsp; 2024</div>
+    <h1 class="hero-title">
+      PERRIER
+      <span class="hero-title-italic">Case Study</span>
+    </h1>
+    <div class="hero-subtitle">
+      Strategy <span class="hero-divider"></span> Content <span class="hero-divider"></span> Visual Identity
+    </div>
+  </section>
+
+  <!-- BRAND STRIP -->
+  <div class="brand-strip">
+    <div>
+      <p style="font-size:9px; letter-spacing:.28em; text-transform:uppercase; color:rgba(255,255,255,.3); margin-bottom:12px;">The Brand</p>
+      <p style="font-family:'Fraunces',serif; font-size:clamp(18px,2.2vw,28px); font-weight:300; font-style:italic; color:rgba(255,255,255,.8); line-height:1.4; max-width:560px;">Perrier — est. 1898, Vergèze, France. The world's most iconic sparkling mineral water brand, reimagined for the Israeli market.</p>
+    </div>
+    <div class="brand-strip-tagline">
+      Strategy · Content · Visual<br>
+      <span>Sparkle your now.</span>
+    </div>
+  </div>
+
+  <!-- OVERVIEW STRIP -->
+  <div class="overview-strip fade-in">
+    <div class="overview-item">
+      <div class="overview-label">Project Type</div>
+      <div class="overview-value">Brand Strategy & Visual Identity</div>
+    </div>
+    <div class="overview-item">
+      <div class="overview-label">Client</div>
+      <div class="overview-value">Perrier — Israel</div>
+    </div>
+    <div class="overview-item">
+      <div class="overview-label">Year</div>
+      <div class="overview-value">2024 — 2025</div>
+    </div>
+    <div class="overview-item">
+      <div class="overview-label">Scope</div>
+      <div class="overview-value">Strategy, Identity, Campaign, Merch</div>
+    </div>
+  </div>
+
+  <!-- SECTION 01: THE BRIEF -->
+  <section class="case-section">
+    <div class="section-num">01</div>
+    <div class="section-eyebrow">The Brief</div>
+    <h2 class="section-heading fade-in">In Brief</h2>
+    <p class="section-subheading fade-in">130 years of sparkling French heritage — brought to life for a new generation of Israeli consumers.</p>
+
+    <div class="two-col-3-2 fade-in">
+      <div class="body-text">
+        <p>The sparkling water brand Perrier was founded in 1898 in France and originates from a natural spring in the town of Vergèze. Over the years, Perrier has become a global icon — carrying with it the power of naturally carbonated mineral water and the feeling of elegance and sophistication of French culture and chic.</p>
+        <br>
+        <p style="margin-top:24px;">The brand commissioned a full strategic and creative overhaul: repositioning Perrier in the Israeli market to expand beyond its niche urban base, bridging the tension between French luxury heritage and accessible, everyday refreshment — without losing what makes it iconic.</p>
+      </div>
+      <div>
+        <div style="border-left: 3px solid var(--green); padding-left: 28px;">
+          <p style="font-size:9px; letter-spacing:.28em; text-transform:uppercase; color:var(--green); margin-bottom:16px;">Campaign Objectives</p>
+          <p style="font-size:15px; line-height:1.8; color:rgba(0,0,0,.6); margin-bottom:20px;">01 — Increase brand awareness beyond city limits; grow digital engagement and exposure.</p>
+          <p style="font-size:15px; line-height:1.8; color:rgba(0,0,0,.6);">02 — Differentiate and position Perrier as a lifestyle and chic icon that is accessible and speaks to everyone.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHALLENGES -->
+    <div class="challenge-grid fade-in">
+      <div class="challenge-card">
+        <div class="challenge-num">Challenge 01</div>
+        <div class="challenge-title">Niche Marketing</div>
+        <div class="challenge-body">Marketing activity that suits a relatively specific, urban-local market segment — based on typical codes and places. The brand struggles to reach audiences outside major cities.</div>
+      </div>
+      <div class="challenge-card">
+        <div class="challenge-num">Challenge 02</div>
+        <div class="challenge-title">Soda Awareness</div>
+        <div class="challenge-body">"Branding" sparkling water as old-fashioned, with consumer preference shifting toward sweetened carbonated drinks over natural soda.</div>
+      </div>
+      <div class="challenge-card">
+        <div class="challenge-num">Challenge 03</div>
+        <div class="challenge-title">Personal Size</div>
+        <div class="challenge-body">Perrier's flagship product is personal-sized — while many consumers seek family-sized solutions for everyday use, limiting purchase frequency.</div>
+      </div>
+      <div class="challenge-card">
+        <div class="challenge-num">Challenge 04</div>
+        <div class="challenge-title">Price Perception</div>
+        <div class="challenge-body">High price tag compared to competitors on the shelf — up to 30% price difference — making it a harder sell outside fine dining and premium contexts.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 02: MARKET RESEARCH -->
+  <section class="case-section section-cream">
+    <div class="section-num">02</div>
+    <div class="section-eyebrow">Market Research</div>
+    <h2 class="section-heading fade-in">Reading the Market</h2>
+    <p class="section-subheading fade-in">A growing category, a fragmented competitive landscape, and a clear white space for premium-accessible positioning.</p>
+
+    <div class="insight-list fade-in">
+      <div class="insight-item">
+        <div class="insight-label">Category Growth</div>
+        <div class="insight-text">Average annual growth of ~6–7% through 2030, with growing demand for natural products without artificial additives. The sparkling water market is valued in the billions and is in a continuous upward trend.</div>
+      </div>
+      <div class="insight-item">
+        <div class="insight-label">Consumer Shift</div>
+        <div class="insight-text">A marked shift from sweetened drinks to sparkling water; rise in demand for zero-calorie products and healthy alternatives to sweet carbonated beverages. Perrier is uniquely positioned to own this shift.</div>
+      </div>
+      <div class="insight-item">
+        <div class="insight-label">Experience Demand</div>
+        <div class="insight-text">Growing demand for drinks that provide experience and content. Consumers look for products that symbolize quality and can feel like a gift — something special even in everyday moments.</div>
+      </div>
+      <div class="insight-item">
+        <div class="insight-label">Sustainability</div>
+        <div class="insight-text">Rise in ecological awareness. Consumers prefer products with sustainable packaging and brands that demonstrate environmental responsibility — an area where Perrier's glass bottle is a natural asset.</div>
+      </div>
+      <div class="insight-item">
+        <div class="insight-label">Geographic Expansion</div>
+        <div class="insight-text">The Israeli market is changing and becoming more health-conscious and premium-oriented beyond large city centers. High potential to expand to less central regions and reach audiences seeking healthy but not overly expensive products.</div>
+      </div>
+    </div>
+
+    <!-- Competitive Map Image -->
+    <div style="margin-top:60px;" class="fade-in">
+      <img src="assets/perrier/slides/competitive_map.png" alt="Competitive Positioning Map" class="slide-img">
+      <p class="slide-caption">Competitive positioning map — Perrier vs. San Pellegrino, Schweppes, SodaStream, Kinley & others</p>
+    </div>
+  </section>
+
+  <!-- SECTION 03: TARGET AUDIENCE -->
+  <section class="case-section" style="padding-bottom:0; padding-left:0; padding-right:0;">
+    <div style="padding: 0 60px;" class="fade-in">
+      <div class="section-num">03</div>
+      <div class="section-eyebrow">Target Audience</div>
+      <h2 class="section-heading">Who We're Talking To</h2>
+      <p class="section-subheading">Two distinct audiences — consumer and commercial — united by a desire for quality, connection, and authentic experiences.</p>
+    </div>
+
+    <div class="audience-grid">
+      <div class="audience-card b2c">
+        <div class="audience-type">B2C — Consumer</div>
+        <div class="audience-heading">The Everyday Sparkling Person</div>
+        <div class="audience-stats">
+          <div>
+            <div class="audience-stat-label">Age Range</div>
+            <div class="audience-stat-value">24 — 50</div>
+          </div>
+          <div>
+            <div class="audience-stat-label">Location</div>
+            <div class="audience-stat-value">Urban Israel, Ashdod to Haifa</div>
+          </div>
+          <div>
+            <div class="audience-stat-label">Profile</div>
+            <div class="audience-stat-value">Singles through young families</div>
+          </div>
+          <div>
+            <div class="audience-stat-label">Occasions</div>
+            <div class="audience-stat-value">Office, lunch, nights out, home</div>
+          </div>
+        </div>
+        <div class="audience-body">People and families from all over Israel who value shared moments. They look for products that upgrade everyday experiences with an international flair of quality and style — wanting to feel that the brand speaks to them at eye level, combining innovation with tradition.</div>
+      </div>
+      <div class="audience-card b2b">
+        <div class="audience-type">B2B — Commercial</div>
+        <div class="audience-heading">The Commercial Partner</div>
+        <div class="audience-stats">
+          <div>
+            <div class="audience-stat-label">Venues</div>
+            <div class="audience-stat-value">Restaurants, bars, clubs, cafés</div>
+          </div>
+          <div>
+            <div class="audience-stat-label">Retail</div>
+            <div class="audience-stat-value">Supermarkets, kiosks, chains</div>
+          </div>
+          <div>
+            <div class="audience-stat-label">Volume</div>
+            <div class="audience-stat-value">Commercial quantities</div>
+          </div>
+          <div>
+            <div class="audience-stat-label">Driver</div>
+            <div class="audience-stat-value">Brand elevation & margins</div>
+          </div>
+        </div>
+        <div class="audience-body">Entertainment and hospitality venues, convenience stores, supermarket chains, and corner shops. For these partners, Perrier serves as a brand-elevating choice that allows them to offer premium quality to their own customers — creating a halo effect.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 04: BRAND STRATEGY -->
+  <section class="case-section section-green">
+    <div class="section-num">04</div>
+    <div class="section-eyebrow">Brand Strategy</div>
+    <h2 class="section-heading fade-in">Strategy & Identity</h2>
+    <p class="section-subheading fade-in">Built on three core values — natural, accessible, and quality — expressed through a brand personality that connects different worlds.</p>
+
+    <div class="values-row fade-in" style="--pill-bg:rgba(254,247,84,.1); --pill-border:rgba(254,247,84,.25);">
+      <div style="display:flex; align-items:center; gap:12px; background:rgba(254,247,84,.1); border:1px solid rgba(254,247,84,.25); border-radius:100px; padding:12px 28px;">
+        <div style="width:8px;height:8px;border-radius:50%;background:var(--yellow);flex-shrink:0;"></div>
+        <span style="font-family:'Fraunces',serif; font-size:20px; font-weight:800; font-style:italic; color:var(--yellow);">Natural</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:12px; background:rgba(254,247,84,.1); border:1px solid rgba(254,247,84,.25); border-radius:100px; padding:12px 28px;">
+        <div style="width:8px;height:8px;border-radius:50%;background:var(--yellow);flex-shrink:0;"></div>
+        <span style="font-family:'Fraunces',serif; font-size:20px; font-weight:800; font-style:italic; color:var(--yellow);">Accessible</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:12px; background:rgba(254,247,84,.1); border:1px solid rgba(254,247,84,.25); border-radius:100px; padding:12px 28px;">
+        <div style="width:8px;height:8px;border-radius:50%;background:var(--yellow);flex-shrink:0;"></div>
+        <span style="font-family:'Fraunces',serif; font-size:20px; font-weight:800; font-style:italic; color:var(--yellow);">Quality</span>
+      </div>
+    </div>
+
+    <!-- Brand Personality -->
+    <div class="traits-grid fade-in" style="margin-top:80px;">
+      <div class="trait-card">
+        <div class="trait-num">Trait 01</div>
+        <div class="trait-title">Connecting Different Worlds</div>
+        <div class="trait-body">Connecting deep roots and long-standing French tradition with the contemporary and modern. Perrier lives in the tension between different worlds — tradition and innovation, nature and urbanity, simplicity and extraordinary.</div>
+      </div>
+      <div class="trait-card">
+        <div class="trait-num">Trait 02</div>
+        <div class="trait-title">Accessible & Down to Earth</div>
+        <div class="trait-body">Knows its worth, and understands the value in attention to small details. But willing to make that luxuriousness accessible to everyone — in every situation, and everywhere. No exclusivity gates.</div>
+      </div>
+      <div class="trait-card">
+        <div class="trait-num">Trait 03</div>
+        <div class="trait-title">Respectable, Yet Playful</div>
+        <div class="trait-body">Full of sophistication — but doesn't take itself too seriously. Full of style, but keeps restraint. Likes to add a smile or a wink to break the ice and create a natural connection.</div>
+      </div>
+      <div class="trait-card">
+        <div class="trait-num">Trait 04</div>
+        <div class="trait-title">Fresh & Inspiring</div>
+        <div class="trait-body">Encourages new experiences. When refreshed — ready to open doors to new places and bring renewal energy. Bringing the spark to every room. Effortlessly.</div>
+      </div>
+    </div>
+
+    <!-- TOV Scrollable Quotes -->
+    <p style="font-size:9px; letter-spacing:.28em; text-transform:uppercase; color:rgba(255,255,255,.3); margin-top:80px; margin-bottom:0;">Tone of Voice</p>
+    <div class="tov-scroll">
+      <div class="tov-card"><div class="tov-quote yellow">BONJOUR. L'CHAIM. CHEERS.</div></div>
+      <div class="tov-card"><div class="tov-quote">A LITTLE BIT OF ATTITUDE.<br>A LOT OF BUBBLES.</div></div>
+      <div class="tov-card"><div class="tov-quote yellow">Pourquoi pas les deux?</div></div>
+      <div class="tov-card"><div class="tov-quote">DRINK FIRST,<br>QUESTIONS LATER.</div></div>
+      <div class="tov-card"><div class="tov-quote yellow">CHILL. FIZZ. REPEAT.</div></div>
+      <div class="tov-card"><div class="tov-quote">SPARKLE BETWEEN<br>THE LINES.</div></div>
+      <div class="tov-card"><div class="tov-quote yellow">Why wait for a<br>special occasion?</div></div>
+      <div class="tov-card"><div class="tov-quote">SMALL DETAILS.<br>BIG SPARK.</div></div>
+      <div class="tov-card"><div class="tov-quote yellow">LESS TALK.<br>MORE SPARK.</div></div>
+    </div>
+
+    <!-- Manifesto -->
+    <div class="manifesto-block fade-in" style="margin-top:80px;">
+      <p style="font-size:9px; letter-spacing:.28em; text-transform:uppercase; color:rgba(255,255,255,.3); margin-bottom:32px;">Brand Manifesto</p>
+      <div class="manifesto-text">
+        "Some things don't need to be explained. They just feel right.<br>
+        A sip <em>before</em> the conversation starts.<br>
+        A pause before the next move.<br>
+        A moment before the moment.<br><br>
+        Born in the depths of France, made to travel the world.<br>
+        From a café in Montmartre to a rooftop in Tokyo.<br>
+        <em>From Paris, with a spark.</em><br><br>
+        Effortless. Sparkling. <em>Nothing extra</em>, just extraordinary.<br>
+        A little bit of attitude, a lot of bubbles.<br>
+        Because why wait for a special occasion?<br><br>
+        <em>Pourquoi pas les deux?</em><br>
+        Less talk. More spark.<br>
+        Chill. Fizz. Repeat.<br><br>
+        Perrier. <em>Sparkle your now.</em>"
+      </div>
+    </div>
+
+    <!-- Taglines -->
+    <div class="taglines fade-in">
+      <div class="tagline tagline-outline">NOTHING EXTRA.</div>
+      <div class="tagline tagline-yellow">YET EXTRAORDINARY.</div>
+      <div class="tagline" style="opacity:.4;">LINK THE UNEXPECTED.</div>
+    </div>
+  </section>
+
+  <!-- SECTION 05: KEY MESSAGES -->
+  <section class="case-section">
+    <div class="section-num">05</div>
+    <div class="section-eyebrow">Key Messages</div>
+    <h2 class="section-heading fade-in">Perrier Sparks Connections</h2>
+    <p class="section-subheading fade-in">Three core messages that span every touchpoint — from fine dining to a corner kiosk.</p>
+
+    <div class="message-list fade-in">
+      <div class="message-item">
+        <div class="message-title">Nothing Extra.<br>Yet Extraordinary.</div>
+        <div class="message-body">Natural water, sparkling in exactly the right measure, without pretension. Perrier doesn't need to be sophisticated to be an icon. It was born from a 130-year tradition, without changing, and still manages to be the most current thing there is. Proof that luxury doesn't need to announce itself.</div>
+      </div>
+      <div class="message-item">
+        <div class="message-title">Classic<br>by Nature.</div>
+        <div class="message-body">Perrier was born in nature, deep beneath the earth, but lives everywhere — from a quiet morning in the park to a cocktail bar after midnight. It connects the primordial nature of mineral water with the most dynamic moments of modern life. Wild and balanced, accessible and luxurious, natural but always in motion.</div>
+      </div>
+      <div class="message-item">
+        <div class="message-title">Link the<br>Unexpected.</div>
+        <div class="message-body">Perrier lives in the tension between different worlds — tradition and innovation, nature and urbanity, simplicity and extraordinary. When the most unexpected things meet, something new is created. Perrier brings the spark that connects past and future, a small moment to a special moment. Why choose when you can have both?</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 06: VISUAL IDENTITY -->
+  <section class="case-section section-cream">
+    <div class="section-num">06</div>
+    <div class="section-eyebrow">Visual Identity</div>
+    <h2 class="section-heading fade-in">Graphic Language</h2>
+    <p class="section-subheading fade-in">Rich, recognizable, and young — focused on communicating connections between different worlds through digital layer elements applied to analog aesthetics.</p>
+
+    <!-- Color Palette -->
+    <div style="margin-bottom:80px;" class="fade-in">
+      <p style="font-size:10px; letter-spacing:.24em; text-transform:uppercase; color:rgba(0,0,0,.35); margin-bottom:32px;">Brand Color Palette</p>
+      <div class="color-swatches">
+        <div class="swatch">
+          <div class="swatch-block" style="background:#319945;"></div>
+          <div class="swatch-name">Perrier Green</div>
+          <div class="swatch-hex">#319945</div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-block" style="background:#124E34;"></div>
+          <div class="swatch-name">Deep Forest</div>
+          <div class="swatch-hex">#124E34</div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-block" style="background:#FEF754; border:1px solid rgba(0,0,0,.08);"></div>
+          <div class="swatch-name">Spark Yellow</div>
+          <div class="swatch-hex">#FEF754</div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-block" style="background:#282825;"></div>
+          <div class="swatch-name">Near-Black</div>
+          <div class="swatch-hex">#282825</div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-block" style="background:#FAFAF0; border:1px solid rgba(0,0,0,.08);"></div>
+          <div class="swatch-name">Off-White</div>
+          <div class="swatch-hex">#FAFAF0</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Typography -->
+    <div style="margin-bottom:80px;" class="fade-in">
+      <p style="font-size:10px; letter-spacing:.24em; text-transform:uppercase; color:rgba(0,0,0,.35); margin-bottom:32px;">Typography</p>
+      <div class="two-col" style="gap:40px; align-items:start;">
+        <div style="background:#fff; border-radius:16px; padding:40px;">
+          <p style="font-size:9px; letter-spacing:.22em; text-transform:uppercase; color:rgba(0,0,0,.3); margin-bottom:20px;">Primary — SIMPLER PRO</p>
+          <p style="font-size:clamp(36px,5vw,72px); font-weight:700; line-height:.95; letter-spacing:-.02em; color:#111;">Sparkling<br>Since 1898</p>
+        </div>
+        <div style="background:#fff; border-radius:16px; padding:40px;">
+          <p style="font-size:9px; letter-spacing:.22em; text-transform:uppercase; color:rgba(0,0,0,.3); margin-bottom:20px;">Secondary — Poppins Bold</p>
+          <p style="font-size:clamp(24px,3vw,42px); font-weight:700; line-height:1.1; color:#319945;">LINK THE UNEXPECTED.</p>
+          <p style="font-size:14px; color:rgba(0,0,0,.4); margin-top:16px; line-height:1.7;">Used for supporting copy, captions, and call-outs across digital and print applications.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Graphic Guidelines image -->
+    <div class="fade-in">
+      <img src="assets/perrier/slides/guidelines.png" alt="Brand Guidelines" class="slide-img">
+      <p class="slide-caption">Brand color and typography guidelines</p>
+    </div>
+
+    <div style="margin-top:40px;" class="fade-in">
+      <img src="assets/perrier/slides/graphic_language.png" alt="Graphic Language" class="slide-img">
+      <p class="slide-caption">Graphic language — digital layer applied to analog aesthetics</p>
+    </div>
+
+    <div style="margin-top:60px; padding:40px; background:#fff; border-radius:16px; border:1px solid rgba(0,0,0,.08);" class="fade-in">
+      <p style="font-size:9px; letter-spacing:.24em; text-transform:uppercase; color:rgba(0,0,0,.35); margin-bottom:20px;">Language Components</p>
+      <div style="display:flex; gap:12px; flex-wrap:wrap;">
+        <span style="padding:10px 20px; border:1px solid rgba(0,0,0,.1); border-radius:8px; font-size:13px; color:rgba(0,0,0,.6);">😍 Emojis</span>
+        <span style="padding:10px 20px; border:1px solid rgba(0,0,0,.1); border-radius:8px; font-size:13px; color:rgba(0,0,0,.6);">👆 Gestures</span>
+        <span style="padding:10px 20px; border:1px solid rgba(0,0,0,.1); border-radius:8px; font-size:13px; color:rgba(0,0,0,.6);">#Hashtags</span>
+        <span style="padding:10px 20px; border:1px solid rgba(0,0,0,.1); border-radius:8px; font-size:13px; color:rgba(0,0,0,.6);">▶ Motion Indicators</span>
+        <span style="padding:10px 20px; border:1px solid rgba(0,0,0,.1); border-radius:8px; font-size:13px; color:rgba(0,0,0,.6);">◀▶ Swipe / Click</span>
+        <span style="padding:10px 20px; border:1px solid rgba(0,0,0,.1); border-radius:8px; font-size:13px; color:rgba(0,0,0,.6);">🎞 Analog Film Texture</span>
+        <span style="padding:10px 20px; border:1px solid rgba(0,0,0,.1); border-radius:8px; font-size:13px; color:rgba(0,0,0,.6);">🔍 Zoom</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 07: CONTENT PILLARS -->
+  <section class="case-section section-dark">
+    <div class="section-num">07</div>
+    <div class="section-eyebrow">Content Strategy</div>
+    <h2 class="section-heading fade-in">Content Pillars</h2>
+    <p class="section-subheading fade-in">Five distinct content pillars — each expressing a different dimension of Perrier's brand world across digital, social, and experiential channels.</p>
+
+    <div class="pillar-grid fade-in">
+      <div>
+        <div class="pillar-card">
+          <img src="assets/perrier/slides/content_classic.png" alt="Classic by Nature">
+        </div>
+        <div style="margin-top:20px; padding:0 4px;">
+          <p style="font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:var(--yellow); margin-bottom:8px;">Pillar 01</p>
+          <p style="font-family:'Fraunces',serif; font-size:22px; font-weight:900; color:#fff; margin-bottom:10px;">Classic by Nature</p>
+          <p style="font-size:13px; line-height:1.7; color:rgba(255,255,255,.5);">Perrier was born in nature, deep beneath the earth, but lives everywhere — from a quiet morning in the park to a cocktail bar after midnight.</p>
+        </div>
+      </div>
+      <div>
+        <div class="pillar-card">
+          <img src="assets/perrier/slides/content_unexpected.png" alt="Link the Unexpected">
+        </div>
+        <div style="margin-top:20px; padding:0 4px;">
+          <p style="font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:var(--yellow); margin-bottom:8px;">Pillar 02</p>
+          <p style="font-family:'Fraunces',serif; font-size:22px; font-weight:900; color:#fff; margin-bottom:10px;">Link the Unexpected</p>
+          <p style="font-size:13px; line-height:1.7; color:rgba(255,255,255,.5);">Perrier lives in the tension between different worlds — tradition and innovation, nature and urbanity. When unexpected things meet, something new is created.</p>
+        </div>
+      </div>
+      <div>
+        <div class="pillar-card">
+          <img src="assets/perrier/slides/content_flavor.png" alt="Linked by Flavor">
+        </div>
+        <div style="margin-top:20px; padding:0 4px;">
+          <p style="font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:var(--yellow); margin-bottom:8px;">Pillar 03</p>
+          <p style="font-family:'Fraunces',serif; font-size:22px; font-weight:900; color:#fff; margin-bottom:10px;">Linked by Flavor</p>
+          <p style="font-size:13px; line-height:1.7; color:rgba(255,255,255,.5);">Surprising connections are part of Perrier's DNA — even in cocktails. Unusual recipes that combine unexpected ingredients and create something unexpectedly perfect.</p>
+        </div>
+      </div>
+      <div>
+        <div class="pillar-card">
+          <img src="assets/perrier/slides/content_nothing.png" alt="Nothing Extra Yet Extraordinary">
+        </div>
+        <div style="margin-top:20px; padding:0 4px;">
+          <p style="font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:var(--yellow); margin-bottom:8px;">Pillar 04</p>
+          <p style="font-family:'Fraunces',serif; font-size:22px; font-weight:900; color:#fff; margin-bottom:10px;">Nothing Extra</p>
+          <p style="font-size:13px; line-height:1.7; color:rgba(255,255,255,.5);">Emphasizing Perrier's deep connection to nature and the tradition it springs from — a natural spring that has provided clear, quality water for generations.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="pillar-full fade-in">
+      <img src="assets/perrier/slides/content_sparkling.png" alt="Effortlessly Sparkling" style="width:100%; border-radius:16px;">
+      <div style="margin-top:20px; padding:0 4px;">
+        <p style="font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:var(--yellow); margin-bottom:8px;">Pillar 05</p>
+        <p style="font-family:'Fraunces',serif; font-size:22px; font-weight:900; color:#fff; margin-bottom:10px;">Effortlessly Sparkling</p>
+        <p style="font-size:13px; line-height:1.7; color:rgba(255,255,255,.5); max-width:600px;">Street photographers approach people on the street and capture them exactly as they are — authentic, full of style, with a natural presence. A tribute to people and moments that simply sparkle by themselves.</p>
+      </div>
+    </div>
+
+    <!-- Instagram Grid -->
+    <div style="margin-top:60px;" class="fade-in">
+      <p style="font-size:10px; letter-spacing:.24em; text-transform:uppercase; color:rgba(255,255,255,.3); margin-bottom:32px;">Content Grid — Instagram Feed</p>
+      <img src="assets/perrier/slides/grid.png" alt="Instagram Grid" style="width:100%; border-radius:16px; box-shadow:0 24px 80px rgba(0,0,0,.3);">
+    </div>
+  </section>
+
+  <!-- SECTION 08: CAMPAIGN -->
+  <section class="case-section section-green">
+    <div class="section-num">08</div>
+    <div class="section-eyebrow">Campaign</div>
+    <h2 class="section-heading fade-in">Bringing It to Life</h2>
+    <p class="section-subheading fade-in">From Maison Perrier to branded merchandise and a live music event — the campaign meets the audience in their world.</p>
+
+    <!-- Maison Perrier -->
+    <div class="fade-in">
+      <p style="font-size:9px; letter-spacing:.28em; text-transform:uppercase; color:rgba(255,255,255,.3); margin-bottom:20px;">Flagship Experience</p>
+      <img src="assets/perrier/slides/maison.png" alt="Maison Perrier" style="width:100%; border-radius:16px; box-shadow:0 24px 80px rgba(0,0,0,.3);">
+      <div style="margin-top:24px; display:flex; gap:40px; align-items:start;">
+        <div style="flex:1;">
+          <p style="font-family:'Fraunces',serif; font-size:clamp(28px,3.5vw,48px); font-weight:900; color:#fff; line-height:.95; margin-bottom:16px;">Maison Perrier</p>
+          <p style="font-size:14px; line-height:1.8; color:rgba(255,255,255,.5);">The flagship brand experience concept — a dedicated physical space where Perrier's world comes to life. Where elegance meets accessibility, and where the brand's French heritage is felt in every detail.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MERCHANDISE -->
+  <section class="case-section">
+    <div class="section-eyebrow" style="margin-top:0;">Branded Merchandise</div>
+    <h2 class="section-heading fade-in">Objects with Attitude</h2>
+    <p class="section-subheading fade-in">A collection of functional, everyday objects that carry the Perrier aesthetic into people's lives — subtle, stylish, and sparkling.</p>
+
+    <div class="merch-grid fade-in">
+      <div class="merch-item">
+        <img src="assets/perrier/slides/merch_bag.png" alt="Side Bag">
+        <div class="merch-label">
+          <div class="merch-label-title">Side Bag</div>
+          <div class="merch-label-desc">Functional accessory with elegant, light style — perfect for carrying a Perrier bottle anywhere, from nature picnics to urban cafés.</div>
+        </div>
+      </div>
+      <div class="merch-item">
+        <img src="assets/perrier/slides/merch_lounge.png" alt="Lounge Chair">
+        <div class="merch-label">
+          <div class="merch-label-title">Lounge Chair</div>
+          <div class="merch-label-desc">The branded lounge for beach, picnics, or city balconies — representing accessible luxury. Light, elegant, and always in the right moment.</div>
+        </div>
+      </div>
+      <div class="merch-item">
+        <img src="assets/perrier/slides/merch_bubbles.png" alt="Soap Bubbles">
+        <div class="merch-label">
+          <div class="merch-label-title">Soap Bubbles</div>
+          <div class="merch-label-desc">A physical metaphor for Perrier's famous bubbles — sold at cafés alongside Perrier bottles, inviting small moments of joy and play.</div>
+        </div>
+      </div>
+      <div class="merch-item">
+        <img src="assets/perrier/slides/merch_kit.png" alt="Influencer Kit">
+        <div class="merch-label">
+          <div class="merch-label-title">Influencer Kit</div>
+          <div class="merch-label-desc">Retro film camera + film rolls, branded signs, soap bubbles — inviting influencers to document authentic moments that connect to Perrier's brand values.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PERRIER AT FREQUENCY -->
+  <section class="case-section section-dark">
+    <div class="section-eyebrow">Live Event</div>
+    <h2 class="section-heading fade-in">Perrier at Frequency</h2>
+    <p class="section-subheading fade-in">An evening celebrating connections through music, energy, and creativity — Perrier sponsoring HaTeder venue for one night of sparkling culture.</p>
+
+    <div class="fade-in">
+      <img src="assets/perrier/slides/event.png" alt="Perrier at Frequency" style="width:100%; border-radius:16px; box-shadow:0 24px 80px rgba(0,0,0,.4);">
+    </div>
+
+    <div class="two-col fade-in" style="margin-top:60px; gap:40px;">
+      <div>
+        <img src="assets/perrier/slides/event_lineup.png" alt="Event Lineup" style="width:100%; border-radius:12px; box-shadow:0 12px 48px rgba(0,0,0,.3);">
+        <p style="font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:rgba(255,255,255,.3); margin-top:12px; text-align:center;">Three stages — Hip-Hop / Electronic / Jazz</p>
+      </div>
+      <div>
+        <img src="assets/perrier/slides/event_activations.png" alt="Event Activations" style="width:100%; border-radius:12px; box-shadow:0 12px 48px rgba(0,0,0,.3);">
+        <p style="font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:rgba(255,255,255,.3); margin-top:12px; text-align:center;">Cocktail bar · Photo booth · Merch corner</p>
+      </div>
+    </div>
+
+    <div style="margin-top:60px; display:grid; grid-template-columns:repeat(4,1fr); gap:2px;" class="fade-in">
+      <div style="padding:32px 24px; border:1px solid rgba(255,255,255,.08);">
+        <p style="font-size:9px; letter-spacing:.2em; text-transform:uppercase; color:var(--yellow); margin-bottom:12px;">Activation 01</p>
+        <p style="font-family:'Fraunces',serif; font-size:18px; font-weight:900; color:#fff; margin-bottom:10px;">Cocktail Bar</p>
+        <p style="font-size:13px; color:rgba(255,255,255,.4); line-height:1.6;">Sparkling Mojito & Lemon Fizz — QR codes for recipes. Perrier-forward cocktails only.</p>
+      </div>
+      <div style="padding:32px 24px; border:1px solid rgba(255,255,255,.08);">
+        <p style="font-size:9px; letter-spacing:.2em; text-transform:uppercase; color:var(--yellow); margin-bottom:12px;">Activation 02</p>
+        <p style="font-family:'Fraunces',serif; font-size:18px; font-weight:900; color:#fff; margin-bottom:10px;">Photo Booth</p>
+        <p style="font-size:13px; color:rgba(255,255,255,.4); line-height:1.6;">Dynamic backgrounds of French springs & urban landscapes. Props: soap bubbles, Perrier bottles, "Stay Fizzy." signs.</p>
+      </div>
+      <div style="padding:32px 24px; border:1px solid rgba(255,255,255,.08);">
+        <p style="font-size:9px; letter-spacing:.2em; text-transform:uppercase; color:var(--yellow); margin-bottom:12px;">Activation 03</p>
+        <p style="font-family:'Fraunces',serif; font-size:18px; font-weight:900; color:#fff; margin-bottom:10px;">Bubble Corner</p>
+        <p style="font-size:13px; color:rgba(255,255,255,.4); line-height:1.6;">Branded soap bubble stations scattered throughout the venue — playful, photogenic, unmistakably Perrier.</p>
+      </div>
+      <div style="padding:32px 24px; border:1px solid rgba(255,255,255,.08);">
+        <p style="font-size:9px; letter-spacing:.2em; text-transform:uppercase; color:var(--yellow); margin-bottom:12px;">Activation 04</p>
+        <p style="font-family:'Fraunces',serif; font-size:18px; font-weight:900; color:#fff; margin-bottom:10px;">Merch Corner</p>
+        <p style="font-size:13px; color:rgba(255,255,255,.4); line-height:1.6;">Tote bags, keychains, branded t-shirts, reusable cups — all carrying the Perrier visual identity.</p>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- SECTION 09: INFLUENCERS -->
+  <section class="case-section section-dark" style="border-top:1px solid rgba(255,255,255,.06);">
+    <div class="section-eyebrow">Influencers</div>
+    <h2 class="section-heading fade-in">The Faces of Perrier</h2>
+    <p class="section-subheading fade-in">Five carefully selected voices — from underground music producers to lifestyle creators — each bringing authentic reach to Perrier's world.</p>
+
+    <div class="fade-in">
+      <img src="assets/perrier/slides/influencers.png" alt="Influencers" style="width:100%; border-radius:16px; box-shadow:0 24px 80px rgba(0,0,0,.4); margin-bottom:40px;">
+    </div>
+
+    <div class="influencer-grid fade-in">
+      <div class="influencer-card">
+        <div class="influencer-handle">Kutiman</div>
+        <div class="influencer-count">16K</div>
+        <div class="influencer-label">Followers</div>
+      </div>
+      <div class="influencer-card">
+        <div class="influencer-handle">alexfarfuri</div>
+        <div class="influencer-count">93K</div>
+        <div class="influencer-label">Followers</div>
+      </div>
+      <div class="influencer-card">
+        <div class="influencer-handle">omrianghel</div>
+        <div class="influencer-count">25K</div>
+        <div class="influencer-label">Followers</div>
+      </div>
+      <div class="influencer-card">
+        <div class="influencer-handle">pazheller</div>
+        <div class="influencer-count">42K</div>
+        <div class="influencer-label">Followers</div>
+      </div>
+      <div class="influencer-card">
+        <div class="influencer-handle">MOR_ASRAF</div>
+        <div class="influencer-count">29K</div>
+        <div class="influencer-label">Followers</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="case-footer">
+    <div class="footer-left">
+      <div class="footer-label">Next Project</div>
+      <a href="index.html" class="footer-cta">Back to<br>Work →</a>
+    </div>
+    <div class="footer-right">
+      Ori Mor — Brand & Marketing Designer<br>
+      Tel Aviv · 2025
+    </div>
+  </footer>
+
+  <script>
+    // Cursor
+    const cur = document.getElementById('cur');
+    document.addEventListener('mousemove', e => {
+      cur.style.left = e.clientX + 'px';
+      cur.style.top = e.clientY + 'px';
+    });
+    document.querySelectorAll('a, button, .challenge-card, .trait-card, .message-item, .insight-item').forEach(el => {
+      el.addEventListener('mouseenter', () => cur.classList.add('expanded'));
+      el.addEventListener('mouseleave', () => cur.classList.remove('expanded'));
+    });
+
+    // Scroll animations
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+  </script>
+</body>
+</html>
