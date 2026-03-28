@@ -25,7 +25,7 @@
       color: var(--sand);
       font-family: 'Space Grotesk', sans-serif;
       overflow-x: hidden;
-      cursor: none;
+      cursor: auto;
     }
 
     /* ─── CURSOR ─── */
@@ -163,7 +163,7 @@
       width: 100%;
       max-width: 480px;
       perspective: 1200px;
-      cursor: none;
+      cursor: auto;
     }
 
     .mockup-wrap {
@@ -279,7 +279,7 @@
       gap: 40px;
     }
 
-    .single-card { cursor: none; }
+    .single-card { cursor: auto; }
 
     .single-mockup-scene {
       width: 100%;
@@ -359,7 +359,7 @@
       color: rgba(240,230,208,.35);
       font-family: 'Space Grotesk', sans-serif;
       font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
-      cursor: none; transition: all .25s ease;
+      cursor: auto; transition: all .25s ease;
     }
     .toggle-btn.active {
       background: rgba(240,230,208,.1);
@@ -533,7 +533,7 @@
         <div class="mockup-wrap" id="mockupWrap">
           <div class="vinyl-record"></div>
           <div class="album-sleeve">
-            <img src="assets/rootswings/cover.png" alt="Roots / Wings — Guy & Yahel Album Cover">
+            <img loading="lazy" src="assets/rootswings/cover.webp" alt="Roots / Wings — Guy & Yahel Album Cover">
             <div class="album-glare"></div>
           </div>
         </div>
@@ -555,7 +555,7 @@
         <div class="single-mockup-scene">
           <div class="single-mockup-wrap" id="wrap1">
             <div class="single-sleeve">
-              <img src="assets/rootswings/single1.png" alt="קופנגן">
+              <img loading="lazy" src="assets/rootswings/single1.webp" alt="קופנגן">
               <div class="single-glare"></div>
             </div>
           </div>
@@ -570,7 +570,7 @@
         <div class="single-mockup-scene">
           <div class="single-mockup-wrap" id="wrap2">
             <div class="single-sleeve">
-              <img src="assets/rootswings/single2.png" alt="קופנגן אקוסטי">
+              <img loading="lazy" src="assets/rootswings/single2.webp" alt="קופנגן אקוסטי">
               <div class="single-glare"></div>
             </div>
           </div>
@@ -585,7 +585,7 @@
         <div class="single-mockup-scene">
           <div class="single-mockup-wrap" id="wrap3">
             <div class="single-sleeve album-cover-small">
-              <img src="assets/rootswings/cover.png" alt="שורשים / כנפיים">
+              <img loading="lazy" src="assets/rootswings/cover.webp" alt="שורשים / כנפיים">
               <div class="single-glare"></div>
             </div>
           </div>
@@ -623,8 +623,8 @@
       <!-- Poster set 1 -->
       <div class="poster-set fade-in">
         <div class="poster-img-wrap">
-          <img src="assets/rootswings/poster1_portrait.png" alt="Tel Aviv Show — Post" class="poster-img portrait-img">
-          <img src="assets/rootswings/poster1_wide.png"    alt="Tel Aviv Show — Wide" class="poster-img wide-img">
+          <img src="assets/rootswings/poster1_portrait.webp" alt="Tel Aviv Show — Post" class="poster-img portrait-img" loading="lazy">
+          <img src="assets/rootswings/poster1_wide.webp"    alt="Tel Aviv Show — Wide" class="poster-img wide-img" loading="lazy">
         </div>
         <p class="poster-caption">Tel Aviv — Amphitheater Gan Yehoshua</p>
       </div>
@@ -632,8 +632,8 @@
       <!-- Poster set 2 -->
       <div class="poster-set fade-in">
         <div class="poster-img-wrap">
-          <img src="assets/rootswings/poster2_square.png" alt="Acoustic Tour — Square" class="poster-img portrait-img">
-          <img src="assets/rootswings/poster2_wide.png"   alt="Acoustic Tour — Wide"   class="poster-img wide-img">
+          <img src="assets/rootswings/poster2_square.webp" alt="Acoustic Tour — Square" class="poster-img portrait-img" loading="lazy">
+          <img src="assets/rootswings/poster2_wide.webp"   alt="Acoustic Tour — Wide"   class="poster-img wide-img" loading="lazy">
         </div>
         <p class="poster-caption">Special Acoustic Tour — 2025</p>
       </div>
@@ -650,21 +650,21 @@
 
     <!-- CD Mockup — full width hero -->
     <div class="rl-hero fade-in">
-      <img src="assets/rootswings/real_cd.png" alt="Album CD Mockup" class="rl-hero-img">
+      <img src="assets/rootswings/real_cd.webp" alt="Album CD Mockup" class="rl-hero-img" loading="lazy">
     </div>
 
     <!-- Spotify screenshots — 3-col grid -->
     <div class="rl-grid fade-in">
       <div class="rl-item">
-        <img src="assets/rootswings/real_spotify2.png" alt="Spotify Album" class="rl-img">
+        <img src="assets/rootswings/real_spotify2.webp" alt="Spotify Album" class="rl-img" loading="lazy">
         <p class="rl-caption">שורשים / כנפיים — Spotify</p>
       </div>
       <div class="rl-item">
-        <img src="assets/rootswings/real_spotify1.png" alt="Spotify Deluxe" class="rl-img">
+        <img src="assets/rootswings/real_spotify1.webp" alt="Spotify Deluxe" class="rl-img" loading="lazy">
         <p class="rl-caption">Deluxe Version — Spotify</p>
       </div>
       <div class="rl-item rl-item-wide">
-        <img src="assets/rootswings/real_singles.png" alt="Singles on Spotify" class="rl-img">
+        <img src="assets/rootswings/real_singles.webp" alt="Singles on Spotify" class="rl-img" loading="lazy">
         <p class="rl-caption">Singles — Spotify</p>
       </div>
     </div>
