@@ -15,8 +15,8 @@
       font-weight: 400;
     }
     @font-face {
-      font-family: 'ClockworkTapoz';
-      src: url('assets/fonts/clockwork-tapoz.otf') format('opentype');
+      font-family: 'OpatowskiPahad';
+      src: url('assets/fonts/opatowski-pahad.otf') format('opentype');
       font-weight: 400;
     }
     @font-face {
@@ -449,9 +449,9 @@
     }
 
     /* Per-font overrides */
-    .font-item[data-font="tapoz"] .font-display,
-    .font-item[data-font="tapoz"] .glyph-cell,
-    .font-item[data-font="tapoz"] .font-tester { font-family: 'ClockworkTapoz', sans-serif; }
+    .font-item[data-font="opatowski"] .font-display,
+    .font-item[data-font="opatowski"] .glyph-cell,
+    .font-item[data-font="opatowski"] .font-tester { font-family: 'OpatowskiPahad', sans-serif; }
     .font-item[data-font="shlumpy"] .font-display,
     .font-item[data-font="shlumpy"] .glyph-cell,
     .font-item[data-font="shlumpy"] .font-tester { font-family: 'Shlumpy', sans-serif; }
@@ -890,31 +890,33 @@
       </div>
     </div>
 
-    <!-- Clockwork Tapoz -->
-    <div class="font-item reveal font-item-sep" data-font="tapoz">
+    <!-- Opatowski Pahad -->
+    <div class="font-item reveal font-item-sep" data-font="opatowski">
       <div class="font-meta">
         <div class="font-name-block">
-          <div class="font-name">Clockwork Tapoz</div>
-          <div class="font-tagline">Hebrew Script · Mechanical · 2024</div>
+          <div class="font-name">Opatowski Pahad</div>
+          <div class="font-tagline">Hebrew &amp; Latin · Post-Revival · 2025</div>
         </div>
-        <p class="font-desc">Inspired by A Clockwork Orange — a Hebrew typeface built on geometric precision and dystopian tension. Sharp, mechanical letterforms that carry an unmistakable sense of controlled aggression.</p>
+        <p class="font-desc">A bilingual post-revival typeface drawing from the raw editorial energy of Michel Opatowski's Pahaд magazine. Hebrew and Latin letterforms coexist in a single system — rooted in classical revival but pushed through a contemporary, high-contrast lens.</p>
       </div>
-      <div class="glyph-grid" id="glyph-grid-tapoz-heb"></div>
-      <div class="glyph-grid" id="glyph-grid-tapoz-finals"></div>
+      <div class="glyph-grid" id="glyph-grid-opatowski-heb"></div>
+      <div class="glyph-grid" id="glyph-grid-opatowski-finals"></div>
+      <div class="glyph-grid" id="glyph-grid-opatowski-latin"></div>
+      <div class="glyph-grid" id="glyph-grid-opatowski-nums"></div>
       <div class="font-tester-wrap">
         <div class="font-tester-label">Type to test</div>
         <div class="tester-controls">
           <div class="tester-control">
-            <div class="tester-control-label">Size <span id="tester-tapoz-size-label">72px</span></div>
-            <input type="range" class="tester-range" id="tester-tapoz-size" min="24" max="160" value="72">
+            <div class="tester-control-label">Size <span id="tester-opatowski-size-label">72px</span></div>
+            <input type="range" class="tester-range" id="tester-opatowski-size" min="24" max="160" value="72">
           </div>
           <div class="tester-control">
-            <div class="tester-control-label">Spacing <span id="tester-tapoz-spacing-label">0em</span></div>
-            <input type="range" class="tester-range" id="tester-tapoz-spacing" min="-5" max="30" value="0">
+            <div class="tester-control-label">Spacing <span id="tester-opatowski-spacing-label">0em</span></div>
+            <input type="range" class="tester-range" id="tester-opatowski-spacing" min="-5" max="30" value="0">
           </div>
         </div>
-        <textarea class="font-tester" id="tester-tapoz" rows="2" placeholder="כתוב כאן..."></textarea>
-        <div class="font-tester-hint"><span>Clockwork Tapoz — Hebrew script</span></div>
+        <textarea class="font-tester" id="tester-opatowski" rows="2" placeholder="Type or כתוב כאן..."></textarea>
+        <div class="font-tester-hint"><span>Opatowski Pahad — Hebrew &amp; Latin</span></div>
       </div>
     </div>
 
@@ -1194,9 +1196,11 @@
     fillGrid('glyph-grid-finals', finals);
     fillGrid('glyph-grid-nums', nums);
 
-    // Clockwork Tapoz — letters only
-    fillGrid('glyph-grid-tapoz-heb', heb);
-    fillGrid('glyph-grid-tapoz-finals', finals);
+    // Opatowski Pahad — Hebrew + Latin + digits + punctuation
+    fillGrid('glyph-grid-opatowski-heb', heb);
+    fillGrid('glyph-grid-opatowski-finals', ['ך','ם','ן','ף','ץ','׳','״','־']);
+    fillGrid('glyph-grid-opatowski-latin', ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z']);
+    fillGrid('glyph-grid-opatowski-nums', ['0','1','2','3','4','5','6','7','8','9','!','"','#','$','%','&',"'",'(',')','*','+',',','-','.','/',':',';','?','@','[',']','×','–','—','…','₪','€','₿']);
 
     // Shlumpy — all glyphs
     fillGrid('glyph-grid-shlumpy-heb', heb);
@@ -1230,7 +1234,7 @@
   })();
 
   /* ── FONT TESTER — generic for all fonts ── */
-  [['tester-tapoz','tester-tapoz-size','tester-tapoz-spacing','tester-tapoz-size-label','tester-tapoz-spacing-label'],
+  [['tester-opatowski','tester-opatowski-size','tester-opatowski-spacing','tester-opatowski-size-label','tester-opatowski-spacing-label'],
    ['tester-shlumpy','tester-shlumpy-size','tester-shlumpy-spacing','tester-shlumpy-size-label','tester-shlumpy-spacing-label']
   ].forEach(function(ids) {
     var tester = document.getElementById(ids[0]);
