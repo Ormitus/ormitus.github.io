@@ -4,6 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>4.8 — Case Study / Ori Mor</title>
+  <meta name="description" content="4.8 Bar — Brand identity case study by Ori Mor. Strategy, logo, color palette, typography and art direction.">
+  <meta property="og:title" content="4.8 Bar — Case Study / Ori Mor">
+  <meta property="og:description" content="Brand identity case study — strategy, logo, color palette, typography and art direction.">
+  <meta property="og:type" content="article">
+  <meta name="twitter:card" content="summary_large_image">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,800;0,9..144,900;1,9..144,300;1,9..144,800&family=Space+Grotesk:wght@300;400;500&display=swap" rel="stylesheet">
@@ -13,36 +18,42 @@
       src: url('assets/48/fonts/Asphalt-Black.otf') format('opentype');
       font-weight: 900;
       font-style: normal;
+      font-display: swap;
     }
     @font-face {
       font-family: 'AsphaltCondensed';
       src: url('assets/48/fonts/Asphalt-BlackCondensed.otf') format('opentype');
       font-weight: 900;
       font-style: normal;
+      font-display: swap;
     }
     @font-face {
       font-family: 'KiyaHandwrite';
       src: url('assets/48/fonts/KiyaHandwrite.otf') format('opentype');
       font-weight: 400;
       font-style: normal;
+      font-display: swap;
     }
     @font-face {
       font-family: 'PilKachol';
       src: url('assets/48/fonts/PilKachol.ttf') format('truetype');
       font-weight: 400;
       font-style: normal;
+      font-display: swap;
     }
     @font-face {
       font-family: 'Galil';
       src: url('assets/48/fonts/Galil-Light.otf') format('opentype');
       font-weight: 300;
       font-style: normal;
+      font-display: swap;
     }
     @font-face {
       font-family: 'Galil';
       src: url('assets/48/fonts/Galil-Regular.otf') format('opentype');
       font-weight: 400;
       font-style: normal;
+      font-display: swap;
     }
   </style>
 
@@ -67,9 +78,9 @@
 
     /* ─── CURSOR ─── */
     #cur {
-      position: fixed; z-index: 9999; pointer-events: none;
+      position: fixed; left: 0; top: 0; z-index: 9999; pointer-events: none;
       width: 8px; height: 8px; background: var(--asphalt); border-radius: 50%;
-      transform: translate(-50%, -50%);
+      will-change: transform;
       transition: width .2s, height .2s;
       mix-blend-mode: difference;
     }
@@ -378,6 +389,14 @@
       .two-col, .two-col-3-2, .tov-row, .copy-grid { grid-template-columns: 1fr; }
       .color-grid { grid-template-columns: 1fr; }
       .type-item { grid-template-columns: 1fr; gap: 8px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
     }
   </style>
 </head>
@@ -698,8 +717,7 @@
   <script>
     const cur = document.getElementById('cur');
     document.addEventListener('mousemove', e => {
-      cur.style.left = e.clientX + 'px';
-      cur.style.top = e.clientY + 'px';
+      cur.style.transform = 'translate(calc(' + e.clientX + 'px - 50%), calc(' + e.clientY + 'px - 50%))';
     });
     document.querySelectorAll('a, button, .color-card, .tov-card, .copy-item').forEach(el => {
       el.addEventListener('mouseenter', () => cur.classList.add('expanded'));

@@ -4,6 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Perrier — Case Study / Ori Mor</title>
+  <meta name="description" content="Perrier — Brand strategy and campaign design case study by Ori Mor. Visual identity, marketing campaign and merchandise.">
+  <meta property="og:title" content="Perrier — Case Study / Ori Mor">
+  <meta property="og:description" content="Brand strategy and campaign design — visual identity, marketing and merchandise.">
+  <meta property="og:type" content="article">
+  <meta name="twitter:card" content="summary_large_image">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,800;0,9..144,900;1,9..144,300;1,9..144,800&family=Space+Grotesk:wght@300;400;500&display=swap" rel="stylesheet">
@@ -30,9 +35,9 @@
 
     /* ─── CURSOR ─── */
     #cur {
-      position: fixed; z-index: 9999; pointer-events: none;
+      position: fixed; left: 0; top: 0; z-index: 9999; pointer-events: none;
       width: 8px; height: 8px; background: #111; border-radius: 50%;
-      transform: translate(-50%, -50%);
+      will-change: transform;
       transition: width .2s, height .2s;
       mix-blend-mode: difference;
     }
@@ -570,6 +575,14 @@
       .influencer-grid { grid-template-columns: repeat(3, 1fr); }
       .message-item { grid-template-columns: 1fr; gap: 16px; }
       .insight-item { grid-template-columns: 1fr; gap: 8px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
     }
   </style>
 </head>
@@ -1187,8 +1200,7 @@
     // Cursor
     const cur = document.getElementById('cur');
     document.addEventListener('mousemove', e => {
-      cur.style.left = e.clientX + 'px';
-      cur.style.top = e.clientY + 'px';
+      cur.style.transform = 'translate(calc(' + e.clientX + 'px - 50%), calc(' + e.clientY + 'px - 50%))';
     });
     document.querySelectorAll('a, button, .challenge-card, .trait-card, .message-item, .insight-item').forEach(el => {
       el.addEventListener('mouseenter', () => cur.classList.add('expanded'));
