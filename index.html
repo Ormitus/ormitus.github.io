@@ -4,6 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ori Mor — Portfolio</title>
+  <meta name="description" content="Ori Mor — Brand, UX & Art Direction portfolio. Selected work in branding, product design, editorial and campaign design.">
+  <meta property="og:title" content="Ori Mor — Portfolio">
+  <meta property="og:description" content="Brand, UX & Art Direction portfolio. Selected work in branding, product design, editorial and campaign design.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="assets/screens/og-preview.webp">
+  <meta name="twitter:card" content="summary_large_image">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Caveat:wght@400;600&display=swap" rel="stylesheet">
@@ -13,16 +19,19 @@
       font-family: 'YiddishAnarchy';
       src: url('assets/fonts/YiddishAnarchy.otf') format('opentype');
       font-weight: 400;
+      font-display: swap;
     }
     @font-face {
       font-family: 'OpatowskiPahad';
       src: url('assets/fonts/opatowski-pahad.otf') format('opentype');
       font-weight: 400;
+      font-display: swap;
     }
     @font-face {
       font-family: 'Shlumpy';
       src: url('assets/fonts/shlumpy.otf') format('opentype');
       font-weight: 400;
+      font-display: swap;
     }
 
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -112,6 +121,12 @@
       position: relative; cursor: pointer;
       transition: background .4s;
       border: 1px solid rgba(10,9,7,.1);
+      padding: 0; font: inherit; color: inherit;
+      -webkit-appearance: none; appearance: none;
+    }
+    #hapoel-pill:focus-visible {
+      outline: 2px solid var(--ink);
+      outline-offset: 2px;
     }
     /* hapoel-pill override handled above */
     #hapoel-knob {
@@ -163,17 +178,17 @@
 
     /* ─── CURSOR ─── */
     #cur {
-      position: fixed; z-index: 9999; pointer-events: none;
+      position: fixed; left: 0; top: 0; z-index: 9999; pointer-events: none;
       width: 8px; height: 8px; background: var(--ink); border-radius: 50%;
-      transform: translate(-50%,-50%);
+      will-change: transform;
       transition: width .2s, height .2s;
       mix-blend-mode: difference;
     }
     #cur.expanded { width: 60px; height: 60px; }
     #cur-txt {
-      position: fixed; z-index: 9998; pointer-events: none;
+      position: fixed; left: 0; top: 0; z-index: 9998; pointer-events: none;
       font-size: 9px; letter-spacing: .22em; text-transform: uppercase;
-      color: var(--bg); transform: translate(-50%,-50%);
+      color: var(--bg); will-change: transform;
       opacity: 0; transition: opacity .2s;
       white-space: nowrap; font-family: 'Space Grotesk', sans-serif;
     }
@@ -288,17 +303,18 @@
 
     /* ─── FLOATING PROJECT IMAGE ─── */
     #float-img {
-      position: fixed; z-index: 800; pointer-events: none;
+      position: fixed; left: 0; top: 0; z-index: 800; pointer-events: none;
       width: 380px; height: 240px; overflow: hidden;
-      transform: translate(-50%, -65%) scale(0) rotate(4deg);
+      will-change: transform;
       opacity: 0;
+      transform: translate(var(--fx,0), var(--fy,0)) translate(-50%, -65%) scale(0) rotate(4deg);
       transition: opacity .35s, transform .45s cubic-bezier(.34,1.56,.64,1);
       border-radius: 4px;
       box-shadow: 0 24px 80px rgba(10,9,7,.18), 0 0 0 1px rgba(10,9,7,.06);
     }
     #float-img.visible {
       opacity: 1;
-      transform: translate(-50%, -65%) scale(1) rotate(-1.5deg);
+      transform: translate(var(--fx,0), var(--fy,0)) translate(-50%, -65%) scale(1) rotate(-1.5deg);
     }
     #float-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
@@ -321,6 +337,11 @@
       gap: 0 28px; align-items: center;
       padding: 26px 0; border-bottom: 1px solid var(--mid);
       cursor: auto; position: relative; overflow: hidden;
+      text-decoration: none; color: inherit;
+    }
+    .project-row:focus-visible {
+      outline: 2px solid var(--ink);
+      outline-offset: -2px;
     }
     .project-row::before {
       content: ''; position: absolute; inset: 0;
@@ -537,6 +558,13 @@
     .section-toggle {
       cursor: pointer; user-select: none;
       display: flex; justify-content: space-between; align-items: flex-end;
+      width: 100%; background: none; border: none; padding: 0;
+      font: inherit; color: inherit; text-align: left;
+      -webkit-appearance: none; appearance: none;
+    }
+    .section-toggle:focus-visible {
+      outline: 2px solid var(--ink);
+      outline-offset: 2px;
     }
     .section-toggle-arrow {
       font-size: 18px; color: var(--dim); line-height: 1;
@@ -600,6 +628,7 @@
     }
     .contact-link-item:last-child { border-right: none; }
     .contact-link-item:hover { background: var(--mid); }
+    .contact-link-item:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; }
     .contact-type {
       font-size: 9px; letter-spacing: .28em; text-transform: uppercase;
       color: var(--dim);
@@ -738,6 +767,15 @@
       /* Posters */
       .posters-grid { columns: 2 100px; }
     }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
   </style>
 </head>
 <body>
@@ -801,70 +839,70 @@
       <span class="work-label">Selected Work</span>
       <span class="work-count">07 Projects</span>
     </div>
-    <div class="project-row" data-href="48.html" data-img="assets/screens/48.webp">
+    <a href="48.html" class="project-row" data-img="assets/screens/48.webp">
       <span class="proj-num">01</span>
       <h3 class="proj-name">4.8 Bar</h3>
       <span class="proj-cat">Brand · Identity</span>
       <span class="proj-year">2026</span>
       <span class="proj-arrow">↗&#xFE0E;</span>
-    </div>
-    <div class="project-row" data-href="argo.html" data-img="assets/screens/argo.webp">
+    </a>
+    <a href="argo.html" class="project-row" data-img="assets/screens/argo.webp">
       <span class="proj-num">02</span>
       <h3 class="proj-name">ARGO</h3>
       <span class="proj-cat">Product · UX</span>
       <span class="proj-year">2025</span>
       <span class="proj-arrow">↗&#xFE0E;</span>
-    </div>
-    <div class="project-row" data-href="haggadah.html" data-img="assets/screens/haggadah.webp">
+    </a>
+    <a href="haggadah.html" class="project-row" data-img="assets/screens/haggadah.webp">
       <span class="proj-num">03</span>
       <h3 class="proj-name">Asufa Passover Haggadah</h3>
       <span class="proj-cat">Book Design · Editorial</span>
       <span class="proj-year">2026</span>
       <span class="proj-arrow">↗&#xFE0E;</span>
-    </div>
-    <div class="project-row" data-href="rootswings.html" data-img="assets/screens/rootswings.webp">
+    </a>
+    <a href="rootswings.html" class="project-row" data-img="assets/screens/rootswings.webp">
       <span class="proj-num">04</span>
       <h3 class="proj-name">Roots &amp; Wings</h3>
       <span class="proj-cat">Art Direction · Music</span>
       <span class="proj-year">2025</span>
       <span class="proj-arrow">↗&#xFE0E;</span>
-    </div>
-    <div class="project-row" data-href="germany.html" data-img="assets/screens/germany.webp">
+    </a>
+    <a href="germany.html" class="project-row" data-img="assets/screens/germany.webp">
       <span class="proj-num">05</span>
       <h3 class="proj-name">German Embassy Competition Winner Logo</h3>
       <span class="proj-cat">Logo · Diplomatic</span>
       <span class="proj-year">2025</span>
       <span class="proj-arrow">↗&#xFE0E;</span>
-    </div>
-    <div class="project-row" data-href="perrier.html" data-img="assets/screens/perrier.webp">
+    </a>
+    <a href="perrier.html" class="project-row" data-img="assets/screens/perrier.webp">
       <span class="proj-num">06</span>
       <h3 class="proj-name">Perrier</h3>
       <span class="proj-cat">Brand · Campaign</span>
       <span class="proj-year">2024</span>
       <span class="proj-arrow">↗&#xFE0E;</span>
-    </div>
-    <div class="project-row" data-href="https://www.tetristypo.com/" data-external="true" data-img="assets/tetris.webp">
+    </a>
+    <a href="https://www.tetristypo.com/" target="_blank" rel="noopener" class="project-row" data-img="assets/tetris.webp">
       <span class="proj-num">07</span>
       <h3 class="proj-name">Tetris Typo</h3>
       <span class="proj-cat">Typography · Interactive</span>
       <span class="proj-year">2024</span>
       <span class="proj-arrow">↗&#xFE0E;</span>
-    </div>
+    </a>
   </section>
 
   <!-- FONTS -->
   <section id="fonts">
-    <div class="fonts-hd section-toggle reveal" data-target="fonts-body">
+    <button class="fonts-hd section-toggle reveal" data-target="fonts-body" type="button" aria-expanded="false" aria-controls="fonts-body">
       <span class="fonts-label">Type Design</span>
       <span class="section-toggle-arrow">→</span>
       <span class="fonts-count">03 Typefaces</span>
-    </div>
+    </button>
     <div class="section-collapse" id="fonts-body">
     <div class="collapse-inner">
     <div class="collapse-pad">
     <!-- Yiddish Anarchy -->
-    <div class="font-item reveal">
-      <div class="font-meta">
+    <div class="font-item reveal" lang="he">
+      <div class="font-meta" lang="en">
         <div class="font-name-block">
           <div class="font-name">Yiddish Anarchy</div>
           <div class="font-tagline">Hebrew Script · Anarchist Influence · 2025</div>
@@ -892,8 +930,8 @@
     </div>
 
     <!-- Opatowski Pahad -->
-    <div class="font-item reveal font-item-sep" data-font="opatowski">
-      <div class="font-meta">
+    <div class="font-item reveal font-item-sep" data-font="opatowski" lang="he">
+      <div class="font-meta" lang="en">
         <div class="font-name-block">
           <div class="font-name">Opatowski Pahad</div>
           <div class="font-tagline">Hebrew &amp; Latin · Post-Revival · 2025</div>
@@ -922,8 +960,8 @@
     </div>
 
     <!-- Shlumpy -->
-    <div class="font-item reveal font-item-sep" data-font="shlumpy">
-      <div class="font-meta">
+    <div class="font-item reveal font-item-sep" data-font="shlumpy" lang="he">
+      <div class="font-meta" lang="en">
         <div class="font-name-block">
           <div class="font-name">Shlumpy</div>
           <div class="font-tagline">Hebrew Script · Comics &amp; Illustration · 2024</div>
@@ -957,11 +995,11 @@
 
   <!-- POSTERS -->
   <section id="posters">
-    <div class="posters-hd section-toggle" data-target="posters-body">
+    <button class="posters-hd section-toggle" data-target="posters-body" type="button" aria-expanded="false" aria-controls="posters-body">
       <span class="posters-label">Posters &amp; Visuals</span>
       <span class="section-toggle-arrow">→</span>
       <span class="posters-count">70 works</span>
-    </div>
+    </button>
     <div class="section-collapse" id="posters-body">
     <div class="collapse-inner">
     <div class="collapse-pad">
@@ -1067,12 +1105,12 @@
   <!-- HAPOEL TOGGLE -->
   <div id="hapoel-toggle-wrap">
     <span id="hapoel-label">Hapoel Mode</span>
-    <div id="hapoel-pill">
+    <button id="hapoel-pill" type="button" aria-label="Toggle Hapoel mode" aria-pressed="false">
       <div id="hapoel-knob">
-        <img loading="lazy" id="hapoel-knob-off" src="assets/hapoel_badge.webp" alt="">
-        <img loading="lazy" id="hapoel-knob-on"  src="assets/hapoel_logo.webp"  alt="הפועל ת״א">
+        <img loading="lazy" id="hapoel-knob-off" src="assets/hapoel_badge.webp" alt="" role="presentation">
+        <img loading="lazy" id="hapoel-knob-on"  src="assets/hapoel_logo.webp"  alt="" role="presentation">
       </div>
-    </div>
+    </button>
   </div>
 
   <!-- AUDIO -->
@@ -1103,6 +1141,7 @@
   var loaderBar = document.getElementById('loader-bar');
   var loaderNum = document.getElementById('loader-num');
   var loadVal   = 0;
+  var loaderTimeout;
 
   var loadTick = setInterval(function() {
     loadVal += Math.random() * 9 + 2;
@@ -1111,7 +1150,7 @@
       clearInterval(loadTick);
       loaderBar.style.width = '100%';
       loaderNum.textContent = '100';
-      setTimeout(function() {
+      loaderTimeout = setTimeout(function() {
         gsap.to(loaderEl, {
           yPercent: -100, duration: .85, ease: 'power3.inOut',
           onComplete: function() { loaderEl.style.display = 'none'; startPage(); }
@@ -1127,16 +1166,21 @@
   var curTxt = document.getElementById('cur-txt');
   var mouseX = 0, mouseY = 0, curRingX = 0, curRingY = 0;
 
-  document.addEventListener('mousemove', function(e) { mouseX = e.clientX; mouseY = e.clientY; });
+  document.addEventListener('mousemove', function(e) {
+    mouseX = e.clientX; mouseY = e.clientY;
+    if (typeof tRY !== 'undefined') {
+      tRY = (e.clientX / window.innerWidth  - .5) * .60;
+      tRX = -(e.clientY / window.innerHeight - .5) * .32;
+    }
+  });
 
+  var rafCursor;
   (function loopCursor() {
     curRingX += (mouseX - curRingX) * .14;
     curRingY += (mouseY - curRingY) * .14;
-    curEl.style.left = mouseX + 'px';
-    curEl.style.top  = mouseY + 'px';
-    curTxt.style.left = curRingX + 'px';
-    curTxt.style.top  = curRingY + 'px';
-    requestAnimationFrame(loopCursor);
+    curEl.style.transform  = 'translate(calc(' + mouseX + 'px - 50%), calc(' + mouseY + 'px - 50%))';
+    curTxt.style.transform = 'translate(calc(' + curRingX + 'px - 50%), calc(' + curRingY + 'px - 50%))';
+    rafCursor = requestAnimationFrame(loopCursor);
   })();
 
   document.querySelectorAll('.project-row').forEach(function(r) {
@@ -1149,12 +1193,13 @@
   var floatImg = document.getElementById('float-img-el');
   var floatX = 0, floatY = 0;
 
+  var rafFloat;
   (function loopFloat() {
     floatX += (mouseX - floatX) * .09;
     floatY += (mouseY - floatY) * .09;
-    floatDiv.style.left = floatX + 'px';
-    floatDiv.style.top  = floatY + 'px';
-    requestAnimationFrame(loopFloat);
+    floatDiv.style.setProperty('--fx', floatX + 'px');
+    floatDiv.style.setProperty('--fy', floatY + 'px');
+    rafFloat = requestAnimationFrame(loopFloat);
   })();
 
   document.querySelectorAll('.project-row').forEach(function(row) {
@@ -1164,16 +1209,6 @@
     });
     row.addEventListener('mouseleave', function() {
       floatDiv.classList.remove('visible');
-    });
-    row.addEventListener('click', function() {
-      var href = row.dataset.href;
-      if (href) {
-        if (row.dataset.external === 'true') {
-          window.open(href, '_blank');
-        } else {
-          window.location.href = href;
-        }
-      }
     });
   });
 
@@ -1263,6 +1298,7 @@
     hd.addEventListener('click', function() {
       var open = body.classList.toggle('open');
       hd.classList.toggle('open', open);
+      hd.setAttribute('aria-expanded', open);
       // Lazy-load images inside this section on first open
       if (open) {
         body.querySelectorAll('img[data-src]').forEach(function(img) {
@@ -1292,7 +1328,8 @@
   // Strong key light from upper left — sculpts form
   var keyLight = new THREE.DirectionalLight(0xfff8f0, 5.5);
   keyLight.position.set(-4, 5, 7); keyLight.castShadow = true;
-  keyLight.shadow.mapSize.width = 2048; keyLight.shadow.mapSize.height = 2048;
+  keyLight.shadow.mapSize.width = 1024; keyLight.shadow.mapSize.height = 1024;
+  keyLight.shadow.autoUpdate = false;
   sc.add(keyLight);
   // Rim light from right — creates silhouette edge
   var rimLight1 = new THREE.DirectionalLight(0xffffff, 3.8);
@@ -1344,6 +1381,8 @@
 
       sc.add(g);
       window._dog = g;
+      // Render shadow map once now that the model is in the scene
+      keyLight.shadow.needsUpdate = true;
     });
   }
   var dogObserver = new IntersectionObserver(function(entries) {
@@ -1364,22 +1403,23 @@
     color: 0x0a0907, size: .022, transparent: true, opacity: .12, sizeAttenuation: true
   })));
 
-  // Mouse / animation
+  // Mouse / animation (listener merged into cursor mousemove above)
   var tRX = 0, tRY = 0, cRX = 0, cRY = 0;
-  document.addEventListener('mousemove', function(e) {
-    tRY = (e.clientX / window.innerWidth  - .5) * .60;
-    tRX = -(e.clientY / window.innerHeight - .5) * .32;
-  });
 
+  var resizeTimer;
   window.addEventListener('resize', function() {
-    cam.aspect = window.innerWidth / window.innerHeight;
-    cam.updateProjectionMatrix();
-    rnd.setSize(window.innerWidth, window.innerHeight);
+    cancelAnimationFrame(resizeTimer);
+    resizeTimer = requestAnimationFrame(function() {
+      cam.aspect = window.innerWidth / window.innerHeight;
+      cam.updateProjectionMatrix();
+      rnd.setSize(window.innerWidth, window.innerHeight);
+    });
   });
 
   var clk = new THREE.Clock();
+  var rafThree;
   function renderLoop() {
-    requestAnimationFrame(renderLoop);
+    rafThree = requestAnimationFrame(renderLoop);
     var t = clk.getElapsedTime();
     cRX += (tRX - cRX) * .055;
     cRY += (tRY - cRY) * .055;
@@ -1389,7 +1429,6 @@
       activeDog.rotation.y = 0.06 + cRY;
       activeDog.position.y = -0.15 + Math.sin(t * .72) * .09;
     }
-    keyLight.position.set(-3 + Math.sin(t*.2)*.5, 4, 5);
     rnd.render(sc, cam);
   }
   renderLoop();
@@ -1410,7 +1449,9 @@
 
   hapoelPill.addEventListener('click', function() {
     document.body.classList.toggle('hapoel-mode');
-    if (document.body.classList.contains('hapoel-mode')) {
+    var isOn = document.body.classList.contains('hapoel-mode');
+    hapoelPill.setAttribute('aria-pressed', isOn);
+    if (isOn) {
       hapoelAudio.play().catch(function(){});
       setDogColor(true);
     } else {
@@ -1421,40 +1462,54 @@
   });
 
   /* ── PAGE ANIMATIONS (runs after loader exits) ── */
+  var prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
   function startPage() {
     gsap.registerPlugin(ScrollTrigger);
 
-    gsap.timeline({ delay: .1 })
-      .to('.hero-tag',     { opacity:1, y:0, duration:.7, ease:'power3.out' })
-      .to('.line-fill',    { opacity:1, y:0, duration:1.0, ease:'power3.out' }, '-=.4')
-      .to('.line-outline', { opacity:1, y:0, duration:1.0, ease:'power3.out' }, '-=.75')
-      .to('.hero-sub',     { opacity:1, y:0, duration:.7,  ease:'power3.out' }, '-=.5')
-      .to('.scroll-hint',  { opacity:1, duration:.6 }, '-=.3');
-
-    document.querySelectorAll('.reveal').forEach(function(el, i) {
-      gsap.to(el, {
-        scrollTrigger: { trigger: el, start: 'top 87%' },
-        opacity: 1, y: 0, duration: .9,
-        delay: (i % 4) * .06, ease: 'power3.out',
+    if (prefersReducedMotion) {
+      // Skip animations — just show everything immediately
+      document.querySelectorAll('.hero-tag, .line-fill, .line-outline, .hero-sub, .scroll-hint, .reveal').forEach(function(el) {
+        el.style.opacity = '1'; el.style.transform = 'none';
       });
-    });
+    } else {
+      gsap.timeline({ delay: .1 })
+        .to('.hero-tag',     { opacity:1, y:0, duration:.7, ease:'power3.out' })
+        .to('.line-fill',    { opacity:1, y:0, duration:1.0, ease:'power3.out' }, '-=.4')
+        .to('.line-outline', { opacity:1, y:0, duration:1.0, ease:'power3.out' }, '-=.75')
+        .to('.hero-sub',     { opacity:1, y:0, duration:.7,  ease:'power3.out' }, '-=.5')
+        .to('.scroll-hint',  { opacity:1, duration:.6 }, '-=.3');
 
-    gsap.utils.toArray('.project-row').forEach(function(row, i) {
-      gsap.from(row, {
-        scrollTrigger: { trigger: '#work', start: 'top 75%' },
-        opacity: 0, x: -30, duration: .7,
-        delay: i * .1 + .2, ease: 'power3.out',
+      document.querySelectorAll('.reveal').forEach(function(el, i) {
+        gsap.to(el, {
+          scrollTrigger: { trigger: el, start: 'top 87%' },
+          opacity: 1, y: 0, duration: .9,
+          delay: (i % 4) * .06, ease: 'power3.out',
+        });
       });
-    });
+
+      gsap.utils.toArray('.project-row').forEach(function(row, i) {
+        gsap.from(row, {
+          scrollTrigger: { trigger: '#work', start: 'top 75%' },
+          opacity: 0, x: -30, duration: .7,
+          delay: i * .1 + .2, ease: 'power3.out',
+        });
+      });
+    }
 
     document.querySelectorAll('.contact-link-item').forEach(function(el) {
+      var cachedRect;
+      el.addEventListener('mouseenter', function() {
+        cachedRect = el.getBoundingClientRect();
+      });
       el.addEventListener('mousemove', function(e) {
-        var r = el.getBoundingClientRect();
-        var x = (e.clientX - r.left - r.width/2) * .18;
-        var y = (e.clientY - r.top  - r.height/2) * .18;
+        if (!cachedRect) cachedRect = el.getBoundingClientRect();
+        var x = (e.clientX - cachedRect.left - cachedRect.width/2) * .18;
+        var y = (e.clientY - cachedRect.top  - cachedRect.height/2) * .18;
         gsap.to(el, { x: x, y: y, duration: .4, ease: 'power2.out' });
       });
       el.addEventListener('mouseleave', function() {
+        cachedRect = null;
         gsap.to(el, { x: 0, y: 0, duration: .7, ease: 'elastic.out(1,.35)' });
       });
     });
@@ -1466,10 +1521,29 @@
     easing: function(t) { return Math.min(1, 1.001 - Math.pow(2, -10 * t)); },
     smoothWheel: true,
   });
-  function lenisRaf(time) { lenis.raf(time); requestAnimationFrame(lenisRaf); }
+  var rafLenis;
+  function lenisRaf(time) { lenis.raf(time); rafLenis = requestAnimationFrame(lenisRaf); }
   requestAnimationFrame(lenisRaf);
   // Sync GSAP ScrollTrigger with Lenis
   lenis.on('scroll', function() { if (window.ScrollTrigger) ScrollTrigger.update(); });
+
+  // Cleanup on page unload — cancel RAF loops, timers & dispose Three.js resources
+  window.addEventListener('beforeunload', function() {
+    clearInterval(loadTick);
+    clearTimeout(loaderTimeout);
+    cancelAnimationFrame(rafCursor);
+    cancelAnimationFrame(rafFloat);
+    cancelAnimationFrame(rafThree);
+    cancelAnimationFrame(rafLenis);
+    // Dispose Three.js
+    if (window._dogFurMeshes) {
+      window._dogFurMeshes.forEach(function(m) {
+        if (m.geometry) m.geometry.dispose();
+        if (m.material) m.material.dispose();
+      });
+    }
+    if (rnd) { rnd.dispose(); rnd.forceContextLoss(); }
+  });
 
   }); // end window.load
   </script>

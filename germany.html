@@ -4,6 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>German Embassy Competition — Case Study / Ori Mor</title>
+  <meta name="description" content="German Embassy Competition Winner — Logo design by Ori Mor. Official emblem for the 60th anniversary of Israel–Germany diplomatic relations.">
+  <meta property="og:title" content="German Embassy Competition — Case Study / Ori Mor">
+  <meta property="og:description" content="Competition-winning logo for the 60th anniversary of Israel–Germany diplomatic relations.">
+  <meta property="og:type" content="article">
+  <meta name="twitter:card" content="summary_large_image">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,800;0,9..144,900;1,9..144,300;1,9..144,800&family=Space+Grotesk:wght@300;400;500&display=swap" rel="stylesheet">
@@ -31,9 +36,9 @@
 
     /* ─── CURSOR ─── */
     #cur {
-      position: fixed; z-index: 9999; pointer-events: none;
+      position: fixed; left: 0; top: 0; z-index: 9999; pointer-events: none;
       width: 8px; height: 8px; background: var(--ink); border-radius: 50%;
-      transform: translate(-50%,-50%);
+      will-change: transform;
       transition: width .2s, height .2s;
       mix-blend-mode: difference;
     }
@@ -409,6 +414,14 @@
       .two-col, .context-grid { grid-template-columns: 1fr; }
       .case-footer { padding: 60px 32px; flex-direction: column; gap: 40px; }
     }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
   </style>
 </head>
 <body>
@@ -608,8 +621,7 @@
   <script>
     const cur = document.getElementById('cur');
     document.addEventListener('mousemove', e => {
-      cur.style.left = e.clientX + 'px';
-      cur.style.top  = e.clientY + 'px';
+      cur.style.transform = 'translate(calc(' + e.clientX + 'px - 50%), calc(' + e.clientY + 'px - 50%))';
     });
     document.querySelectorAll('a, button').forEach(el => {
       el.addEventListener('mouseenter', () => cur.classList.add('expanded'));

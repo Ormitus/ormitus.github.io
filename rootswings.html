@@ -4,6 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Roots / Wings — Case Study / Ori Mor</title>
+  <meta name="description" content="Roots / Wings — Art direction and visual identity for Guy & Yahel's album by Ori Mor. Album cover, singles and tour visuals.">
+  <meta property="og:title" content="Roots / Wings — Case Study / Ori Mor">
+  <meta property="og:description" content="Art direction and visual identity for Guy & Yahel's album.">
+  <meta property="og:type" content="article">
+  <meta name="twitter:card" content="summary_large_image">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,800;0,9..144,900;1,9..144,300;1,9..144,800&family=Space+Grotesk:wght@300;400;500&display=swap" rel="stylesheet">
@@ -30,9 +35,9 @@
 
     /* ─── CURSOR ─── */
     #cur {
-      position: fixed; z-index: 9999; pointer-events: none;
+      position: fixed; left: 0; top: 0; z-index: 9999; pointer-events: none;
       width: 8px; height: 8px; background: var(--sand);
-      border-radius: 50%; transform: translate(-50%,-50%);
+      border-radius: 50%; will-change: transform;
       transition: width .2s, height .2s, background .2s;
       mix-blend-mode: difference;
     }
@@ -482,6 +487,14 @@
       .mockup-scene { max-width: 340px; }
       .case-footer { padding: 60px 32px; flex-direction: column; gap: 40px; }
     }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
   </style>
 </head>
 <body>
@@ -686,8 +699,7 @@
     /* ── cursor ── */
     const cur = document.getElementById('cur');
     document.addEventListener('mousemove', e => {
-      cur.style.left = e.clientX + 'px';
-      cur.style.top  = e.clientY + 'px';
+      cur.style.transform = 'translate(calc(' + e.clientX + 'px - 50%), calc(' + e.clientY + 'px - 50%))';
     });
     document.querySelectorAll('a, button').forEach(el => {
       el.addEventListener('mouseenter', () => cur.classList.add('expanded'));
@@ -702,15 +714,20 @@
     let currentX = 0, currentY = 0;
     let rafId;
 
+    let sceneRect;
+    scene.addEventListener('mouseenter', () => {
+      sceneRect = scene.getBoundingClientRect();
+    });
     scene.addEventListener('mousemove', e => {
-      const rect = scene.getBoundingClientRect();
-      const nx = (e.clientX - rect.left) / rect.width  - 0.5; // -0.5 to 0.5
-      const ny = (e.clientY - rect.top)  / rect.height - 0.5;
-      targetX = ny * -22;   // tilt X axis
-      targetY = nx *  22;   // tilt Y axis
+      if (!sceneRect) sceneRect = scene.getBoundingClientRect();
+      const nx = (e.clientX - sceneRect.left) / sceneRect.width  - 0.5;
+      const ny = (e.clientY - sceneRect.top)  / sceneRect.height - 0.5;
+      targetX = ny * -22;
+      targetY = nx *  22;
     });
 
     scene.addEventListener('mouseleave', () => {
+      sceneRect = null;
       targetX = 0;
       targetY = 0;
     });
@@ -724,22 +741,28 @@
     animate();
 
     /* ── singles 3D tilt ── */
+    var _cardRafIds = [];
     [1,2,3].forEach(n => {
       const scene = document.getElementById('card' + n)?.querySelector('.single-mockup-scene');
       const wrap  = document.getElementById('wrap' + n);
       if (!scene || !wrap) return;
-      let tx = 0, ty = 0, cx = 0, cy = 0;
-      scene.addEventListener('mousemove', e => {
-        const r = scene.getBoundingClientRect();
-        tx = ((e.clientY - r.top)  / r.height - .5) * -18;
-        ty = ((e.clientX - r.left) / r.width  - .5) *  18;
+      let tx = 0, ty = 0, cx = 0, cy = 0, cardRect;
+      scene.addEventListener('mouseenter', () => {
+        cardRect = scene.getBoundingClientRect();
       });
-      scene.addEventListener('mouseleave', () => { tx = 0; ty = 0; });
+      scene.addEventListener('mousemove', e => {
+        if (!cardRect) cardRect = scene.getBoundingClientRect();
+        tx = ((e.clientY - cardRect.top)  / cardRect.height - .5) * -18;
+        ty = ((e.clientX - cardRect.left) / cardRect.width  - .5) *  18;
+      });
+      scene.addEventListener('mouseleave', () => { cardRect = null; tx = 0; ty = 0; });
+      var cardRafId;
       (function loop() {
         cx += (tx - cx) * .1; cy += (ty - cy) * .1;
         wrap.style.transform = `perspective(900px) rotateX(${cx}deg) rotateY(${cy}deg) scale3d(1.03,1.03,1.03)`;
-        requestAnimationFrame(loop);
+        cardRafId = requestAnimationFrame(loop);
       })();
+      _cardRafIds.push(function() { cancelAnimationFrame(cardRafId); });
     });
 
     /* ── poster toggle ── */
@@ -766,6 +789,12 @@
       entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
     }, { threshold: 0.1 });
     document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', function() {
+      cancelAnimationFrame(rafId);
+      _cardRafIds.forEach(function(cancel) { cancel(); });
+    });
   </script>
 
 </body>

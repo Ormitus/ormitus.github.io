@@ -4,6 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Asufa Passover Haggadah — Ori Mor</title>
+  <meta name="description" content="Asufa Passover Haggadah — Editorial book design case study by Ori Mor. Spread design and art direction for the 13th edition.">
+  <meta property="og:title" content="Asufa Passover Haggadah — Ori Mor">
+  <meta property="og:description" content="Editorial book design — spread design and art direction for the 13th edition.">
+  <meta property="og:type" content="article">
+  <meta name="twitter:card" content="summary_large_image">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -32,9 +37,9 @@
 
     /* ─── CURSOR ─── */
     #cur {
-      position: fixed; z-index: 9999; pointer-events: none;
+      position: fixed; left: 0; top: 0; z-index: 9999; pointer-events: none;
       width: 8px; height: 8px; background: var(--cream); border-radius: 50%;
-      transform: translate(-50%, -50%);
+      will-change: transform;
       transition: width .22s, height .22s, opacity .22s;
       mix-blend-mode: difference;
     }
@@ -405,6 +410,14 @@
       .tradition-strip { grid-template-columns: 1fr; }
       .case-footer { padding: 48px 24px; flex-direction: column; gap: 40px; align-items: flex-start; }
     }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
   </style>
 </head>
 <body>
@@ -560,10 +573,10 @@
     var cur = document.getElementById('cur');
     var mx = 0, my = 0;
     document.addEventListener('mousemove', function(e) { mx = e.clientX; my = e.clientY; });
+    var rafCur;
     (function tick() {
-      cur.style.left = mx + 'px';
-      cur.style.top  = my + 'px';
-      requestAnimationFrame(tick);
+      cur.style.transform = 'translate(calc(' + mx + 'px - 50%), calc(' + my + 'px - 50%))';
+      rafCur = requestAnimationFrame(tick);
     })();
     document.querySelectorAll('a, .mockup-pair-item').forEach(function(el) {
       el.addEventListener('mouseenter', function() { cur.classList.add('expanded'); });
@@ -584,6 +597,10 @@
       var yf = (e.clientY / window.innerHeight - .5) * 4;
       var bw = document.querySelector('.book-wrap');
       if (bw) bw.style.transform = 'rotateY(' + xf + 'deg) rotateX(' + (-yf) + 'deg)';
+    });
+
+    window.addEventListener('beforeunload', function() {
+      cancelAnimationFrame(rafCur);
     });
   </script>
 
