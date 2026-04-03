@@ -888,7 +888,7 @@
 
     @media(max-width: 768px) {
       nav { padding: 22px 24px; }
-      .nav-links { gap: 24px; }
+      .nav-links { gap: 20px; }
       .nav-links a { font-size: 10px; }
       .hero-inner { padding: 0 24px 52px; }
       #work { padding: 80px 24px 60px; }
@@ -897,9 +897,20 @@
       #loader { padding: 32px; }
       footer { padding: 22px 24px; }
 
-      /* Hero */
+      /* Hero — tighter type + elements */
+      .hero-name .line-fill,
+      .hero-name .line-outline { font-size: clamp(88px, 23vw, 440px); }
+      .hero-title-tag {
+        font-size: 8px; letter-spacing: .1em;
+        max-width: 52vw; white-space: normal; line-height: 1.65;
+        bottom: clamp(24px, 3.5vh, 52px);
+      }
       .dog-annotation { top: 10%; right: 4%; }
-      .scroll-hint { right: 24px; bottom: 40px; }
+      .scroll-hint { right: 24px; bottom: clamp(24px, 3.5vh, 52px); }
+
+      /* Section headers — prevent line-wrap */
+      .fonts-label, .posters-label { font-size: clamp(30px, 7vw, 56px); }
+      .fonts-hd, .posters-hd { gap: 16px; padding: 36px 0 22px; }
 
       /* Project rows — compact 4-col */
       .project-row { grid-template-columns: 38px 1fr auto 36px; gap: 0 12px; padding: 20px 0; }
@@ -935,21 +946,23 @@
       .project-row { cursor: pointer; }
       .contact-link-item { cursor: pointer; }
 
-      /* Hapoel toggle smaller */
+      /* Hapoel toggle — clear of scroll hint */
       #hapoel-toggle-wrap { bottom: 24px; right: 24px; }
     }
 
     @media(max-width: 480px) {
-      /* Nav — show all links, smaller */
-      .nav-links { gap: 14px; }
-      .nav-links a { font-size: 9px; letter-spacing: .12em; }
+      /* Nav — hide Fonts & Posters links to prevent cramping */
+      .nav-links { gap: 18px; }
+      .nav-links li:nth-child(2),
+      .nav-links li:nth-child(3) { display: none; }
+      .nav-links a { font-size: 10px; letter-spacing: .18em; }
       .nav-logo { font-size: 12px; }
 
-      /* Hero */
-      .hero-name { font-size: clamp(56px, 18vw, 88px); }
-      .hero-sub { gap: 16px; margin-top: 20px; }
-      .hero-sub p { font-size: 10px; }
-      .scroll-hint { right: 16px; bottom: 28px; font-size: 8px; }
+      /* Hero — scaled for mobile */
+      .hero-name .line-fill,
+      .hero-name .line-outline { font-size: clamp(80px, 21vw, 200px); }
+      .hero-title-tag { display: none; } /* too cramped on small screens */
+      .scroll-hint { display: none; } /* not needed on touch */
       .dog-annotation { top: 8%; right: 2%; }
       .annotation-label { font-size: clamp(12px, 3.2vw, 16px); }
       .annotation-svg { width: clamp(50px, 12vw, 80px); }
@@ -985,14 +998,27 @@
       .contact-link-item { padding: 24px 0; }
       .contact-val { font-size: clamp(13px, 3.5vw, 20px); }
 
+      /* Section headers */
+      .fonts-label, .posters-label { font-size: clamp(26px, 8vw, 40px); }
+      .fonts-hd, .posters-hd { padding: 28px 0 16px; gap: 12px; }
+      .section-toggle-arrow { font-size: 16px; }
+      .fonts-count, .posters-count { font-size: 10px; }
+
+      /* Contact */
+      #contact { padding: 50px 16px 40px; }
+      .contact-headline { font-size: clamp(36px, 10vw, 64px); margin-bottom: 36px; }
+      .contact-link-item { padding: 24px 0; }
+      .contact-val { font-size: clamp(13px, 3.5vw, 20px); }
+
       /* Footer */
       footer { padding: 18px 16px; }
-
-      /* Footer wordmark */
       .footer-wordmark { padding: 44px 16px 28px; }
 
       /* Posters */
       .posters-grid { columns: 2 100px; }
+
+      /* Hapoel toggle */
+      #hapoel-toggle-wrap { bottom: 20px; right: 16px; }
     }
   </style>
 </head>
