@@ -959,10 +959,22 @@
       .nav-logo { font-size: 12px; }
 
       /* Hero — scaled for mobile */
-      .hero-name .line-fill,
-      .hero-name .line-outline { font-size: clamp(80px, 21vw, 200px); }
-      .hero-title-tag { display: none; } /* too cramped on small screens */
-      .scroll-hint { display: none; } /* not needed on touch */
+      /* Reduce type size + push Ori below the fixed nav bar */
+      .hero-name .line-fill {
+        font-size: clamp(64px, 17vw, 120px);
+        padding-top: 72px; /* clear the fixed nav (~60px) */
+        padding-left: 20px;
+      }
+      .hero-name .line-outline {
+        font-size: clamp(64px, 17vw, 120px);
+        -webkit-text-stroke-width: 2px; /* thinner on mobile */
+        padding-bottom: 28px;
+        padding-right: 20px;
+      }
+      /* Hapoel button — move to bottom-left so it doesn't cover dog */
+      #hapoel-toggle-wrap { bottom: 20px; right: auto; left: 20px; }
+      .hero-title-tag { display: none; }
+      .scroll-hint { display: none; }
       .dog-annotation { top: 8%; right: 2%; }
       .annotation-label { font-size: clamp(12px, 3.2vw, 16px); }
       .annotation-svg { width: clamp(50px, 12vw, 80px); }
