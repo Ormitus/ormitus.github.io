@@ -403,6 +403,12 @@
       pointer-events: none;
     }
     .poster-item:hover::after { opacity: .08; }
+    .poster-video {
+      width: 100%; display: block;
+      transition: transform .65s cubic-bezier(.16,1,.3,1), opacity .4s;
+      opacity: .88;
+    }
+    .poster-item--video:hover .poster-video { transform: scale(1.07); opacity: 1; }
     body.hapoel-mode #posters { border-top-color: rgba(255,255,255,.15); }
     body.hapoel-mode .posters-hd { border-bottom-color: rgba(255,255,255,.15); }
 
@@ -1227,6 +1233,11 @@
     <div class="collapse-inner">
     <div class="collapse-pad">
     <div class="posters-grid">
+      <div class="poster-item poster-item--video">
+        <video class="poster-video" data-src="assets/posters/cloud9.mp4"
+               autoplay muted loop playsinline preload="none"
+               aria-label="Cloud 9 - April 11"></video>
+      </div>
       <div class="poster-item"><img data-src="assets/posters/1.webp" loading="lazy" alt=""></div>
       <div class="poster-item"><img data-src="assets/posters/2.webp" loading="lazy" alt=""></div>
       <div class="poster-item"><img data-src="assets/posters/3.webp" loading="lazy" alt=""></div>
@@ -1533,11 +1544,16 @@
       var open = body.classList.toggle('open');
       hd.classList.toggle('open', open);
       hd.setAttribute('aria-expanded', open ? 'true' : 'false');
-      // Lazy-load images inside this section on first open
+      // Lazy-load images + videos inside this section on first open
       if (open) {
         body.querySelectorAll('img[data-src]').forEach(function(img) {
           img.src = img.dataset.src;
           img.removeAttribute('data-src');
+        });
+        body.querySelectorAll('video[data-src]').forEach(function(vid) {
+          vid.src = vid.dataset.src;
+          vid.removeAttribute('data-src');
+          vid.load();
         });
       }
     }
