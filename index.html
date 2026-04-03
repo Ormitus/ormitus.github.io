@@ -793,6 +793,25 @@
       font-size: clamp(18px, 2.4vw, 32px);
     }
 
+    /* ── FOOTER WORDMARK — typographic closing statement ── */
+    .footer-wordmark {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(72px, 15vw, 220px);
+      font-weight: 700;
+      letter-spacing: -.055em;
+      line-height: .88;
+      color: var(--ink);
+      padding: 88px 60px 56px;
+      border-top: 1px solid var(--mid);
+      user-select: none;
+      pointer-events: none;
+    }
+    body.hapoel-mode .footer-wordmark { color: #fff; }
+    footer { border-top: none; }
+
+    /* Nav link touch target — expand hit area for accessibility */
+    .nav-links a { padding: 8px 2px; }
+
     /* Hero char reveal mask */
     .hero-char {
       display: inline-block;
@@ -861,6 +880,9 @@
       .contact-links { flex-direction: column; }
       .contact-link-item { border-right: none; border-bottom: 1px solid var(--mid); }
       .contact-headline { font-size: clamp(44px, 12vw, 80px); margin-bottom: 52px; }
+
+      /* Footer wordmark */
+      .footer-wordmark { padding: 60px 24px 40px; }
 
       /* Fonts */
       .font-meta { flex-direction: column; gap: 20px; }
@@ -934,6 +956,9 @@
 
       /* Footer */
       footer { padding: 18px 16px; }
+
+      /* Footer wordmark */
+      .footer-wordmark { padding: 44px 16px 28px; }
 
       /* Posters */
       .posters-grid { columns: 2 100px; }
@@ -1307,6 +1332,9 @@
 
   <!-- AUDIO -->
   <audio id="hapoel-audio" src="assets/hapoel.mp3" loop preload="none"></audio>
+
+  <!-- FOOTER WORDMARK -->
+  <div class="footer-wordmark reveal" aria-hidden="true">Ori Mor</div>
 
   <!-- FOOTER -->
   <footer>
