@@ -207,6 +207,7 @@
     body.hapoel-mode #hero { background: #C8001A; }
     #schnauzer-canvas {
       position: absolute; inset: 0; width: 100%; height: 100%;
+      z-index: 5; /* dog floats above type — depth layer */
     }
 
     /* ─── SHLUMPY ANNOTATION ─── */
@@ -232,28 +233,35 @@
     body.hapoel-mode .annotation-label { color: rgba(255,255,255,.7); }
     body.hapoel-mode .annotation-svg path { stroke: rgba(255,255,255,.7); }
     .hero-inner {
-      position: absolute; inset: 0; z-index: 10;
+      position: absolute; inset: 0; z-index: 2; /* behind dog canvas */
       pointer-events: none;
     }
     .hero-name {
       position: absolute; inset: 0;
       font-family: 'Space Grotesk', sans-serif;
-      font-weight: 700; line-height: .86;
+      font-weight: 700; line-height: .9;
       letter-spacing: -.05em; color: #fff;
     }
+    /* "Ori" anchored top-left — dog partially covers it */
     .hero-name .line-fill {
       position: absolute;
-      top: clamp(48px, 8vh, 100px); left: clamp(32px, 4vw, 72px);
-      font-size: clamp(100px, 17vw, 260px);
+      top: 0; left: 0;
+      padding-top: clamp(18px, 3vh, 48px);
+      padding-left: clamp(28px, 3.5vw, 64px);
+      font-size: clamp(120px, 26vw, 440px);
       display: block;
       opacity: 0;
     }
+    /* "Mor." anchored bottom-right — dog partially covers it */
     .hero-name .line-outline {
       position: absolute;
-      bottom: clamp(44px, 7vh, 88px); right: clamp(32px, 4vw, 72px);
-      font-size: clamp(100px, 17vw, 260px);
+      bottom: 0; right: 0;
+      padding-bottom: clamp(18px, 3vh, 48px);
+      padding-right: clamp(28px, 3.5vw, 64px);
+      font-size: clamp(120px, 26vw, 440px);
       display: block;
-      -webkit-text-stroke: 2px rgba(255,255,255,.85);
+      text-align: right;
+      -webkit-text-stroke: 3px rgba(255,255,255,.9);
       color: transparent;
       opacity: 0;
     }
@@ -262,7 +270,7 @@
     .hero-char-inner { display: inline-block; }
 
     .scroll-hint {
-      position: absolute; left: clamp(32px, 4vw, 72px); bottom: clamp(44px, 7vh, 88px); z-index: 10;
+      position: absolute; right: clamp(28px, 3.5vw, 64px); bottom: clamp(28px, 4vh, 64px); z-index: 8;
       display: flex; flex-direction: column; align-items: center; gap: 14px;
       color: rgba(255,255,255,.3);
       font-size: 9px; letter-spacing: .26em; text-transform: uppercase;
@@ -1732,14 +1740,16 @@
     gsap.set([lineFillEl, lineOutlineEl], { opacity: 1, y: 0, clearProps: 'transform' });
     var charsFill    = splitLineToChars(lineFillEl);
     var charsOutline = splitLineToChars(lineOutlineEl);
-    // Diagonal convergence: "Ori" falls from above, "Mor." rises from below
-    gsap.set(charsFill,    { yPercent: -110 });
-    gsap.set(charsOutline, { yPercent:  110 });
+    // Type comes first — dog materialises on top after
+    gsap.set(charsFill,           { yPercent: -110 });
+    gsap.set(charsOutline,        { yPercent:  110 });
+    gsap.set('#schnauzer-canvas', { opacity: 0 });
 
-    gsap.timeline({ delay: .15 })
-      .to(charsFill,     { yPercent: 0, duration: 1.0, stagger: .05, ease: 'power4.out' })
-      .to(charsOutline,  { yPercent: 0, duration: 1.0, stagger: .05, ease: 'power4.out' }, '-=.85')
-      .to('.scroll-hint', { opacity: 1, duration: .6 }, '-=.5');
+    gsap.timeline({ delay: .1 })
+      .to(charsFill,            { yPercent: 0, duration: 1.05, stagger: .055, ease: 'power4.out' })
+      .to(charsOutline,         { yPercent: 0, duration: 1.05, stagger: .055, ease: 'power4.out' }, '-=.88')
+      .to('#schnauzer-canvas',  { opacity: 1, duration: 1.4,  ease: 'power2.inOut' }, '-=.7')
+      .to('.scroll-hint',       { opacity: 1, duration: .6,   ease: 'power2.out'   }, '-=.5');
 
     document.querySelectorAll('.reveal').forEach(function(el, i) {
       gsap.to(el, {
