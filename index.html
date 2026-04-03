@@ -727,6 +727,72 @@
     /* Hapoel pill spring */
     #hapoel-knob { transition: transform .5s cubic-bezier(.34,1.3,.64,1); }
 
+    /* ── MARQUEE STRIP ── */
+    .marquee-wrap {
+      overflow: hidden;
+      padding: 15px 0;
+      border-bottom: 1px solid var(--mid);
+    }
+    body.hapoel-mode .marquee-wrap { border-bottom-color: rgba(255,255,255,.12); }
+    .marquee-track {
+      display: inline-flex;
+      will-change: transform;
+      animation: marq 26s linear infinite;
+    }
+    .marquee-item {
+      font-size: 10px; letter-spacing: .28em; text-transform: uppercase;
+      color: var(--dim); padding: 0 4vw; white-space: nowrap;
+    }
+    body.hapoel-mode .marquee-item { color: rgba(255,255,255,.35); }
+    @keyframes marq { to { transform: translateX(-50%); } }
+    @media (prefers-reduced-motion: reduce) { .marquee-track { animation: none; } }
+
+    /* ── SECTION HEADERS — monumental scale ── */
+    .fonts-hd, .posters-hd {
+      justify-content: flex-start;
+      align-items: center;
+      gap: 24px;
+      padding: 52px 0 32px;
+      border-bottom: 1px solid var(--mid);
+    }
+    .fonts-label {
+      font-size: clamp(40px, 7vw, 112px);
+      font-weight: 700; letter-spacing: -.04em; line-height: .95;
+      text-transform: none; color: var(--ink);
+    }
+    .posters-label {
+      font-size: clamp(40px, 7vw, 112px);
+      font-weight: 700; letter-spacing: -.04em; line-height: .95;
+      text-transform: none; color: var(--ink);
+    }
+    .fonts-hd .section-toggle-arrow,
+    .posters-hd .section-toggle-arrow {
+      margin-left: auto; font-size: 22px; color: var(--dim);
+      padding-left: 0; padding-right: 0;
+    }
+    .fonts-count, .posters-count {
+      font-size: 11px; letter-spacing: .18em; text-transform: uppercase;
+      color: rgba(10,9,7,.35);
+    }
+    body.hapoel-mode .fonts-label,
+    body.hapoel-mode .posters-label { color: #fff; }
+    body.hapoel-mode .fonts-count,
+    body.hapoel-mode .posters-count { color: rgba(255,255,255,.4); }
+
+    /* ── CONTACT — stronger eyebrow + bigger contact values ── */
+    .contact-eyebrow {
+      display: flex; align-items: center; gap: 20px;
+      margin-bottom: 48px;
+    }
+    .contact-eyebrow::before {
+      content: '';
+      display: inline-block; width: 32px; height: 1px;
+      background: var(--dim); flex-shrink: 0;
+    }
+    .contact-val {
+      font-size: clamp(18px, 2.4vw, 32px);
+    }
+
     /* Hero char reveal mask */
     .hero-char {
       display: inline-block;
@@ -986,6 +1052,36 @@
       <span class="proj-arrow" aria-hidden="true">↗&#xFE0E;</span>
     </div>
   </section>
+
+  <!-- MARQUEE STRIP -->
+  <div class="marquee-wrap" aria-hidden="true">
+    <div class="marquee-track">
+      <span class="marquee-item">Brand</span>
+      <span class="marquee-item">·</span>
+      <span class="marquee-item">UX</span>
+      <span class="marquee-item">·</span>
+      <span class="marquee-item">Art Direction</span>
+      <span class="marquee-item">·</span>
+      <span class="marquee-item">Tel Aviv</span>
+      <span class="marquee-item">·</span>
+      <span class="marquee-item">2026</span>
+      <span class="marquee-item">·</span>
+      <span class="marquee-item">Ori Mor</span>
+      <span class="marquee-item">·</span>
+      <span class="marquee-item">Brand</span>
+      <span class="marquee-item">·</span>
+      <span class="marquee-item">UX</span>
+      <span class="marquee-item">·</span>
+      <span class="marquee-item">Art Direction</span>
+      <span class="marquee-item">·</span>
+      <span class="marquee-item">Tel Aviv</span>
+      <span class="marquee-item">·</span>
+      <span class="marquee-item">2026</span>
+      <span class="marquee-item">·</span>
+      <span class="marquee-item">Ori Mor</span>
+      <span class="marquee-item">·</span>
+    </div>
+  </div>
 
   <!-- FONTS -->
   <section id="fonts">
