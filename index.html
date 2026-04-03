@@ -232,46 +232,37 @@
     body.hapoel-mode .annotation-label { color: rgba(255,255,255,.7); }
     body.hapoel-mode .annotation-svg path { stroke: rgba(255,255,255,.7); }
     .hero-inner {
-      position: relative; z-index: 10;
-      padding: 0 60px 70px;
-      mix-blend-mode: difference;
-    }
-    .hero-tag {
-      font-size: 11px; letter-spacing: .28em; text-transform: uppercase;
-      color: rgba(255,255,255,.5); margin-bottom: 16px;
-      opacity: 0; transform: translateY(20px);
+      position: absolute; inset: 0; z-index: 10;
+      pointer-events: none;
     }
     .hero-name {
+      position: absolute; inset: 0;
       font-family: 'Space Grotesk', sans-serif;
-      font-size: clamp(88px, 14vw, 208px);
       font-weight: 700; line-height: .86;
-      letter-spacing: -.04em; color: #fff;
+      letter-spacing: -.05em; color: #fff;
     }
     .hero-name .line-fill {
+      position: absolute;
+      top: clamp(48px, 8vh, 100px); left: clamp(32px, 4vw, 72px);
+      font-size: clamp(100px, 17vw, 260px);
       display: block;
-      opacity: 0; transform: translateY(60px);
+      opacity: 0;
     }
     .hero-name .line-outline {
+      position: absolute;
+      bottom: clamp(44px, 7vh, 88px); right: clamp(32px, 4vw, 72px);
+      font-size: clamp(100px, 17vw, 260px);
       display: block;
-      -webkit-text-stroke: 2px #fff;
+      -webkit-text-stroke: 2px rgba(255,255,255,.85);
       color: transparent;
-      opacity: 0; transform: translateY(60px);
+      opacity: 0;
     }
-    .hero-sub {
-      display: flex; align-items: center; gap: 32px;
-      margin-top: 32px;
-      opacity: 0; transform: translateY(20px);
-    }
-    .hero-sub p {
-      font-size: 13px; letter-spacing: .1em; color: rgba(255,255,255,.5);
-      text-transform: uppercase;
-    }
-    .hero-sub-line {
-      flex: 1; max-width: 120px; height: 1px;
-      background: rgba(255,255,255,.2);
-    }
+    /* per-character clip mask */
+    .hero-char { display: inline-block; overflow: hidden; vertical-align: top; }
+    .hero-char-inner { display: inline-block; }
+
     .scroll-hint {
-      position: absolute; right: 60px; bottom: 70px; z-index: 10;
+      position: absolute; left: clamp(32px, 4vw, 72px); bottom: clamp(44px, 7vh, 88px); z-index: 10;
       display: flex; flex-direction: column; align-items: center; gap: 14px;
       color: rgba(255,255,255,.3);
       font-size: 9px; letter-spacing: .26em; text-transform: uppercase;
@@ -1741,14 +1732,14 @@
     gsap.set([lineFillEl, lineOutlineEl], { opacity: 1, y: 0, clearProps: 'transform' });
     var charsFill    = splitLineToChars(lineFillEl);
     var charsOutline = splitLineToChars(lineOutlineEl);
-    gsap.set([charsFill, charsOutline], { yPercent: 110 });
+    // Diagonal convergence: "Ori" falls from above, "Mor." rises from below
+    gsap.set(charsFill,    { yPercent: -110 });
+    gsap.set(charsOutline, { yPercent:  110 });
 
     gsap.timeline({ delay: .15 })
-      .to('.hero-tag',   { opacity: 1, y: 0, duration: .6, ease: 'power3.out' })
-      .to(charsFill,     { yPercent: 0, duration: .9, stagger: .04, ease: 'power4.out' }, '-=.35')
-      .to(charsOutline,  { yPercent: 0, duration: .9, stagger: .04, ease: 'power4.out' }, '-=.74')
-      .to('.hero-sub',   { opacity: 1, y: 0, duration: .65, ease: 'power3.out' }, '-=.55')
-      .to('.scroll-hint', { opacity: 1, duration: .5 }, '-=.3');
+      .to(charsFill,     { yPercent: 0, duration: 1.0, stagger: .05, ease: 'power4.out' })
+      .to(charsOutline,  { yPercent: 0, duration: 1.0, stagger: .05, ease: 'power4.out' }, '-=.85')
+      .to('.scroll-hint', { opacity: 1, duration: .6 }, '-=.5');
 
     document.querySelectorAll('.reveal').forEach(function(el, i) {
       gsap.to(el, {
