@@ -959,16 +959,16 @@
       .nav-logo { font-size: 12px; }
 
       /* Hero — scaled for mobile */
-      /* Reduce type size + push Ori below the fixed nav bar */
+      #hero { height: 100dvh; min-height: 100dvh; }
       .hero-name .line-fill {
-        font-size: clamp(64px, 17vw, 120px);
-        padding-top: 72px; /* clear the fixed nav (~60px) */
+        font-size: clamp(52px, 13vw, 90px);
+        padding-top: 74px; /* clear the fixed nav (~60px) */
         padding-left: 20px;
       }
       .hero-name .line-outline {
-        font-size: clamp(64px, 17vw, 120px);
-        -webkit-text-stroke-width: 2px; /* thinner on mobile */
-        padding-bottom: 28px;
+        font-size: clamp(52px, 13vw, 90px);
+        -webkit-text-stroke-width: 2px;
+        padding-bottom: 56px; /* extra room for browser chrome */
         padding-right: 20px;
       }
       /* Hapoel button — move to bottom-left so it doesn't cover dog */
