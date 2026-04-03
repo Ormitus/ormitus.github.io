@@ -269,6 +269,22 @@
     .hero-char { display: inline-block; overflow: hidden; vertical-align: top; }
     .hero-char-inner { display: inline-block; }
 
+    /* hero title tag */
+    .hero-title-tag {
+      position: absolute;
+      bottom: clamp(28px, 4vh, 64px); left: clamp(28px, 3.5vw, 64px);
+      z-index: 8;
+      font-size: clamp(8px, 0.78vw, 11px);
+      letter-spacing: .24em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.3);
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 400;
+      opacity: 0;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
     .scroll-hint {
       position: absolute; right: clamp(28px, 3.5vw, 64px); bottom: clamp(28px, 4vh, 64px); z-index: 8;
       display: flex; flex-direction: column; align-items: center; gap: 14px;
@@ -1028,6 +1044,7 @@
         <span class="line-outline">Mor.</span>
       </h1>
     </div>
+    <div class="hero-title-tag">Multidisciplinary Graphic Designer&nbsp;&middot;&nbsp;BA in Design</div>
     <div class="scroll-hint">Scroll</div>
   </section>
 
@@ -1748,24 +1765,73 @@
     gsap.timeline({ delay: .1 })
       .to(charsFill,            { yPercent: 0, duration: 1.05, stagger: .055, ease: 'power4.out' })
       .to(charsOutline,         { yPercent: 0, duration: 1.05, stagger: .055, ease: 'power4.out' }, '-=.88')
-      .to('#schnauzer-canvas',  { opacity: 1, duration: 1.4,  ease: 'power2.inOut' }, '-=.7')
-      .to('.scroll-hint',       { opacity: 1, duration: .6,   ease: 'power2.out'   }, '-=.5');
+      .to('#schnauzer-canvas',   { opacity: 1, duration: 1.4,  ease: 'power2.inOut' }, '-=.7')
+      .to('.hero-title-tag',     { opacity: 1, duration: .8,   ease: 'power2.out'   }, '-=.6')
+      .to('.scroll-hint',        { opacity: 1, duration: .6,   ease: 'power2.out'   }, '-=.55');
 
+    // ── .reveal elements ──
     document.querySelectorAll('.reveal').forEach(function(el, i) {
       gsap.to(el, {
-        scrollTrigger: { trigger: el, start: 'top 88%' },
-        opacity: 1, y: 0, duration: .85,
+        scrollTrigger: { trigger: el, start: 'top 88%', once: true },
+        opacity: 1, y: 0, duration: .9,
         delay: (i % 3) * .07, ease: 'power3.out',
       });
     });
 
+    // ── Project rows: clip-path wipe + stagger ──
     gsap.utils.toArray('.project-row').forEach(function(row, i) {
-      gsap.from(row, {
-        scrollTrigger: { trigger: '#work', start: 'top 80%' },
-        opacity: 0, y: 26, duration: .7,
-        delay: i * .08 + .1, ease: 'power3.out',
-      });
+      gsap.fromTo(row,
+        { opacity: 0, clipPath: 'inset(0 0 100% 0)', y: 10 },
+        { opacity: 1, clipPath: 'inset(0 0 0% 0)',   y: 0,
+          duration: .75, ease: 'power3.out',
+          scrollTrigger: { trigger: '#work', start: 'top 78%', once: true },
+          delay: i * .09 + .05
+        }
+      );
     });
+
+    // ── Footer wordmark: parallax only (.reveal handles the fade-in) ──
+    var wordmark = document.querySelector('.footer-wordmark');
+    if (wordmark) {
+      gsap.to(wordmark, {
+        yPercent: -6, ease: 'none',
+        scrollTrigger: { trigger: wordmark, start: 'top bottom', end: 'bottom top', scrub: 1.8 }
+      });
+    }
+
+    // ── Contact headline: word-by-word reveal ──
+    var contactHd = document.querySelector('.contact-headline');
+    if (contactHd) {
+      var words = contactHd.innerHTML.split(/(?=<)|(?<=>)/).filter(Boolean);
+      // Simple: animate the whole headline as one block but with a skew
+      gsap.fromTo(contactHd,
+        { opacity: 0, y: 50, skewY: 1 },
+        { opacity: 1, y: 0, skewY: 0, duration: 1.1, ease: 'power4.out',
+          scrollTrigger: { trigger: contactHd, start: 'top 80%', once: true }
+        }
+      );
+    }
+
+    // ── Posters header: reveal (no .reveal class on it) ──
+    var postersHd = document.querySelector('.posters-hd');
+    if (postersHd) {
+      gsap.fromTo(postersHd,
+        { opacity: 0, x: -28 },
+        { opacity: 1, x: 0, duration: .8, ease: 'power3.out',
+          scrollTrigger: { trigger: postersHd, start: 'top 88%', once: true }
+        }
+      );
+    }
+
+    // ── Marquee: vary speed with scroll velocity via Lenis ──
+    var marqEl = document.querySelector('.marquee-track');
+    if (marqEl && typeof lenis !== 'undefined') {
+      lenis.on('scroll', function(e) {
+        var vel = Math.abs(e.velocity);
+        var dur = Math.max(8, 26 - vel * 2.5);
+        marqEl.style.animationDuration = dur + 's';
+      });
+    }
 
     document.querySelectorAll('.contact-link-item').forEach(function(el) {
       el.addEventListener('mousemove', function(e) {
