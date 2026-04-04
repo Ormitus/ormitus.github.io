@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bananhot — Pop-Up Identity / Ori Mor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,800;0,9..144,900;1,9..144,300;1,9..144,800&family=Space+Grotesk:wght@300;400;500&display=swap" rel="stylesheet">
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.9/dist/lenis.min.js"></script>
+
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    :root {
+      --pink:   #F9D2C5;
+      --blue:   #5A9FB1;
+      --mint:   #A4E3E7;
+      --yellow: #F8E28C;
+      --cream:  #FDF8F5;
+      --ink:    #2C1810;
+      --mid:    rgba(44,24,16,.07);
+    }
+
+    body {
+      background: var(--cream);
+      color: var(--ink);
+      font-family: 'Space Grotesk', sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* ── CURSOR ── */
+    #cur {
+      position: fixed; z-index: 9999; pointer-events: none;
+      width: 8px; height: 8px;
+      background: var(--ink); border-radius: 50%;
+      transform: translate(-50%,-50%);
+      transition: width .2s, height .2s;
+      mix-blend-mode: multiply;
+    }
+    #cur.expanded { width: 48px; height: 48px; }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 500;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 32px 60px;
+    }
+    .nav-logo {
+      font-size: 13px; font-weight: 500; letter-spacing: .22em;
+      text-transform: uppercase; color: var(--ink); text-decoration: none;
+    }
+    .nav-back {
+      font-size: 11px; letter-spacing: .2em; text-transform: uppercase;
+      color: rgba(44,24,16,.4); text-decoration: none; transition: color .3s;
+    }
+    .nav-back:hover { color: var(--ink); }
+
+    /* ── HERO ── */
+    #hero {
+      min-height: 100vh;
+      background: var(--pink);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+      padding: 120px 60px 80px;
+      gap: 80px;
+      position: relative; overflow: hidden;
+    }
+
+    /* Wavy bottom border */
+    #hero::after {
+      content: '';
+      position: absolute; bottom: 0; left: 0; right: 0;
+      height: 6px;
+      background: linear-gradient(90deg, var(--blue) 0%, var(--mint) 33%, var(--pink) 66%, var(--yellow) 100%);
+    }
+
+    .hero-left { position: relative; z-index: 1; }
+
+    .hero-eyebrow {
+      font-size: 10px; letter-spacing: .32em; text-transform: uppercase;
+      color: rgba(44,24,16,.5); margin-bottom: 28px;
+      display: flex; align-items: center; gap: 16px;
+      opacity: 0; transform: translateY(20px);
+      animation: fadeUp .7s .1s forwards;
+    }
+    .hero-eyebrow::before {
+      content: ''; display: inline-block;
+      width: 32px; height: 1px; background: rgba(44,24,16,.3);
+    }
+
+    .hero-title {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(42px, 5.5vw, 80px);
+      font-weight: 900; line-height: .9;
+      letter-spacing: -.03em; color: var(--ink);
+      opacity: 0; transform: translateY(40px);
+      animation: fadeUp .9s .25s forwards;
+    }
+
+    .hero-subtitle {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(18px, 2.2vw, 28px);
+      font-weight: 300; font-style: italic;
+      color: rgba(44,24,16,.55);
+      margin-top: 12px;
+      opacity: 0; animation: fadeUp .7s .38s forwards;
+    }
+
+    .hero-divider {
+      width: 48px; height: 1px;
+      background: rgba(44,24,16,.18);
+      margin: 36px 0;
+      opacity: 0; animation: fadeUp .7s .45s forwards;
+    }
+
+    .hero-desc {
+      font-size: 15px; line-height: 1.85;
+      color: rgba(44,24,16,.6);
+      max-width: 500px;
+      opacity: 0; animation: fadeUp .8s .55s forwards;
+    }
+
+    .hero-meta-row {
+      display: flex; gap: 40px; margin-top: 44px;
+      opacity: 0; animation: fadeUp .7s .7s forwards;
+      flex-wrap: wrap;
+    }
+    .hero-meta-label {
+      font-size: 9px; letter-spacing: .28em; text-transform: uppercase;
+      color: rgba(44,24,16,.3); margin-bottom: 6px;
+    }
+    .hero-meta-value {
+      font-family: 'Fraunces', serif;
+      font-size: 15px; font-weight: 300; font-style: italic;
+      color: rgba(44,24,16,.7);
+    }
+
+    .hero-right {
+      position: relative; z-index: 1;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; animation: fadeUp .9s .3s forwards;
+    }
+    .hero-logo-wrap {
+      background: #fff;
+      border-radius: 24px;
+      padding: 56px;
+      width: 100%; max-width: 460px;
+      box-shadow:
+        0 40px 100px rgba(44,24,16,.12),
+        0 0 0 1px rgba(44,24,16,.05);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .hero-logo-wrap img { width: 100%; display: block; }
+
+    /* ── COLOUR PALETTE STRIP ── */
+    .palette-strip {
+      display: flex; height: 100px;
+    }
+    .swatch {
+      flex: 1; display: flex; align-items: flex-end;
+      padding: 14px 18px;
+    }
+    .swatch-code {
+      font-size: 10px; letter-spacing: .18em; text-transform: uppercase;
+      color: rgba(44,24,16,.5); font-weight: 500;
+    }
+
+    /* ── SECTIONS ── */
+    .case-section {
+      padding: 120px 60px;
+      border-bottom: 1px solid var(--mid);
+      position: relative;
+    }
+    .case-section.dark-section {
+      background: var(--ink);
+      border-bottom-color: rgba(255,255,255,.06);
+    }
+    .case-section.pink-section {
+      background: var(--pink);
+      border-bottom-color: rgba(44,24,16,.07);
+    }
+    .case-section.mint-section {
+      background: var(--mint);
+      border-bottom-color: rgba(44,24,16,.07);
+    }
+
+    .section-eyebrow {
+      font-size: 9px; letter-spacing: .32em; text-transform: uppercase;
+      color: rgba(44,24,16,.35); margin-bottom: 40px;
+      display: flex; align-items: center; gap: 20px;
+    }
+    .section-eyebrow::before {
+      content: ''; display: inline-block;
+      width: 32px; height: 1px; background: rgba(44,24,16,.18);
+    }
+    .dark-section .section-eyebrow { color: rgba(255,255,255,.3); }
+    .dark-section .section-eyebrow::before { background: rgba(255,255,255,.12); }
+    .mint-section .section-eyebrow,
+    .pink-section .section-eyebrow { color: rgba(44,24,16,.4); }
+
+    .section-heading {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(38px, 5vw, 68px);
+      font-weight: 900; line-height: .92;
+      letter-spacing: -.03em; color: var(--ink);
+      margin-bottom: 20px;
+    }
+    .dark-section .section-heading { color: #fff; }
+
+    .section-sub {
+      font-size: clamp(15px, 1.6vw, 20px);
+      color: rgba(44,24,16,.45); font-weight: 300;
+      max-width: 580px; line-height: 1.65; margin-bottom: 60px;
+    }
+    .dark-section .section-sub { color: rgba(255,255,255,.45); }
+
+    .body-text {
+      font-size: 16px; line-height: 1.85;
+      color: rgba(44,24,16,.6); max-width: 680px;
+    }
+    .dark-section .body-text { color: rgba(255,255,255,.55); }
+
+    /* ── TWO COL ── */
+    .two-col {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 80px; align-items: start;
+    }
+
+    /* ── LOGO SKETCHES GRID ── */
+    .sketches-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 16px; margin-top: 60px;
+    }
+    .sketch-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 32px;
+      border: 1px solid var(--mid);
+      display: flex; align-items: center; justify-content: center;
+      aspect-ratio: 1;
+      overflow: hidden;
+    }
+    .sketch-card img {
+      width: 100%; height: 100%; object-fit: contain; display: block;
+    }
+    .sketch-card.wide {
+      grid-column: span 2;
+      aspect-ratio: 2/1;
+    }
+
+    /* ── POSTCARDS GRID ── */
+    .postcards-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 60px;
+    }
+    .postcard-item {
+      border-radius: 12px; overflow: hidden;
+      box-shadow: 0 12px 40px rgba(44,24,16,.12);
+      aspect-ratio: 3/4;
+    }
+    .postcard-item.wide {
+      grid-column: span 2;
+      aspect-ratio: unset;
+    }
+    .postcard-item img {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+    }
+
+    /* ── MAP SECTION ── */
+    .map-wrap {
+      border-radius: 20px; overflow: hidden;
+      box-shadow: 0 32px 80px rgba(44,24,16,.15);
+      max-width: 800px; margin: 60px auto 0;
+    }
+    .map-wrap img { width: 100%; display: block; }
+
+    /* ── LIVE PHOTOS GRID ── */
+    .photos-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px; margin-top: 60px;
+    }
+    .photo-item {
+      border-radius: 16px; overflow: hidden;
+      box-shadow: 0 12px 40px rgba(44,24,16,.1);
+      aspect-ratio: 9/16;
+    }
+    .photo-item img {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+    }
+
+    /* ── SLIDE IMG ── */
+    .slide-img {
+      width: 100%; display: block; border-radius: 12px;
+      box-shadow: 0 16px 60px rgba(44,24,16,.1);
+    }
+    .slide-caption {
+      font-size: 11px; letter-spacing: .18em; text-transform: uppercase;
+      color: rgba(44,24,16,.28); margin-top: 14px; text-align: center;
+    }
+    .dark-section .slide-caption { color: rgba(255,255,255,.25); }
+
+    /* ── COLLAB TAG ── */
+    .collab-tag {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: rgba(44,24,16,.06);
+      border: 1px solid rgba(44,24,16,.1);
+      border-radius: 100px;
+      padding: 8px 18px 8px 8px;
+      margin-top: 40px;
+    }
+    .collab-dot {
+      width: 24px; height: 24px; border-radius: 50%;
+      background: var(--blue);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; color: #fff; font-weight: 700;
+    }
+    .collab-text {
+      font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+      color: rgba(44,24,16,.5);
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--ink); color: rgba(255,255,255,.3);
+      padding: 48px 60px;
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 11px; letter-spacing: .18em; text-transform: uppercase;
+    }
+    footer a {
+      color: rgba(255,255,255,.6); text-decoration: none; transition: color .3s;
+    }
+    footer a:hover { color: #fff; }
+
+    /* ── KEYFRAMES ── */
+    @keyframes fadeUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── REVEAL (scroll) ── */
+    .reveal { opacity: 0; transform: translateY(40px); }
+    .reveal.in { opacity: 1; transform: none; transition: opacity .9s cubic-bezier(.16,1,.3,1), transform .9s cubic-bezier(.16,1,.3,1); }
+    .reveal-d1 { transition-delay: .1s; }
+    .reveal-d2 { transition-delay: .2s; }
+    .reveal-d3 { transition-delay: .3s; }
+    .reveal-d4 { transition-delay: .4s; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      nav { padding: 24px 20px; }
+      #hero {
+        grid-template-columns: 1fr;
+        padding: 100px 24px 60px;
+        gap: 40px;
+        min-height: auto;
+      }
+      .hero-right { order: -1; }
+      .hero-logo-wrap { padding: 32px; max-width: 320px; }
+      .case-section { padding: 72px 24px; }
+      .two-col { grid-template-columns: 1fr; gap: 40px; }
+      .sketches-grid { grid-template-columns: repeat(2, 1fr); }
+      .sketch-card.wide { grid-column: span 2; }
+      .postcards-grid { grid-template-columns: 1fr 1fr; }
+      .postcard-item.wide { grid-column: span 2; aspect-ratio: 3/4; }
+      .photos-grid { grid-template-columns: 1fr; }
+      footer { flex-direction: column; gap: 16px; text-align: center; padding: 32px 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="cur"></div>
+
+<nav>
+  <a class="nav-logo" href="index.html">Ori Mor</a>
+  <a class="nav-back" href="index.html">← Back to Work</a>
+</nav>
+
+<!-- ═══════════════════════════════════════ HERO ═══════ -->
+<section id="hero">
+  <div class="hero-left">
+    <div class="hero-eyebrow">Brand Identity &amp; Print</div>
+
+    <h1 class="hero-title">Bananhot<br>Sunny City</h1>
+    <p class="hero-subtitle">Pop-Up Visual Identity</p>
+
+    <div class="hero-divider"></div>
+
+    <p class="hero-desc">
+      A complete visual identity for the "Sunny City" pop-up event by Bananhot,
+      an Israeli swimwear brand by Neta Alchemister. The project included logo design,
+      colour selection, postcard series, and an illustrated city map —
+      created in collaboration with Persona Studio.
+    </p>
+
+    <div class="hero-meta-row">
+      <div>
+        <div class="hero-meta-label">Client</div>
+        <div class="hero-meta-value">Bananhot</div>
+      </div>
+      <div>
+        <div class="hero-meta-label">Scope</div>
+        <div class="hero-meta-value">Identity, Print, Map</div>
+      </div>
+      <div>
+        <div class="hero-meta-label">Collaboration</div>
+        <div class="hero-meta-value">Persona Studio</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-right">
+    <div class="hero-logo-wrap">
+      <img src="assets/bananhot/logo.png" alt="Bananhot Sunny City Logo">
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════ COLOUR PALETTE ═══════ -->
+<section class="case-section" style="padding-bottom: 0; border-bottom: none;">
+  <div class="section-eyebrow reveal">Colour Palette</div>
+  <div class="two-col reveal reveal-d1">
+    <div>
+      <h2 class="section-heading">Pastel Summer</h2>
+      <p class="section-sub">A warm, sun-soaked palette drawn from beach aesthetics — dusty blue skies, sea-foam teal, sun-kissed pink, and pale lemon yellow.</p>
+    </div>
+    <div></div>
+  </div>
+</section>
+
+<div class="palette-strip reveal">
+  <div class="swatch" style="background:#5A9FB1;">
+    <span class="swatch-code">#5A9FB1</span>
+  </div>
+  <div class="swatch" style="background:#A4E3E7;">
+    <span class="swatch-code">#A4E3E7</span>
+  </div>
+  <div class="swatch" style="background:#F9D2C5;">
+    <span class="swatch-code">#F9D2C5</span>
+  </div>
+  <div class="swatch" style="background:#F8E28C;">
+    <span class="swatch-code">#F8E28C</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ LOGO IDENTITY ═══════ -->
+<section class="case-section">
+  <div class="section-eyebrow reveal">Logo Design</div>
+  <div class="two-col">
+    <div>
+      <h2 class="section-heading reveal">Identity<br>System</h2>
+      <p class="section-sub reveal reveal-d1">The logo centres on a palm tree icon with "SUNNY CITY" arching above and "BANANHOT" anchored below in bold serif — evoking a summer resort destination. Designed to work across print, merchandise, and digital.</p>
+      <p class="body-text reveal reveal-d2">
+        The mark was developed through multiple sketching rounds, exploring the balance between the illustrative palm and the typographic weight of the wordmark. The final version achieves a classic resort-brand feel with a contemporary serif.
+      </p>
+    </div>
+    <div>
+      <div class="logo-showcase reveal reveal-d2" style="background:#F9D2C5; border: none; border-radius: 20px; padding: 60px; display:flex; align-items:center; justify-content:center;">
+        <img src="assets/bananhot/logo.png" alt="Bananhot Logo — Pink version" style="width:100%; max-width:380px; display:block;">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════ LOGO SKETCHES ═══════ -->
+<section class="case-section dark-section">
+  <div class="section-eyebrow reveal">Process</div>
+  <h2 class="section-heading reveal">Logo Exploration<br>&amp; Sketches</h2>
+  <p class="section-sub reveal reveal-d1">From hand-drawn concepts to refined vectors — the design process explored various typographic relationships and palm-tree interpretations before arriving at the final mark.</p>
+
+  <div class="sketches-grid">
+    <div class="sketch-card reveal reveal-d1">
+      <img src="assets/bananhot/logo_sketch_1.png" alt="Logo sketch 1">
+    </div>
+    <div class="sketch-card reveal reveal-d2">
+      <img src="assets/bananhot/logo_sketch_2.png" alt="Logo sketch 2">
+    </div>
+    <div class="sketch-card reveal reveal-d3">
+      <img src="assets/bananhot/logo_sketch_3.png" alt="Logo sketch 3">
+    </div>
+    <div class="sketch-card reveal reveal-d4">
+      <img src="assets/bananhot/logo_sketch_4.png" alt="Logo sketch 4">
+    </div>
+    <div class="sketch-card reveal reveal-d2">
+      <img src="assets/bananhot/logo_sketch_5.png" alt="Logo sketch 5">
+    </div>
+    <div class="sketch-card reveal reveal-d3">
+      <img src="assets/bananhot/logo_option.png" alt="Logo option">
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════ POSTCARDS ═══════ -->
+<section class="case-section mint-section">
+  <div class="section-eyebrow reveal">Print Design</div>
+  <div class="two-col">
+    <div>
+      <h2 class="section-heading reveal">Postcard<br>Series</h2>
+      <p class="section-sub reveal reveal-d1">A set of five postcards designed for the pop-up experience — each capturing a different summer mood. Visitors could collect and take them home as keepsakes from Sunny City.</p>
+    </div>
+    <div class="reveal reveal-d2">
+      <p class="body-text">The postcards blend editorial photography with bold BANANHOT typography, creating a cohesive series that doubles as both marketing material and collectible art object.</p>
+    </div>
+  </div>
+
+  <div class="postcards-grid">
+    <div class="postcard-item reveal reveal-d1">
+      <img src="assets/bananhot/postcard_1.png" alt="Postcard 1">
+    </div>
+    <div class="postcard-item reveal reveal-d2">
+      <img src="assets/bananhot/postcard_2.png" alt="Postcard 2">
+    </div>
+    <div class="postcard-item reveal reveal-d3">
+      <img src="assets/bananhot/postcard_3.png" alt="Postcard 3">
+    </div>
+    <div class="postcard-item reveal reveal-d1">
+      <img src="assets/bananhot/postcard_4.png" alt="Postcard 4">
+    </div>
+    <div class="postcard-item reveal reveal-d2">
+      <img src="assets/bananhot/postcard_5.png" alt="Postcard 5">
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════ CITY MAP ═══════ -->
+<section class="case-section pink-section">
+  <div class="section-eyebrow reveal">Illustration</div>
+  <div class="two-col">
+    <div>
+      <h2 class="section-heading reveal">The Sunny City<br>Map</h2>
+      <p class="section-sub reveal reveal-d1">An illustrated map guiding visitors through the pop-up's nine zones — from City Gate (entrance) to the Photo Booth. Printed and distributed on-site to create a full immersive experience.</p>
+    </div>
+    <div class="reveal reveal-d2">
+      <p class="body-text">
+        The map's nine locations:<br><br>
+        <strong>1.</strong> City Gate — Entrance<br>
+        <strong>2.</strong> Main Avenue — Collection Area<br>
+        <strong>3.</strong> Swim District — Swimwear Zone<br>
+        <strong>4.</strong> The Changing Suites — Fitting Rooms<br>
+        <strong>5.</strong> The Market — Checkout<br>
+        <strong>6.</strong> The City Post Office — Pickup &amp; Packaging<br>
+        <strong>7.</strong> The Gift Shop — Sun Treasures<br>
+        <strong>8.</strong> Sunny Square — Central Plaza<br>
+        <strong>9.</strong> Photo Booth — The Postcard Spot
+      </p>
+    </div>
+  </div>
+
+  <div class="map-wrap reveal reveal-d1">
+    <img src="assets/bananhot/city_map.png" alt="Sunny City Map">
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════ LIVE PHOTOS ═══════ -->
+<section class="case-section">
+  <div class="section-eyebrow reveal">Live From the Pop-Up</div>
+  <h2 class="section-heading reveal">The Identity<br>in Action</h2>
+  <p class="section-sub reveal reveal-d1">Photography from the Sunny City pop-up showing the visual identity applied across the space — the logo, colours, and materials brought to life.</p>
+
+  <div class="photos-grid">
+    <div class="photo-item reveal reveal-d1">
+      <img src="assets/bananhot/photo_1.png" alt="Pop-up live photo 1">
+    </div>
+    <div class="photo-item reveal reveal-d2">
+      <img src="assets/bananhot/photo_2.png" alt="Pop-up live photo 2">
+    </div>
+    <div class="photo-item reveal reveal-d3">
+      <img src="assets/bananhot/photo_3.png" alt="Pop-up live photo 3">
+    </div>
+    <div class="photo-item reveal reveal-d4">
+      <img src="assets/bananhot/photo_4.png" alt="Pop-up live photo 4">
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════ ABOUT ═══════ -->
+<section class="case-section dark-section">
+  <div class="section-eyebrow reveal">About the Project</div>
+  <div class="two-col">
+    <div>
+      <h2 class="section-heading reveal">Bananhot<br>Swimwear</h2>
+      <p class="body-text reveal reveal-d1" style="margin-top:24px;">
+        Bananhot is an Israeli swimwear brand by Neta Alchemister. The "Sunny City" pop-up was conceived as an immersive brand world — a fictional resort city where every touchpoint, from the logo to the city map, reinforced the brand's sun-drenched identity.
+      </p>
+      <p class="body-text reveal reveal-d2" style="margin-top:20px;">
+        The project was a collaboration between Ori Mor and Persona Studio, combining graphic design, illustration, and print production into a cohesive brand experience.
+      </p>
+
+      <div class="collab-tag reveal reveal-d3">
+        <div class="collab-dot">P</div>
+        <span class="collab-text">In collaboration with Persona Studio</span>
+      </div>
+    </div>
+    <div class="reveal reveal-d2" style="display:flex; align-items:center; justify-content:center;">
+      <div style="background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:20px; padding:48px; text-align:center; max-width:340px; width:100%;">
+        <img src="assets/bananhot/logo_sketch_1.png" alt="Bananhot logo" style="width:100%; filter:invert(1); opacity:.8; display:block; margin:0 auto;">
+        <p style="margin-top:28px; font-size:11px; letter-spacing:.22em; text-transform:uppercase; color:rgba(255,255,255,.25);">Bananhot · Sunny City</p>
+        <a href="https://bananhot.co.il" target="_blank" rel="noopener" style="display:inline-block; margin-top:20px; font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:rgba(255,255,255,.45); text-decoration:none; border-bottom:1px solid rgba(255,255,255,.15); padding-bottom:2px; transition:color .3s;" onmouseover="this.style.color='rgba(255,255,255,.9)'" onmouseout="this.style.color='rgba(255,255,255,.45)'">Visit brand website →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════ FOOTER ═══════ -->
+<footer>
+  <span>Ori Mor — Multidisciplinary Graphic Designer</span>
+  <div style="display:flex;gap:32px;">
+    <a href="index.html">← Back to Portfolio</a>
+    <a href="mailto:ori@ormitus.com">ori@ormitus.com</a>
+  </div>
+</footer>
+
+<script>
+  // Cursor
+  const cur = document.getElementById('cur');
+  document.addEventListener('mousemove', e => {
+    cur.style.left = e.clientX + 'px';
+    cur.style.top  = e.clientY + 'px';
+  });
+  document.querySelectorAll('a, button').forEach(el => {
+    el.addEventListener('mouseenter', () => cur.classList.add('expanded'));
+    el.addEventListener('mouseleave', () => cur.classList.remove('expanded'));
+  });
+
+  // Lenis smooth scroll
+  const lenis = new Lenis();
+  lenis.on('scroll', ScrollTrigger.update);
+  gsap.ticker.add(time => lenis.raf(time * 1000));
+  gsap.ticker.lagSmoothing(0);
+
+  // Scroll reveals
+  gsap.registerPlugin(ScrollTrigger);
+
+  document.querySelectorAll('.reveal').forEach(el => {
+    ScrollTrigger.create({
+      trigger: el,
+      start: 'top 88%',
+      onEnter: () => el.classList.add('in'),
+    });
+  });
+</script>
+</body>
+</html>
