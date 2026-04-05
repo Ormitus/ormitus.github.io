@@ -27,6 +27,7 @@
       overflow-x: hidden;
       cursor: auto;
     }
+    body::before { content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: .04; mix-blend-mode: overlay; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E"); background-size: 200px; }
 
     /* ─── CURSOR ─── */
     #cur {
@@ -55,6 +56,11 @@
       color: rgba(255,255,255,.5); text-decoration: none; transition: color .3s;
     }
     .nav-back:hover { color: #fff; }
+    nav { transition: background .4s cubic-bezier(.16,1,.3,1), border-color .4s; border-bottom: 1px solid transparent; }
+    nav.nav-scrolled { mix-blend-mode: normal; background: rgba(17,15,14,.92); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom-color: rgba(255,255,255,.06); }
+    nav.nav-scrolled .nav-logo { color: #f0e6d0; }
+    nav.nav-scrolled .nav-back { color: rgba(240,230,208,.4); }
+    nav.nav-scrolled .nav-back:hover { color: #f0e6d0; }
 
     /* ─── HERO ─── */
     #hero {
@@ -87,7 +93,7 @@
       font-size: 10px; letter-spacing: .32em; text-transform: uppercase;
       color: var(--warm); margin-bottom: 32px;
       opacity: 0; transform: translateY(20px);
-      animation: fadeUp .7s .1s forwards;
+      animation: fadeUp .45s .1s forwards;
       display: flex; align-items: center; gap: 16px;
     }
     .hero-eyebrow::before {
@@ -101,7 +107,7 @@
       font-weight: 900; line-height: .88;
       letter-spacing: -.03em; color: var(--sand);
       opacity: 0; transform: translateY(40px);
-      animation: fadeUp .9s .25s forwards;
+      animation: fadeUp .55s .25s forwards;
     }
     .hero-title .slash {
       color: var(--warm); font-weight: 300; font-style: italic;
@@ -120,26 +126,26 @@
       margin-top: 32px;
       font-size: 12px; letter-spacing: .24em; text-transform: uppercase;
       color: rgba(240,230,208,.4);
-      opacity: 0; animation: fadeUp .7s .4s forwards;
+      opacity: 0; animation: fadeUp .45s .4s forwards;
     }
 
     .hero-divider {
       width: 48px; height: 1px;
       background: rgba(240,230,208,.12);
       margin: 48px 0;
-      opacity: 0; animation: fadeUp .7s .5s forwards;
+      opacity: 0; animation: fadeUp .45s .5s forwards;
     }
 
     .hero-desc {
       font-size: 16px; line-height: 1.8;
       color: rgba(240,230,208,.55);
       max-width: 480px;
-      opacity: 0; animation: fadeUp .8s .6s forwards;
+      opacity: 0; animation: fadeUp .5s .6s forwards;
     }
 
     .hero-meta-row {
       display: flex; gap: 40px; margin-top: 48px;
-      opacity: 0; animation: fadeUp .7s .75s forwards;
+      opacity: 0; animation: fadeUp .45s .75s forwards;
     }
     .hero-meta-item {}
     .hero-meta-label {
@@ -156,7 +162,7 @@
     .hero-right {
       position: relative; z-index: 1;
       display: flex; align-items: center; justify-content: center;
-      opacity: 0; animation: fadeUp .9s .4s forwards;
+      opacity: 0; animation: fadeUp .55s .4s forwards;
     }
 
     .mockup-scene {
@@ -243,8 +249,8 @@
       to { opacity: 1; transform: translateY(0); }
     }
     .fade-in {
-      opacity: 0; transform: translateY(40px);
-      transition: opacity .8s ease, transform .8s ease;
+      opacity: 0; transform: translateY(22px);
+      transition: opacity .45s ease, transform .45s ease;
     }
     .fade-in.visible { opacity: 1; transform: translateY(0); }
 
@@ -496,8 +502,10 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.9/dist/lenis.min.js"></script>
+  <style>#pg-bar { position: fixed; top: 0; left: 0; z-index: 9001; height: 2px; width: 0; background: currentColor; pointer-events: none; transition: width .08s linear; }</style>
 </head>
 <body>
+<div id="pg-bar"></div>
 
   <div id="cur"></div>
 
@@ -865,6 +873,20 @@
       );
     }
   });
+  // Nav scroll state
+  (function() {
+    var nav = document.querySelector('nav');
+    function onScroll() { nav.classList.toggle('nav-scrolled', window.scrollY > 60); }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+  })();
+  // Scroll progress bar
+  var pgBar = document.getElementById('pg-bar');
+  if (pgBar) {
+    window.addEventListener('scroll', function() {
+      pgBar.style.width = (window.scrollY / (document.body.scrollHeight - window.innerHeight) * 100) + '%';
+    }, { passive: true });
+  }
   </script>
 
 </body>
