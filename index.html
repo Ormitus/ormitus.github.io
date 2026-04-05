@@ -1029,51 +1029,8 @@
       /* Posters */
       .posters-grid { grid-template-columns: repeat(2, 1fr); gap: 4px; }
 
-      /* Hapoel toggle — move above mobile nav */
-      #hapoel-toggle-wrap { bottom: 82px; right: 16px; }
-    }
-
-    /* ── MOBILE BOTTOM NAV ── */
-    #mobile-nav {
-      display: none;
-    }
-    @media (max-width: 768px) {
-      /* Show bottom nav, hide top nav links */
-      #mobile-nav {
-        display: flex;
-        position: fixed; bottom: 0; left: 0; right: 0; z-index: 600;
-        background: rgba(10,10,10,.96);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border-top: 1px solid rgba(255,255,255,.07);
-        padding: 10px 0 calc(10px + env(safe-area-inset-bottom));
-        justify-content: space-around; align-items: center;
-      }
-      .mnav-item {
-        display: flex; flex-direction: column; align-items: center; gap: 4px;
-        text-decoration: none;
-        color: rgba(255,255,255,.35);
-        font-size: 10px; letter-spacing: .12em; text-transform: uppercase;
-        font-family: inherit;
-        transition: color .2s;
-        min-width: 56px; padding: 4px 8px;
-        -webkit-tap-highlight-color: transparent;
-      }
-      .mnav-item svg { opacity: .4; transition: opacity .2s; }
-      .mnav-item.active {
-        color: rgba(255,255,255,.92);
-      }
-      .mnav-item.active svg { opacity: 1; }
-      .mnav-item:active { color: rgba(255,255,255,.6); }
-
-      /* Push content above mobile nav */
-      body { padding-bottom: calc(64px + env(safe-area-inset-bottom)); }
-
-      /* Hide the top nav links on mobile — just show logo */
-      .nav-links { display: none; }
-
-      /* Move hapoel toggle above bottom nav */
-      #hapoel-toggle-wrap { bottom: calc(72px + env(safe-area-inset-bottom)); right: 16px; }
+      /* Hapoel toggle */
+      #hapoel-toggle-wrap { bottom: 20px; right: 16px; }
     }
   </style>
 </head>
@@ -1959,75 +1916,6 @@
   }); // end window.load
   </script>
 
-  <!-- MOBILE BOTTOM NAV -->
-  <nav id="mobile-nav" aria-label="Mobile navigation">
-    <a href="#work" class="mnav-item" data-section="work">
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-        <rect x="2" y="5" width="16" height="2" rx="1" fill="currentColor"/>
-        <rect x="2" y="9.5" width="16" height="2" rx="1" fill="currentColor"/>
-        <rect x="2" y="14" width="10" height="2" rx="1" fill="currentColor"/>
-      </svg>
-      <span>Work</span>
-    </a>
-    <a href="#fonts" class="mnav-item" data-section="fonts">
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-        <path d="M4 15L8 5L12 15M6 12H10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M13 8C13 8 14 7 15.5 7C17 7 18 8 18 9.5C18 13 13 15 13 15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-      </svg>
-      <span>Type</span>
-    </a>
-    <a href="#posters" class="mnav-item" data-section="posters">
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-        <rect x="2" y="3" width="7" height="9" rx="1" fill="currentColor" opacity=".4"/>
-        <rect x="11" y="3" width="7" height="5" rx="1" fill="currentColor" opacity=".4"/>
-        <rect x="2" y="14" width="7" height="3" rx="1" fill="currentColor" opacity=".4"/>
-        <rect x="11" y="10" width="7" height="7" rx="1" fill="currentColor" opacity=".4"/>
-      </svg>
-      <span>Posters</span>
-    </a>
-    <a href="#contact" class="mnav-item" data-section="contact">
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-        <path d="M3 6a2 2 0 012-2h10a2 2 0 012 2v7a2 2 0 01-2 2H5a2 2 0 01-2-2V6z" stroke="currentColor" stroke-width="1.8"/>
-        <path d="M3 7l7 5 7-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-      </svg>
-      <span>Contact</span>
-    </a>
-  </nav>
-
-  <script>
-    // Mobile bottom nav — active state tracking
-    (function() {
-      var nav = document.getElementById('mobile-nav');
-      if (!nav) return;
-      var items = nav.querySelectorAll('.mnav-item');
-      var sections = ['work','fonts','posters','contact'].map(function(id) {
-        return document.getElementById(id);
-      });
-
-      function setActive() {
-        var scrollY = window.scrollY + window.innerHeight * 0.4;
-        var active = sections[0];
-        sections.forEach(function(s) {
-          if (s && s.offsetTop <= scrollY) active = s;
-        });
-        items.forEach(function(item) {
-          item.classList.toggle('active', item.dataset.section === (active ? active.id : ''));
-        });
-      }
-
-      window.addEventListener('scroll', setActive, { passive: true });
-      setActive();
-
-      // Smooth scroll on tap
-      items.forEach(function(item) {
-        item.addEventListener('click', function(e) {
-          e.preventDefault();
-          var target = document.getElementById(item.dataset.section);
-          if (target) target.scrollIntoView({ behavior: 'smooth' });
-        });
-      });
-    })();
-  </script>
 
 </body>
 </html>
