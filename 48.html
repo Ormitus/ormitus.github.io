@@ -385,6 +385,14 @@
       .color-grid { grid-template-columns: 1fr; }
       .type-item { grid-template-columns: 1fr; gap: 8px; }
     }
+    @media (max-width: 480px) {
+      nav { padding: 16px 20px; }
+      #hero { padding: 0 20px 48px; }
+      .case-section { padding: 56px 20px; }
+      .overview-strip { grid-template-columns: 1fr; }
+      .section-heading { font-size: clamp(32px, 10vw, 52px); }
+      .case-footer { padding: 48px 20px; flex-direction: column; gap: 24px; align-items: flex-start; }
+    }
 
     /* ── Page transition reveal ── */
     html { scroll-behavior: auto; } /* Lenis handles smooth scroll, disable native */

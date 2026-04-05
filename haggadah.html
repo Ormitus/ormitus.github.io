@@ -404,12 +404,24 @@
       .overview-item { padding: 36px 28px; }
       .intro-section { padding: 60px 24px; grid-template-columns: 1fr; gap: 40px; }
       .artwork-section { padding: 60px 24px 80px; }
-      .book-page { width: 44vw; }
+      .book-page { width: 54vw; }
       .mockup-pair { grid-template-columns: 1fr; }
       .context-section { padding: 60px 24px; grid-template-columns: 1fr; gap: 0; }
       .context-num { display: none; }
       .tradition-strip { grid-template-columns: 1fr; }
       .case-footer { padding: 48px 24px; flex-direction: column; gap: 40px; align-items: flex-start; }
+    }
+    @media (max-width: 480px) {
+      nav { padding: 16px 20px; }
+      #hero { padding: 0 20px 48px; }
+      .overview-strip { grid-template-columns: 1fr; }
+      .overview-item { padding: 28px 20px; }
+      .intro-section { padding: 52px 20px; gap: 32px; }
+      .artwork-section { padding: 52px 20px 64px; }
+      .book-page { width: 72vw; }
+      .context-section { padding: 52px 20px; }
+      .section-heading { font-size: clamp(30px, 9vw, 48px); }
+      .case-footer { padding: 40px 20px; }
     }
 
     /* ── Page transition reveal ── */

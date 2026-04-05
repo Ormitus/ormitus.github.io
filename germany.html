@@ -416,6 +416,14 @@
       .two-col, .context-grid { grid-template-columns: 1fr; }
       .case-footer { padding: 60px 32px; flex-direction: column; gap: 40px; }
     }
+    @media (max-width: 480px) {
+      nav { padding: 16px 20px; }
+      #hero { padding: 96px 20px 56px; gap: 40px; }
+      .case-section { padding: 56px 20px; }
+      .section-heading { font-size: clamp(30px, 9vw, 48px); }
+      .press-grid { grid-template-columns: 1fr; }
+      .case-footer { padding: 48px 20px; }
+    }
 
     /* ── Page transition reveal ── */
     html { scroll-behavior: auto; } /* Lenis handles smooth scroll, disable native */

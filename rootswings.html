@@ -488,6 +488,19 @@
       .mockup-scene { max-width: 340px; }
       .case-footer { padding: 60px 32px; flex-direction: column; gap: 40px; }
     }
+    @media (max-width: 480px) {
+      nav { padding: 16px 20px; }
+      #hero { padding: 96px 20px 56px; gap: 40px; }
+      #singles { padding: 56px 20px; }
+      .singles-grid { grid-template-columns: 1fr; gap: 40px; }
+      #posters { padding: 56px 20px; }
+      .posters-grid, .posters-grid.wide-mode { grid-template-columns: 1fr; gap: 24px; }
+      .posters-header { flex-direction: column; align-items: flex-start; gap: 20px; }
+      #reallife { padding: 56px 20px; }
+      .rl-grid { grid-template-columns: 1fr; gap: 16px; }
+      .section-heading { font-size: clamp(30px, 9vw, 48px); }
+      .case-footer { padding: 48px 20px; }
+    }
 
     /* ── Page transition reveal ── */
     html { scroll-behavior: auto; } /* Lenis handles smooth scroll, disable native */

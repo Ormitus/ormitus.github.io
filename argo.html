@@ -476,6 +476,18 @@
       .case-footer { padding: 60px 28px; flex-direction: column; gap: 24px; }
       .screen-row { padding: 40px 28px; }
     }
+    @media (max-width: 768px) {
+      .overview-strip { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 480px) {
+      nav { padding: 16px 20px; }
+      #hero { padding: 0 20px 48px; }
+      .overview-strip { grid-template-columns: 1fr; margin: 0 20px; }
+      .case-section { padding: 56px 20px; }
+      .screen-row { padding: 32px 20px; }
+      .section-heading { font-size: clamp(30px, 9vw, 48px); }
+      .case-footer { padding: 48px 20px; }
+    }
 
     /* ── Page transition reveal ── */
     html { scroll-behavior: auto; } /* Lenis handles smooth scroll, disable native */
