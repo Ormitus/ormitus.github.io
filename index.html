@@ -301,35 +301,6 @@
     }
     @keyframes pulse { 0%,100%{opacity:.3} 50%{opacity:.9} }
 
-    /* ── Phase 2: Hero film grain overlay ── */
-    #hero::after {
-      content: '';
-      position: absolute; inset: 0;
-      z-index: 20;
-      pointer-events: none;
-      opacity: .048;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='256' height='256'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.78' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
-      background-repeat: repeat;
-      background-size: 220px;
-      animation: grain-shift 9s steps(10) infinite;
-    }
-    @keyframes grain-shift {
-      0%,100%{ background-position: 0 0; }
-      10%{ background-position: -5% -10%; }
-      20%{ background-position: -15% 5%; }
-      30%{ background-position: 7% -25%; }
-      40%{ background-position: 20% 10%; }
-      50%{ background-position: -10% 15%; }
-      60%{ background-position: 15% -5%; }
-      70%{ background-position: -5% 25%; }
-      80%{ background-position: 25% -15%; }
-      90%{ background-position: 5% 30%; }
-    }
-    @media (prefers-reduced-motion: reduce) { #hero::after { animation: none; } }
-
-    /* Phase 4: magnetic pull ready */
-    .proj-name { will-change: transform; }
-
     /* ─── FLOATING PROJECT IMAGE ─── */
     #float-img {
       position: fixed; z-index: 800; pointer-events: none;
@@ -1695,22 +1666,6 @@
           vid.removeAttribute('data-src');
           vid.load();
         });
-        // Stagger-in posters when section opens
-        if (targetId === 'posters-body') {
-          var items = body.querySelectorAll('.poster-item');
-          gsap.fromTo(items,
-            { opacity: 0, scale: .92, y: 14 },
-            { opacity: 1, scale: 1, y: 0,
-              duration: .55, stagger: { amount: 1.1, from: 'random' }, ease: 'power2.out',
-              delay: .05 }
-          );
-        }
-        // Stagger-in font items
-        if (targetId === 'fonts-body') {
-          body.querySelectorAll('.font-item').forEach(function(item, i) {
-            gsap.fromTo(item, { opacity: 0, y: 28 }, { opacity: 1, y: 0, duration: .75, delay: i * .13, ease: 'power3.out' });
-          });
-        }
       }
     }
     hd.addEventListener('click', toggle);
@@ -1858,9 +1813,6 @@
     document.body.classList.toggle('hapoel-mode');
     var on = document.body.classList.contains('hapoel-mode');
     hapoelPill.setAttribute('aria-checked', on ? 'true' : 'false');
-    // Clear any scroll-driven bg color so CSS variable takes over
-    gsap.killTweensOf(document.body);
-    document.body.style.backgroundColor = '';
     if (on) {
       hapoelAudio.play().catch(function(){});
       setDogColor(true);
@@ -1999,62 +1951,6 @@
         gsap.to(el, { x: 0, y: 0, duration: .7, ease: 'elastic.out(1,.35)' });
       });
     });
-
-    // ── Phase 2: Hero cursor parallax — Ori and Mor. move in opposite depth planes ──
-    (function() {
-      var fillEl    = document.querySelector('.line-fill');
-      var outlineEl = document.querySelector('.line-outline');
-      if (!fillEl || !outlineEl) return;
-      if (!window.matchMedia('(pointer: fine)').matches) return; // desktop only
-      document.addEventListener('mousemove', function(e) {
-        if (window.scrollY > window.innerHeight * .65) return;
-        var cx = (e.clientX / window.innerWidth  - .5);
-        var cy = (e.clientY / window.innerHeight - .5);
-        gsap.to(fillEl,    { x: cx * 18, y: cy * 10, duration: 1.5, ease: 'power2.out', overwrite: 'auto' });
-        gsap.to(outlineEl, { x: cx * -11, y: cy * -6, duration: 2.0, ease: 'power2.out', overwrite: 'auto' });
-      });
-    })();
-
-    // ── Phase 3: Scroll-driven section atmosphere — subtle bg tint shifts ──
-    (function() {
-      if (document.body.classList.contains('hapoel-mode')) return;
-      var bgMap  = { work: '#f0ede7', fonts: '#ede9e1', posters: '#f1ede8', contact: '#e9e6df' };
-      var bgKeys = ['work', 'fonts', 'posters', 'contact'];
-      bgKeys.forEach(function(id, idx) {
-        var el = document.getElementById(id);
-        if (!el) return;
-        ScrollTrigger.create({
-          trigger: el, start: 'top 58%',
-          onEnter: function() {
-            if (!document.body.classList.contains('hapoel-mode'))
-              gsap.to(document.body, { backgroundColor: bgMap[id], duration: 1.3, ease: 'power2.inOut', overwrite: 'auto' });
-          },
-          onLeaveBack: function() {
-            if (!document.body.classList.contains('hapoel-mode')) {
-              var prev = idx > 0 ? bgMap[bgKeys[idx - 1]] : '#f0ede7';
-              gsap.to(document.body, { backgroundColor: prev, duration: 1.3, ease: 'power2.inOut', overwrite: 'auto' });
-            }
-          }
-        });
-      });
-    })();
-
-    // ── Phase 4: Magnetic pull on project names ──
-    if (window.matchMedia('(pointer: fine)').matches) {
-      document.querySelectorAll('.project-row').forEach(function(row) {
-        var nameEl = row.querySelector('.proj-name');
-        if (!nameEl) return;
-        row.addEventListener('mousemove', function(e) {
-          var rect = nameEl.getBoundingClientRect();
-          var cx = e.clientX - (rect.left + rect.width  / 2);
-          var cy = e.clientY - (rect.top  + rect.height / 2);
-          gsap.to(nameEl, { x: cx * .065, y: cy * .09, duration: .38, ease: 'power2.out', overwrite: 'auto' });
-        });
-        row.addEventListener('mouseleave', function() {
-          gsap.to(nameEl, { x: 0, y: 0, duration: .75, ease: 'elastic.out(1,.38)', overwrite: 'auto' });
-        });
-      });
-    }
   }
 
   /* ── NAV SCROLL STATE ── */
