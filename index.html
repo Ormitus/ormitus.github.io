@@ -332,16 +332,15 @@
     }
     .project-row {
       display: grid;
-      grid-template-columns: 54px 1fr auto 60px 40px 220px;
+      grid-template-columns: 54px 1fr auto 60px 40px;
       gap: 0 28px; align-items: center;
-      padding: 18px 0; border-bottom: 1px solid var(--mid);
+      padding: 26px 0; border-bottom: 1px solid var(--mid);
       cursor: none; position: relative; overflow: hidden;
-      min-height: 96px;
     }
     .project-row::before {
       content: ''; position: absolute; inset: 0;
       background: var(--ink); transform: scaleX(0); transform-origin: left;
-      transition: transform .5s cubic-bezier(.76,0,.24,1);
+      transition: transform .45s cubic-bezier(.76,0,.24,1);
       z-index: 0;
     }
     .project-row:hover::before { transform: scaleX(1); }
@@ -351,7 +350,7 @@
       font-variant-numeric: tabular-nums;
     }
     .proj-name {
-      font-size: clamp(24px, 2.8vw, 44px);
+      font-size: clamp(28px, 3.2vw, 52px);
       font-weight: 700; letter-spacing: -.04em; line-height: 1; color: var(--ink);
     }
     .proj-cat {
@@ -375,37 +374,6 @@
     .project-row:hover .proj-year,
     .project-row:hover .proj-arrow { color: #fff; }
     .project-row:hover .proj-arrow { transform: rotate(-45deg); }
-
-    /* ── Persistent thumbnail ── */
-    .proj-thumb {
-      position: relative; z-index: 1;
-      width: 220px; height: 72px;
-      overflow: hidden; border-radius: 3px;
-      flex-shrink: 0;
-    }
-    .proj-thumb img {
-      width: 100%; height: 100%; object-fit: cover; display: block;
-      transition: transform .55s cubic-bezier(.16,1,.3,1),
-                  filter .4s ease;
-      transform: scale(1.03);
-      filter: saturate(.85) brightness(.92);
-    }
-    .project-row:hover .proj-thumb img {
-      transform: scale(1.08);
-      filter: saturate(1) brightness(1);
-    }
-    /* Subtle vignette on thumbnail */
-    .proj-thumb::after {
-      content: ''; position: absolute; inset: 0;
-      background: linear-gradient(135deg, rgba(10,9,7,.18) 0%, transparent 60%);
-      pointer-events: none;
-      transition: opacity .4s;
-    }
-    .project-row:hover .proj-thumb::after { opacity: 0; }
-
-    /* hapoel mode: keep thumbnails visible */
-    body.hapoel-mode .proj-thumb img { filter: saturate(.6) brightness(.85); }
-    body.hapoel-mode .project-row:hover .proj-thumb img { filter: saturate(1) brightness(1); }
 
 
     /* ─── POSTERS SECTION ─── */
@@ -944,10 +912,9 @@
       .fonts-label, .posters-label { font-size: clamp(30px, 7vw, 56px); }
       .fonts-hd, .posters-hd { gap: 16px; padding: 36px 0 22px; }
 
-      /* Project rows — hide thumbnail on tablet, compact */
-      .project-row { grid-template-columns: 38px 1fr auto 36px; gap: 0 12px; padding: 20px 0; min-height: auto; }
+      /* Project rows — compact 4-col */
+      .project-row { grid-template-columns: 38px 1fr auto 36px; gap: 0 12px; padding: 20px 0; }
       .proj-year { display: none; }
-      .proj-thumb { display: none; }
       .proj-cat { font-size: 9px; letter-spacing: .1em; }
       .proj-name { font-size: clamp(22px, 6vw, 36px); }
 
@@ -1018,7 +985,7 @@
         grid-template-columns: 30px 1fr 28px;
         grid-template-rows: auto auto;
         grid-template-areas: "num name arrow" ". cat .";
-        gap: 0 8px; padding: 16px 0; min-height: auto;
+        gap: 0 8px; padding: 16px 0;
       }
       .proj-num { grid-area: num; font-size: 9px; }
       .proj-name { grid-area: name; font-size: clamp(18px, 5vw, 28px); }
@@ -1515,20 +1482,6 @@
     r.addEventListener('mouseleave', function() { curEl.classList.remove('expanded'); });
   });
 
-  /* ── INJECT PERSISTENT THUMBNAILS ── */
-  document.querySelectorAll('.project-row').forEach(function(row) {
-    var src = row.dataset.img;
-    if (!src) return;
-    var thumb = document.createElement('div');
-    thumb.className = 'proj-thumb';
-    var img = document.createElement('img');
-    img.src = src;
-    img.alt = '';
-    img.loading = 'lazy';
-    thumb.appendChild(img);
-    row.appendChild(thumb);
-  });
-
   /* ── FLOATING PROJECT IMAGE ── */
   var floatDiv = document.getElementById('float-img');
   var floatImg = document.getElementById('float-img-el');
@@ -1876,25 +1829,13 @@
     // ── Project rows: clip-path wipe + stagger ──
     gsap.utils.toArray('.project-row').forEach(function(row, i) {
       gsap.fromTo(row,
-        { opacity: 0, y: 18 },
-        { opacity: 1, y: 0,
-          duration: .65, ease: 'power3.out',
+        { opacity: 0, clipPath: 'inset(0 0 100% 0)', y: 10 },
+        { opacity: 1, clipPath: 'inset(0 0 0% 0)',   y: 0,
+          duration: .75, ease: 'power3.out',
           scrollTrigger: { trigger: '#work', start: 'top 78%', once: true },
-          delay: i * .07 + .05
+          delay: i * .09 + .05
         }
       );
-      // Thumbnail slides in from right, slightly delayed
-      var thumb = row.querySelector('.proj-thumb');
-      if (thumb) {
-        gsap.fromTo(thumb,
-          { x: 20, opacity: 0, clipPath: 'inset(0 0 0 100%)' },
-          { x: 0,  opacity: 1, clipPath: 'inset(0 0 0 0%)',
-            duration: .7, ease: 'power3.out',
-            scrollTrigger: { trigger: '#work', start: 'top 78%', once: true },
-            delay: i * .07 + .2
-          }
-        );
-      }
     });
 
     // ── Footer wordmark: parallax only (.reveal handles the fade-in) ──
