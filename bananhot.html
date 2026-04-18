@@ -446,10 +446,25 @@
       footer { padding: 28px 20px; }
       .footer-links { flex-direction: column; gap: 10px; }
     }
+    /* skip link */
+    .skip-link {
+      position: absolute; top: -100px; left: 24px; z-index: 9999;
+      background: #0a0907; color: #fff;
+      padding: 10px 20px; font-size: 13px; letter-spacing: .08em;
+      text-decoration: none; border-radius: 0 0 6px 6px;
+      transition: top .2s;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    .skip-link:focus { top: 0; }
+    /* touch: prevent double-tap delay on interactive elements */
+    a, button, [role="button"], [role="link"], [role="switch"] {
+      touch-action: manipulation;
+    }
   </style>
   <link rel="stylesheet" href="assets/css/shared.css">
 </head>
 <body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
   <div id="sp-curtain"></div>
 
 
@@ -508,7 +523,7 @@
 </div>
 
 <!-- ══════════════════════════════════════ COLOUR INFO ══ -->
-<section class="section">
+<section id="main-content" class="section">
   <div class="sec-label reveal">
     <span class="sec-label-num">01</span>
     <div class="sec-label-rule"></div>

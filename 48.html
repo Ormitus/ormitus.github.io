@@ -13,36 +13,56 @@
       src: url('assets/48/fonts/Asphalt-Black.otf') format('opentype');
       font-weight: 900;
       font-style: normal;
+      font-display: swap;
     }
     @font-face {
       font-family: 'AsphaltCondensed';
       src: url('assets/48/fonts/Asphalt-BlackCondensed.otf') format('opentype');
       font-weight: 900;
       font-style: normal;
+      font-display: swap;
     }
     @font-face {
       font-family: 'KiyaHandwrite';
       src: url('assets/48/fonts/KiyaHandwrite.otf') format('opentype');
       font-weight: 400;
       font-style: normal;
+      font-display: swap;
     }
     @font-face {
       font-family: 'PilKachol';
       src: url('assets/48/fonts/PilKachol.ttf') format('truetype');
       font-weight: 400;
       font-style: normal;
+      font-display: swap;
     }
     @font-face {
       font-family: 'Galil';
       src: url('assets/48/fonts/Galil-Light.otf') format('opentype');
       font-weight: 300;
       font-style: normal;
+      font-display: swap;
     }
     @font-face {
       font-family: 'Galil';
       src: url('assets/48/fonts/Galil-Regular.otf') format('opentype');
       font-weight: 400;
       font-style: normal;
+      font-display: swap;
+    }
+    /* skip link */
+    .skip-link {
+      position: absolute; top: -100px; left: 24px; z-index: 9999;
+      background: #0a0907; color: #fff;
+      padding: 10px 20px; font-size: 13px; letter-spacing: .08em;
+      text-decoration: none; border-radius: 0 0 6px 6px;
+      transition: top .2s;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    .skip-link:focus { top: 0; }
+    /* touch: prevent double-tap delay on interactive elements */
+    a, button, [role="button"], [role="link"], [role="switch"] {
+      touch-action: manipulation;
     }
   </style>
 
@@ -409,8 +429,11 @@
   <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.9/dist/lenis.min.js"></script>
   <style>#pg-bar { position: fixed; top: 0; left: 0; z-index: 9001; height: 2px; width: 0; background: currentColor; pointer-events: none; transition: width .08s linear; }</style>
   <link rel="stylesheet" href="assets/css/shared.css">
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
 </head>
 <body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
   <div id="sp-curtain"></div>
 
 <div id="pg-bar"></div>
@@ -423,7 +446,7 @@
   </nav>
 
   <!-- HERO -->
-  <section id="hero">
+  <section id="main-content" id="hero">
     <div class="hero-bg-text">4.8</div>
     <div class="hero-meta">Brand Identity &nbsp;&mdash;&nbsp; Tel Mond &nbsp;&mdash;&nbsp; 2026</div>
     <h1 class="hero-title">

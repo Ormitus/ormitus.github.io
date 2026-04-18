@@ -434,6 +434,20 @@
     /* Improved section transitions */
     .section-heading { will-change: transform, opacity; }
     img[loading="lazy"] { will-change: transform, opacity; }
+    /* skip link */
+    .skip-link {
+      position: absolute; top: -100px; left: 24px; z-index: 9999;
+      background: #0a0907; color: #fff;
+      padding: 10px 20px; font-size: 13px; letter-spacing: .08em;
+      text-decoration: none; border-radius: 0 0 6px 6px;
+      transition: top .2s;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    .skip-link:focus { top: 0; }
+    /* touch: prevent double-tap delay on interactive elements */
+    a, button, [role="button"], [role="link"], [role="switch"] {
+      touch-action: manipulation;
+    }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
@@ -444,6 +458,7 @@
   <link rel="stylesheet" href="assets/css/shared.css">
 </head>
 <body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
   <div id="sp-curtain"></div>
 
   <div id="pg-bar"></div>
@@ -521,7 +536,7 @@
   </div>
 
   <!-- SECTION: CONCEPT -->
-  <section class="case-section">
+  <section id="main-content" class="case-section">
     <div class="section-eyebrow">The Concept</div>
     <h2 class="section-heading fade-in">60 Years of<br>Dialogue</h2>
     <p class="section-sub fade-in">A mark that carries history, humanity, and hope.</p>

@@ -365,7 +365,7 @@
       color: rgba(240,230,208,.35);
       font-family: 'Space Grotesk', sans-serif;
       font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
-      cursor: auto; transition: all .25s ease;
+      cursor: auto; transition: background-color .25s ease, color .25s ease, border-color .25s ease;
     }
     .toggle-btn.active {
       background: rgba(240,230,208,.1);
@@ -511,14 +511,31 @@
     /* Improved section transitions */
     .section-heading { will-change: transform, opacity; }
     img[loading="lazy"] { will-change: transform, opacity; }
+    /* skip link */
+    .skip-link {
+      position: absolute; top: -100px; left: 24px; z-index: 9999;
+      background: #0a0907; color: #fff;
+      padding: 10px 20px; font-size: 13px; letter-spacing: .08em;
+      text-decoration: none; border-radius: 0 0 6px 6px;
+      transition: top .2s;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    .skip-link:focus { top: 0; }
+    /* touch: prevent double-tap delay on interactive elements */
+    a, button, [role="button"], [role="link"], [role="switch"] {
+      touch-action: manipulation;
+    }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.9/dist/lenis.min.js"></script>
   <style>#pg-bar { position: fixed; top: 0; left: 0; z-index: 9001; height: 2px; width: 0; background: currentColor; pointer-events: none; transition: width .08s linear; }</style>
   <link rel="stylesheet" href="assets/css/shared.css">
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
 </head>
 <body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
   <div id="sp-curtain"></div>
 
 <div id="pg-bar"></div>
@@ -531,7 +548,7 @@
   </nav>
 
   <!-- HERO -->
-  <section id="hero">
+  <section id="main-content" id="hero">
 
     <div class="hero-left">
       <div class="hero-eyebrow">Album Visual Identity</div>

@@ -13,16 +13,19 @@
       font-family: 'YiddishAnarchy';
       src: url('assets/fonts/YiddishAnarchy.otf') format('opentype');
       font-weight: 400;
+      font-display: swap;
     }
     @font-face {
       font-family: 'OpatowskiPahad';
       src: url('assets/fonts/opatowski-pahad.otf') format('opentype');
       font-weight: 400;
+      font-display: swap;
     }
     @font-face {
       font-family: 'Shlumpy';
       src: url('assets/fonts/shlumpy.otf') format('opentype');
       font-weight: 400;
+      font-display: swap;
     }
 
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -567,6 +570,12 @@
     .section-toggle {
       cursor: pointer; user-select: none;
       display: flex; justify-content: space-between; align-items: flex-end;
+      /* reset <button> defaults */
+      background: none; border: none; padding: 0; margin: 0;
+      width: 100%; text-align: left; color: inherit; font: inherit;
+    }
+    .section-toggle:focus-visible {
+      outline: 2px solid var(--ink); outline-offset: 4px; border-radius: 2px;
     }
     .section-toggle-arrow {
       font-size: 18px; color: var(--dim); line-height: 1;
@@ -1031,6 +1040,10 @@
       /* Hapoel toggle */
       #hapoel-toggle-wrap { bottom: 20px; right: 16px; }
     }
+    /* touch: prevent double-tap delay on interactive elements */
+    a, button, [role="button"], [role="link"], [role="switch"] {
+      touch-action: manipulation;
+    }
   </style>
 </head>
 <body>
@@ -1183,11 +1196,11 @@
 
   <!-- FONTS -->
   <section id="fonts">
-    <div class="fonts-hd section-toggle reveal" data-target="fonts-body" role="button" tabindex="0" aria-expanded="false" aria-controls="fonts-body">
+    <button class="fonts-hd section-toggle reveal" data-target="fonts-body"  aria-expanded="false" aria-controls="fonts-body">
       <span class="fonts-label">Type Design</span>
       <span class="section-toggle-arrow" aria-hidden="true">→</span>
       <span class="fonts-count">03 Typefaces</span>
-    </div>
+    </button>
     <div class="section-collapse" id="fonts-body">
     <div class="collapse-inner">
     <div class="collapse-pad">
@@ -1286,11 +1299,11 @@
 
   <!-- POSTERS -->
   <section id="posters">
-    <div class="posters-hd section-toggle" data-target="posters-body" role="button" tabindex="0" aria-expanded="false" aria-controls="posters-body">
+    <button class="posters-hd section-toggle" data-target="posters-body"  aria-expanded="false" aria-controls="posters-body">
       <span class="posters-label">Posters &amp; Visuals</span>
       <span class="section-toggle-arrow" aria-hidden="true">→</span>
       <span class="posters-count">72 works</span>
-    </div>
+    </button>
     <div class="section-collapse" id="posters-body">
     <div class="collapse-inner">
     <div class="collapse-pad">
