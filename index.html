@@ -1034,6 +1034,8 @@
   </style>
 </head>
 <body>
+  <div id="sp-curtain"></div>
+
   <a class="skip-link" href="#work">Skip to content</a>
 
   <!-- LOADER -->
@@ -1508,6 +1510,8 @@
       if (href) {
         if (row.dataset.external === 'true') {
           window.open(href, '_blank');
+        } else if (window.spNavigate) {
+          window.spNavigate(href);
         } else {
           window.location.href = href;
         }
@@ -1918,5 +1922,6 @@
   </script>
 
 
+  <script src="assets/js/shared.js"></script>
 </body>
 </html>
