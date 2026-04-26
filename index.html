@@ -59,8 +59,6 @@
     body.hapoel-mode .work-count,
     body.hapoel-mode .fonts-count,
     body.hapoel-mode .posters-count { color: rgba(255,255,255,.3); }
-    body.hapoel-mode .scroll-hint { color: rgba(255,255,255,.4); }
-    body.hapoel-mode .scroll-hint::after { background: linear-gradient(to bottom, rgba(255,255,255,.3), transparent); }
     body.hapoel-mode footer span { color: rgba(255,255,255,.35); }
     /* Contact */
     body.hapoel-mode .contact-headline .outline { -webkit-text-stroke-color: #fff; }
@@ -88,12 +86,6 @@
     body.hapoel-mode .nav-logo { color: #fff; }
     body.hapoel-mode .nav-links a { color: rgba(255,255,255,.55); }
     body.hapoel-mode .nav-links a:hover { color: #fff; }
-    body.hapoel-mode .hero-inner { mix-blend-mode: normal; }
-    body.hapoel-mode .hero-tag { color: rgba(255,255,255,.55); }
-    body.hapoel-mode .hero-name { color: #fff; }
-    body.hapoel-mode .hero-name .line-outline { -webkit-text-stroke-color: #fff; }
-    body.hapoel-mode .hero-sub p { color: rgba(255,255,255,.55); }
-    body.hapoel-mode .hero-sub-line { background: rgba(255,255,255,.25); }
     body.hapoel-mode #cur { background: #fff; mix-blend-mode: normal; }
     body.hapoel-mode #cur-txt { color: #C8001A; }
 
@@ -198,109 +190,6 @@
     }
     .nav-links a:hover { color: #fff; }
 
-    /* ─── HERO ─── */
-    #hero {
-      position: relative; height: 100vh; overflow: hidden;
-      display: flex; flex-direction: column; justify-content: flex-end;
-      background: #0a0907;
-    }
-    body.hapoel-mode #hero { background: #C8001A; }
-    #schnauzer-canvas {
-      position: absolute; inset: 0; width: 100%; height: 100%;
-      z-index: 5; /* dog floats above type — depth layer */
-    }
-
-    /* ─── SHLUMPY ANNOTATION ─── */
-    .dog-annotation {
-      position: absolute; z-index: 11;
-      top: 10%; right: 26%;
-      pointer-events: none;
-      display: flex; flex-direction: column; align-items: flex-end; gap: 6px;
-    }
-    .annotation-label {
-      font-family: 'Caveat', cursive;
-      font-size: clamp(16px, 1.7vw, 22px);
-      color: rgba(255,255,255,.55);
-      line-height: 1.25; text-align: right;
-      transform: rotate(4deg);
-    }
-    .annotation-svg {
-      width: clamp(80px, 9vw, 130px);
-      align-self: flex-start;
-      margin-left: 14px;
-      opacity: .5;
-    }
-    body.hapoel-mode .annotation-label { color: rgba(255,255,255,.7); }
-    body.hapoel-mode .annotation-svg path { stroke: rgba(255,255,255,.7); }
-    .hero-inner {
-      position: absolute; inset: 0; z-index: 2; /* behind dog canvas */
-      pointer-events: none;
-    }
-    .hero-name {
-      position: absolute; inset: 0;
-      font-family: 'Space Grotesk', sans-serif;
-      font-weight: 700; line-height: .9;
-      letter-spacing: -.05em; color: #fff;
-    }
-    /* "Ori" anchored top-left — dog partially covers it */
-    .hero-name .line-fill {
-      position: absolute;
-      top: 0; left: 0;
-      padding-top: clamp(18px, 3vh, 48px);
-      padding-left: clamp(28px, 3.5vw, 64px);
-      font-size: clamp(120px, 26vw, 440px);
-      display: block;
-      opacity: 0;
-    }
-    /* "Mor." anchored bottom-right — dog partially covers it */
-    .hero-name .line-outline {
-      position: absolute;
-      bottom: 0; right: 0;
-      padding-bottom: clamp(18px, 3vh, 48px);
-      padding-right: clamp(28px, 3.5vw, 64px);
-      font-size: clamp(120px, 26vw, 440px);
-      display: block;
-      text-align: right;
-      -webkit-text-stroke: 3px rgba(255,255,255,.9);
-      color: transparent;
-      opacity: 0;
-    }
-    /* per-character clip mask */
-    .hero-char { display: inline-block; overflow: hidden; vertical-align: top; }
-    .hero-char-inner { display: inline-block; }
-
-    /* hero title tag */
-    .hero-title-tag {
-      position: absolute;
-      bottom: clamp(28px, 4vh, 64px); left: clamp(28px, 3.5vw, 64px);
-      z-index: 8;
-      font-size: clamp(8px, 0.78vw, 11px);
-      letter-spacing: .24em;
-      text-transform: uppercase;
-      color: rgba(255,255,255,.3);
-      font-family: 'Space Grotesk', sans-serif;
-      font-weight: 400;
-      opacity: 0;
-      line-height: 1;
-      white-space: nowrap;
-    }
-
-    .scroll-hint {
-      position: absolute; right: clamp(28px, 3.5vw, 64px); bottom: clamp(28px, 4vh, 64px); z-index: 8;
-      display: flex; flex-direction: column; align-items: center; gap: 14px;
-      color: rgba(255,255,255,.3);
-      font-size: 9px; letter-spacing: .26em; text-transform: uppercase;
-      writing-mode: vertical-rl;
-      opacity: 0;
-    }
-    .scroll-hint::after {
-      content: '';
-      width: 1px; height: 60px;
-      background: linear-gradient(to bottom, rgba(255,255,255,.22), transparent);
-      animation: pulse 2s ease-in-out infinite;
-    }
-    @keyframes pulse { 0%,100%{opacity:.3} 50%{opacity:.9} }
-
     /* ─── FLOATING PROJECT IMAGE ─── */
     #float-img {
       position: fixed; z-index: 800; pointer-events: none;
@@ -318,7 +207,7 @@
     #float-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
     /* ─── WORK SECTION ─── */
-    #work { padding: 100px 60px; border-top: 1px solid var(--mid); }
+    #work { padding: 120px 60px 80px; }
     .work-hd {
       display: flex; justify-content: space-between; align-items: flex-end;
       margin-bottom: 16px; padding-bottom: 20px;
@@ -842,15 +731,6 @@
     /* Nav link touch target — expand hit area for accessibility */
     .nav-links a { padding: 8px 2px; }
 
-    /* Hero char reveal mask */
-    .hero-char {
-      display: inline-block;
-      overflow: hidden;
-      vertical-align: bottom;
-      padding-bottom: .08em;
-      margin-bottom: -.08em;
-    }
-    .hero-char-inner { display: inline-block; }
 
     /* Balanced wrapping on large headlines */
     .contact-headline { text-wrap: balance; }
@@ -867,8 +747,8 @@
     /* ─── RESPONSIVE ─── */
     @media(max-width: 1024px) {
       nav { padding: 28px 40px; }
-      .hero-inner { padding: 0 40px 60px; }
-      #work, #contact, #loader { padding: 100px 40px 80px; }
+      #work { padding: 110px 40px 80px; }
+      #contact, #loader { padding: 100px 40px 80px; }
       #fonts, #posters { padding: 48px 40px 0; }
       #loader { padding: 48px; }
       .posters-grid { grid-template-columns: repeat(4, 1fr); gap: 4px; }
@@ -881,7 +761,6 @@
         animation-iteration-count: 1 !important;
         transition-duration: .01ms !important;
       }
-      .scroll-hint::after { animation: none; }
       .project-row::before { transition: none; }
     }
 
@@ -889,23 +768,13 @@
       nav { padding: 22px 24px; }
       .nav-links { gap: 20px; }
       .nav-links a { font-size: 10px; }
-      .hero-inner { padding: 0 24px 52px; }
-      #work { padding: 80px 24px 60px; }
+      #work { padding: 100px 24px 60px; }
       #contact { padding: 70px 24px 60px; }
       #fonts, #posters { padding: 44px 24px 0; }
       #loader { padding: 32px; }
       footer { padding: 22px 24px; }
 
-      /* Hero — tighter type + elements */
       .hero-name .line-fill,
-      .hero-name .line-outline { font-size: clamp(88px, 23vw, 440px); }
-      .hero-title-tag {
-        font-size: 8px; letter-spacing: .1em;
-        max-width: 52vw; white-space: normal; line-height: 1.65;
-        bottom: clamp(24px, 3.5vh, 52px);
-      }
-      .dog-annotation { top: 10%; right: 4%; }
-      .scroll-hint { right: 24px; bottom: clamp(24px, 3.5vh, 52px); }
 
       /* Section headers — prevent line-wrap */
       .fonts-label, .posters-label { font-size: clamp(30px, 7vw, 56px); }
@@ -957,26 +826,7 @@
       .nav-links a { font-size: 10px; letter-spacing: .18em; }
       .nav-logo { font-size: 12px; }
 
-      /* Hero — scaled for mobile */
-      #hero { height: 100dvh; min-height: 100dvh; }
-      .hero-name .line-fill {
-        font-size: clamp(52px, 13vw, 90px);
-        padding-top: 74px; /* clear the fixed nav (~60px) */
-        padding-left: 20px;
-      }
-      .hero-name .line-outline {
-        font-size: clamp(52px, 13vw, 90px);
-        -webkit-text-stroke-width: 2px;
-        padding-bottom: 56px; /* extra room for browser chrome */
-        padding-right: 20px;
-      }
-      /* Hapoel button — move to bottom-left so it doesn't cover dog */
       #hapoel-toggle-wrap { bottom: 20px; right: auto; left: 20px; }
-      .hero-title-tag { display: none; }
-      .scroll-hint { display: none; }
-      .dog-annotation { top: 8%; right: 2%; }
-      .annotation-label { font-size: clamp(12px, 3.2vw, 16px); }
-      .annotation-svg { width: clamp(50px, 12vw, 80px); }
 
       /* Work — cat below project name */
       #work { padding: 60px 16px 40px; }
@@ -1060,30 +910,6 @@
       <li><a href="#contact">Contact</a></li>
     </ul>
   </nav>
-
-  <!-- HERO -->
-  <section id="hero">
-    <canvas id="schnauzer-canvas"></canvas>
-    <div class="dog-annotation">
-      <div class="annotation-label">this is shlumpy<br>my dog</div>
-      <svg class="annotation-svg" viewBox="0 0 110 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M 98,6 C 88,10 74,16 60,26 C 44,37 32,50 24,64 C 21,70 19,74 18,77"
-              stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M 18,77 L 8,66 M 18,77 L 30,70"
-              stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        <!-- extra wobble tick for hand-drawn feel -->
-        <path d="M 60,26 C 59,24 61,22 60,26" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
-      </svg>
-    </div>
-    <div class="hero-inner">
-      <h1 class="hero-name">
-        <span class="line-fill">Ori</span>
-        <span class="line-outline">Mor.</span>
-      </h1>
-    </div>
-    <div class="hero-title-tag">Multidisciplinary Graphic Designer&nbsp;&middot;&nbsp;BA in Design</div>
-    <div class="scroll-hint">Scroll</div>
-  </section>
 
   <!-- WORK -->
   <section id="work">
@@ -1425,11 +1251,6 @@
 
   <!-- ══════════════════ SCRIPTS ══════════════════ -->
   <script defer src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
-  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/loaders/MTLLoader.js"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/loaders/OBJLoader.js"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/loaders/GLTFLoader.js"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/loaders/DRACOLoader.js"></script>
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
 
@@ -1627,140 +1448,9 @@
     });
   });
 
-  /* ── THREE.JS SCHNAUZER ── */
-  var cnv = document.getElementById('schnauzer-canvas');
-  var rnd = new THREE.WebGLRenderer({ canvas: cnv, antialias: true, alpha: true });
-  rnd.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  rnd.setSize(window.innerWidth, window.innerHeight);
-  rnd.shadowMap.enabled = true;
-  rnd.shadowMap.type = THREE.PCFSoftShadowMap;
-  rnd.toneMapping = THREE.ACESFilmicToneMapping;
-  rnd.toneMappingExposure = 1.2;
-
-  var sc = new THREE.Scene();
-  var cam = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, .1, 100);
-  cam.position.set(0, 0.5, 11);
-  cam.lookAt(1.2, 0, 0);
-
-  sc.add(new THREE.AmbientLight(0xffffff, .08));
-  // Strong key light from upper left — sculpts form
-  var keyLight = new THREE.DirectionalLight(0xfff8f0, 5.5);
-  keyLight.position.set(-4, 5, 7); keyLight.castShadow = true;
-  keyLight.shadow.mapSize.width = 2048; keyLight.shadow.mapSize.height = 2048;
-  sc.add(keyLight);
-  // Rim light from right — creates silhouette edge
-  var rimLight1 = new THREE.DirectionalLight(0xffffff, 3.8);
-  rimLight1.position.set(6, 2, -5); sc.add(rimLight1);
-  // Cool fill from below
-  var rimLight2 = new THREE.DirectionalLight(0xe0eeff, 0.7);
-  rimLight2.position.set(-2, -3, -2); sc.add(rimLight2);
-  // Top catch light
-  var topLight = new THREE.DirectionalLight(0xffffff, 2.0);
-  topLight.position.set(1, 10, 4); sc.add(topLight);
-
-  // ── GLB SCHNAUZER ──
-  window._dogFurMeshes  = [];
-  window._dogOrigMats   = [];
-  window._dog           = null;
-
-  // Lazy-load the 3D dog model only when the canvas is near the viewport
-  var _dogLoaded = false;
-  function loadDogModel() {
-    if (_dogLoaded) return;
-    _dogLoaded = true;
-    var dracoLoader = new THREE.DRACOLoader();
-    dracoLoader.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/libs/draco/');
-    var gltfLoader = new THREE.GLTFLoader();
-    gltfLoader.setDRACOLoader(dracoLoader);
-    gltfLoader.load('assets/dog-schnauzer.glb', function(gltf) {
-      var model = gltf.scene;
-
-      // Centre model at origin, then fit inside a ~3.5-unit sphere
-      var box    = new THREE.Box3().setFromObject(model);
-      var center = box.getCenter(new THREE.Vector3());
-      var size   = box.getSize(new THREE.Vector3());
-      model.position.sub(center);   // move centroid to world origin
-
-      var g = new THREE.Group();
-      g.add(model);
-      g.scale.setScalar(4.8 / Math.max(size.x, size.y, size.z));
-      g.position.set(1.0, -0.1, 0);
-      g.rotation.set(0.02, 0.06, 0);
-
-      // Collect all meshes for Hapoel colour toggle
-      model.traverse(function(child) {
-        if (!child.isMesh) return;
-        child.castShadow = true;
-        child.receiveShadow = true;
-        window._dogFurMeshes.push(child);
-        window._dogOrigMats.push(child.material);
-      });
-
-      sc.add(g);
-      window._dog = g;
-    });
-  }
-  var dogObserver = new IntersectionObserver(function(entries) {
-    if (entries[0].isIntersecting) { loadDogModel(); dogObserver.disconnect(); }
-  }, { rootMargin: '200px' });
-  dogObserver.observe(cnv);
-
-  // Subtle dark particles on light bg
-  var pN = 220, pPos = new Float32Array(pN * 3);
-  for (var pi = 0; pi < pN; pi++) {
-    pPos[pi*3]   = (Math.random()-.5)*24;
-    pPos[pi*3+1] = (Math.random()-.5)*20;
-    pPos[pi*3+2] = (Math.random()-.5)*14 - 5;
-  }
-  var pGeo = new THREE.BufferGeometry();
-  pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
-  sc.add(new THREE.Points(pGeo, new THREE.PointsMaterial({
-    color: 0x0a0907, size: .022, transparent: true, opacity: .12, sizeAttenuation: true
-  })));
-
-  // Mouse / animation
-  var tRX = 0, tRY = 0, cRX = 0, cRY = 0;
-  document.addEventListener('mousemove', function(e) {
-    tRY = (e.clientX / window.innerWidth  - .5) * .60;
-    tRX = -(e.clientY / window.innerHeight - .5) * .32;
-  });
-
-  window.addEventListener('resize', function() {
-    cam.aspect = window.innerWidth / window.innerHeight;
-    cam.updateProjectionMatrix();
-    rnd.setSize(window.innerWidth, window.innerHeight);
-  });
-
-  var clk = new THREE.Clock();
-  function renderLoop() {
-    requestAnimationFrame(renderLoop);
-    var t = clk.getElapsedTime();
-    cRX += (tRX - cRX) * .055;
-    cRY += (tRY - cRY) * .055;
-    var activeDog = window._dog;
-    if (activeDog) {
-      activeDog.rotation.x = 0.02 + cRX;
-      activeDog.rotation.y = 0.06 + cRY;
-      activeDog.position.y = -0.15 + Math.sin(t * .72) * .09;
-    }
-    keyLight.position.set(-3 + Math.sin(t*.2)*.5, 4, 5);
-    rnd.render(sc, cam);
-  }
-  renderLoop();
-
   /* ── HAPOEL TOGGLE ── */
   var hapoelPill  = document.getElementById('hapoel-pill');
   var hapoelAudio = document.getElementById('hapoel-audio');
-
-  // Dog colour toggle — white in Hapoel mode, original textures otherwise
-  var dogMatRed = new THREE.MeshStandardMaterial({ color:0xffffff, roughness:0.55, metalness:0.05, emissive:0xffffff, emissiveIntensity:0.3 });
-
-  function setDogColor(red) {
-    if (!window._dogFurMeshes) return;
-    window._dogFurMeshes.forEach(function(m, i) {
-      m.material = red ? dogMatRed : (window._dogOrigMats[i] || m.material);
-    });
-  }
 
   function toggleHapoel() {
     document.body.classList.toggle('hapoel-mode');
@@ -1768,11 +1458,9 @@
     hapoelPill.setAttribute('aria-checked', on ? 'true' : 'false');
     if (on) {
       hapoelAudio.play().catch(function(){});
-      setDogColor(true);
     } else {
       hapoelAudio.pause();
       hapoelAudio.currentTime = 0;
-      setDogColor(false);
     }
   }
   hapoelPill.addEventListener('click', toggleHapoel);
@@ -1783,39 +1471,6 @@
   /* ── PAGE ANIMATIONS (runs after loader exits) ── */
   function startPage() {
     gsap.registerPlugin(ScrollTrigger);
-
-    // ── Hero: split title lines into per-character mask reveals ──
-    function splitLineToChars(lineEl) {
-      var text = lineEl.textContent;
-      lineEl.innerHTML = '';
-      text.split('').forEach(function(ch) {
-        var wrap = document.createElement('span');
-        wrap.className = 'hero-char';
-        var inner = document.createElement('span');
-        inner.className = 'hero-char-inner';
-        inner.textContent = ch === ' ' ? '\u00A0' : ch;
-        wrap.appendChild(inner);
-        lineEl.appendChild(wrap);
-      });
-      return lineEl.querySelectorAll('.hero-char-inner');
-    }
-    var lineFillEl    = document.querySelector('.line-fill');
-    var lineOutlineEl = document.querySelector('.line-outline');
-    // Make parent spans visible — chars handle the animation
-    gsap.set([lineFillEl, lineOutlineEl], { opacity: 1, y: 0, clearProps: 'transform' });
-    var charsFill    = splitLineToChars(lineFillEl);
-    var charsOutline = splitLineToChars(lineOutlineEl);
-    // Type comes first — dog materialises on top after
-    gsap.set(charsFill,           { yPercent: -110 });
-    gsap.set(charsOutline,        { yPercent:  110 });
-    gsap.set('#schnauzer-canvas', { opacity: 0 });
-
-    gsap.timeline({ delay: .1 })
-      .to(charsFill,            { yPercent: 0, duration: 1.05, stagger: .055, ease: 'power4.out' })
-      .to(charsOutline,         { yPercent: 0, duration: 1.05, stagger: .055, ease: 'power4.out' }, '-=.88')
-      .to('#schnauzer-canvas',   { opacity: 1, duration: 1.4,  ease: 'power2.inOut' }, '-=.7')
-      .to('.hero-title-tag',     { opacity: 1, duration: .8,   ease: 'power2.out'   }, '-=.6')
-      .to('.scroll-hint',        { opacity: 1, duration: .6,   ease: 'power2.out'   }, '-=.55');
 
     // ── .reveal elements ──
     document.querySelectorAll('.reveal').forEach(function(el, i) {
@@ -1832,7 +1487,7 @@
         { opacity: 0, clipPath: 'inset(0 0 100% 0)', y: 10 },
         { opacity: 1, clipPath: 'inset(0 0 0% 0)',   y: 0,
           duration: .75, ease: 'power3.out',
-          scrollTrigger: { trigger: '#work', start: 'top 78%', once: true },
+          scrollTrigger: { trigger: '#work', start: 'top 95%', once: true },
           delay: i * .09 + .05
         }
       );
