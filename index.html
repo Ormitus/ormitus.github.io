@@ -881,9 +881,27 @@
       /* Hapoel toggle */
       #hapoel-toggle-wrap { bottom: 20px; right: 16px; }
     }
+    /* ── GRAIN OVERLAY ── */
+    #grain-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      pointer-events: none;
+      opacity: 0.55;
+      background-repeat: repeat;
+      background-size: 256px 256px;
+      animation: grainFlicker 1s steps(8, end) infinite;
+    }
+    @keyframes grainFlicker {
+      0%   { background-position: 0 0; }
+      50%  { background-position: -256px -256px; }
+      to   { background-position: 256px 256px; }
+    }
   </style>
 </head>
 <body>
+  <!-- GRAIN -->
+  <div id="grain-overlay" aria-hidden="true"></div>
   <a class="skip-link" href="#work">Skip to content</a>
 
   <!-- LOADER -->
@@ -1260,6 +1278,23 @@
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
 
   <script>
+  /* ── GRAIN — generate once, animate via CSS grainFlicker ── */
+  (function () {
+    var c = document.createElement('canvas');
+    c.width = c.height = 256;
+    var ctx = c.getContext('2d');
+    var img = ctx.createImageData(256, 256);
+    var d = img.data;
+    for (var i = 0; i < d.length; i += 4) {
+      var v = Math.random() * 255 | 0;
+      d[i] = d[i+1] = d[i+2] = v;
+      d[i+3] = 18 + (Math.random() * 22 | 0);
+    }
+    ctx.putImageData(img, 0, 0);
+    document.getElementById('grain-overlay').style.backgroundImage =
+      'url(' + c.toDataURL('image/png') + ')';
+  }());
+
   window.addEventListener('load', function() {
 
   /* ── LOADER ── */
