@@ -987,9 +987,11 @@ eb.innerHTML=`
   <div class="r"><label for="e_len">אורך</label>
     <select id="e_len"><option value="loop">לופ מלא</option><option value="2">×2 לופים</option>
       <option value="3">3 שניות</option><option value="6">6 שניות</option><option value="10">10 שניות</option></select></div>
+  <div class="r"><label for="e_vfmt">פורמט</label>
+    <select id="e_vfmt"><option value="mp4">MP4 (H.264)</option><option value="webm">WebM (VP9)</option></select></div>
   <div class="r"><label for="e_scale">רזולוציית PNG</label>
     <select id="e_scale"><option value="1">1× (1080)</option><option value="2">2× (2160)</option></select></div>
-  <button class="b rec" id="b_rec" style="width:100%;margin-block-start:8px">${svg("rec")}הקלט WebM</button>
+  <button class="b rec" id="b_rec" style="width:100%;margin-block-start:8px">${svg("rec")}הקלט וידאו</button>
   <div class="lab">הגדרות</div>
   <div class="grid2">
     <button class="b" id="b_copy">${svg("copy")}העתק</button>
@@ -1031,16 +1033,22 @@ $("b_rec").onclick=()=>{
   const sel=$("e_len").value, ls=loopSecs();
   let dur = sel==="loop" ? (ls||5) : sel==="2" ? (ls||5)*2 : parseFloat(sel);
   dur=Math.min(30,Math.max(.6,dur));
-  const mime=["video/webm;codecs=vp9","video/webm;codecs=vp8","video/webm"]
-    .find(m=>window.MediaRecorder&&MediaRecorder.isTypeSupported(m));
-  if(!mime){ alert("הדפדפן לא תומך בהקלטת WebM"); return; }
+  const MP4=["video/mp4;codecs=avc1.42E01E","video/mp4;codecs=avc1","video/mp4"],
+        WEBM=["video/webm;codecs=vp9","video/webm;codecs=vp8","video/webm"];
+  const ok=m=>window.MediaRecorder&&MediaRecorder.isTypeSupported(m);
+  const want=$("e_vfmt").value==="mp4" ? MP4 : WEBM;
+  // asked-for container first, the other one only if this browser cannot do it
+  const mime=want.find(ok) || [...MP4,...WEBM].find(ok);
+  if(!mime){ alert("הדפדפן לא תומך בהקלטת וידאו"); return; }
+  const ext=mime.startsWith("video/mp4") ? "mp4" : "webm";
+  if(ext!==$("e_vfmt").value) $("e_vfmt").value=ext;   // tell the truth about what came out
   const chunks=[];
   rec=new MediaRecorder(cv.captureStream(60),{mimeType:mime,videoBitsPerSecond:20e6});
   rec.ondataavailable=e=>e.data.size&&chunks.push(e.data);
   rec.onstop=()=>{
-    download(new Blob(chunks,{type:mime}),`gradient-${ST.format}-${stamp()}.webm`);
+    download(new Blob(chunks,{type:mime}),`gradient-${ST.format}-${stamp()}.${ext}`);
     rec=null; clearInterval(recT);
-    $("recdot").style.display="none"; $("b_rec").innerHTML=svg("rec")+"הקלט WebM"; $("b_rec").classList.add("rec");
+    $("recdot").style.display="none"; $("b_rec").innerHTML=svg("rec")+"הקלט וידאו"; $("b_rec").classList.add("rec");
   };
   if(!playing){ playing=true; playIcon(); }
   rec.start();
