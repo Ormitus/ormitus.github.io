@@ -3,39 +3,32 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RISOMITUS</title>
-  <meta name="description" content="Risograph simulator — ink separations, halftone screens, paper texture, press defects and frame-by-frame boil.">
+  <title>RISOMITUS · ריזו</title>
+  <meta name="description" content="Risograph simulator — ink separations, halftone screens, paper texture, press defects.">
   <meta name="color-scheme" content="light dark">
   <meta name="robots" content="noindex, nofollow">
-  <meta property="og:title" content="RISOMITUS">
-  <meta property="og:description" content="A risograph in the browser.">
-  <meta property="og:url" content="https://ormitus.com/risomitus/">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23F2EDE1'/%3E%3Ccircle cx='12' cy='16' r='8' fill='%23FF3D9A'/%3E%3Ccircle cx='20' cy='16' r='8' fill='%230B5FA5' opacity='.75'/%3E%3C/svg%3E">
 </head>
 <body>
-
 <style>
 #gate{position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;
-  background:var(--paper,#F2EDE1);color:var(--ink,#1E1A17);
-  font:13px/1.5 "Helvetica Neue",Helvetica,Arial,sans-serif;direction:rtl;padding:24px}
+  background:var(--paper,#F2EDE1);color:var(--ink,#1E1A17);font:13px/1.5 "Helvetica Neue",Helvetica,Arial,sans-serif;
+  direction:rtl;padding:24px}
 #gate.open{display:none}
 #gatecard{width:min(420px,100%);text-align:center}
 #gatecard h1{margin:0 0 6px;font:700 30px/1 ui-monospace,SFMono-Regular,Menlo,monospace;
-  letter-spacing:.14em;text-shadow:2px -1.5px 0 var(--pink,#FF3D9A),-2px 1.5px 0 var(--blue,#0B5FA5)}
-#gatecard p.k{margin:0 0 26px;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;
-  color:var(--ink-soft,#6B6357)}
-#gatecard p.d{margin:0 0 22px;font-size:12.5px;line-height:1.7;color:var(--ink-soft,#6B6357)}
+  letter-spacing:.14em;text-shadow:2px -1.5px 0 #FF3D9A,-2px 1.5px 0 #0B5FA5}
+#gatecard p.k{margin:0 0 26px;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;opacity:.6}
+#gatecard p.d{margin:0 0 22px;font-size:12.5px;line-height:1.7;opacity:.65}
 #code{width:100%;text-align:center;font:700 26px/1 ui-monospace,Menlo,monospace;letter-spacing:.5em;
-  text-indent:.5em;padding:13px 8px;background:var(--field,#DED6C2);color:var(--ink,#1E1A17);
-  border:1.5px solid var(--ink,#1E1A17);border-radius:0}
-#code:focus{outline:2px solid var(--pink,#FF3D9A);outline-offset:2px}
+  text-indent:.5em;padding:13px 8px;background:var(--field,#DED6C2);color:var(--ink,#1E1A17);border:1.5px solid var(--ink,#1E1A17);border-radius:0}
+#code:focus{outline:2px solid #FF3D9A;outline-offset:2px}
 #enter{width:100%;margin-top:10px;font:11px/1 ui-monospace,Menlo,monospace;letter-spacing:.1em;
-  padding:11px;background:var(--ink,#1E1A17);color:var(--paper,#F2EDE1);
-  border:1.5px solid var(--ink,#1E1A17);cursor:pointer}
-#enter:hover{box-shadow:3px 3px 0 var(--pink,#FF3D9A)}
-#gatemsg{min-height:18px;margin-top:12px;font:11px/1.4 ui-monospace,Menlo,monospace;color:var(--pink,#FF3D9A)}
+  padding:11px;background:var(--ink,#1E1A17);color:var(--paper,#F2EDE1);border:1.5px solid var(--ink,#1E1A17);cursor:pointer}
+#enter:hover{box-shadow:3px 3px 0 #FF3D9A}
+#gatemsg{min-height:18px;margin-top:12px;font:11px/1.4 ui-monospace,Menlo,monospace;color:#FF3D9A}
 #gatemarks{position:fixed;inset:26px;pointer-events:none}
-#gatemarks i{position:absolute;width:18px;height:18px;opacity:.5}
+#gatemarks i{position:absolute;width:18px;height:18px;opacity:.45}
 #gatemarks i::before,#gatemarks i::after{content:"";position:absolute;background:var(--ink,#1E1A17)}
 #gatemarks i::before{left:8px;top:0;width:2px;height:18px}
 #gatemarks i::after{top:8px;left:0;height:2px;width:18px}
@@ -45,6 +38,15 @@
 @keyframes sh{25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
 @media (prefers-reduced-motion:reduce){.shake{animation:none}}
 body:not(.unlocked) #app{visibility:hidden}
+
+/* two-tab switcher, shared by both tools */
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin:10px 0 0}
+.tabs a{display:block;text-align:center;text-decoration:none;padding:7px 4px;
+  font:11px/1.2 ui-monospace,Menlo,monospace;letter-spacing:.06em;
+  border:1.5px solid var(--ink,#1E1A17);color:var(--ink,#1E1A17);background:var(--field,#DED6C2)}
+.tabs a small{display:block;font-size:9px;opacity:.55;margin-top:2px}
+.tabs a[aria-current=page]{background:var(--ink,#1E1A17);color:var(--paper,#F2EDE1);border-color:var(--ink,#1E1A17)}
+.tabs a:not([aria-current=page]):hover{box-shadow:2px 2px 0 #FF3D9A}
 </style>
 
 <div id="gate">
@@ -52,8 +54,7 @@ body:not(.unlocked) #app{visibility:hidden}
   <div id="gatecard">
     <h1>RISOMITUS</h1>
     <p class="k">ריזוגרף בדפדפן · הפרדות · מסך · נייר</p>
-    <p class="d">מדמה מכבש ריזו אמיתי: הפרדות דיו, רשתות הדפסה, מרקם נייר,
-      פגמי מכונה, ורתיחת פריימים לווידאו. דרוש קוד כניסה.</p>
+    <p class="d">מדמה מכבש ריזו אמיתי: הפרדות דיו, רשתות הדפסה, מרקם נייר, פגמי מכונה, ורתיחת פריימים לווידאו. דרוש קוד כניסה.</p>
     <input id="code" inputmode="numeric" autocomplete="off" maxlength="8"
            aria-label="קוד כניסה" placeholder="····">
     <button id="enter">כניסה</button>
@@ -257,6 +258,7 @@ body.onlychanged label.f:not(.changed){display:none}
   <div id="ticket">
     <div id="masthead">
       <h1>RISOMITUS</h1>
+      <nav class="tabs" aria-label="מערכות"><a href="./" aria-current="page">ריזו<small>מכבש הדפסה</small></a><a href="gradient/" >גרדיאנט<small>טיפוגרפיה מונפשת</small></a></nav>
       <div id="sub"><span>הפרדות · מסך · נייר</span><span id="stat">—</span></div>
     </div>
 
@@ -2468,15 +2470,14 @@ markChanged(); applyFind();
 <script>
 /* A code on a static page is a curtain, not a lock: this whole file reaches the visitor's
    browser, so anyone who opens the source walks straight past it. It keeps passers-by out,
-   and that is all it does. */
+   and that is all it does. One key for both tools, so the code is asked once. */
 (function(){
   var CODE="1111", KEY="risomitus.entered";
   var gate=document.getElementById("gate"), inp=document.getElementById("code"),
       btn=document.getElementById("enter"), msg=document.getElementById("gatemsg"),
       card=document.getElementById("gatecard");
   function open(){
-    gate.classList.add("open");
-    document.body.classList.add("unlocked");
+    gate.classList.add("open"); document.body.classList.add("unlocked");
     try{ localStorage.setItem(KEY,"1"); }catch(e){}
     window.dispatchEvent(new Event("resize"));
   }
