@@ -279,7 +279,7 @@ const DEF = () => ({
              glowMode:"self", alpha:1, layers:1, depth:0, trail:0 },
   mask:{ on:false, src:"same", threshold:.5, softness:.22, floor:.06, invert:false,
          band:false, sizeMod:0, s2scale:1.2, s2speed:1 },
-  comp:{ bgMode:"solid", bg1:"#07070b", bg2:"#1b1030", bgAngle:120, margin:0,
+  comp:{ bgMode:"solid", bg1:"#07070b", bg2:"#1b1030", bgAngle:120, bgMotion:.5, margin:0,
          grain:0, vignette:0, guides:false, exportScale:1 }
 });
 
@@ -544,13 +544,31 @@ makeGrain();
 let playing=!matchMedia("(prefers-reduced-motion:reduce)").matches;
 let clock=0, last=performance.now(), fps=60, frame=0, exporting=false;
 
-function drawBg(g){
-  const cp=CP();
+/* The background is driven by the same clock and the same motion speed as the type, so
+   it drifts with the pattern instead of sitting still behind it. In ramp mode the whole
+   palette scrolls through the sheet; in two-colour mode the axis rotates and breathes.
+   A handful of colour stops — the cost does not depend on the glyph count. */
+function drawBg(g,t){
+  const cp=CP(), mv=cp.bgMotion||0, sp=M().speed||0;
   if(cp.bgMode==="gradient" || cp.bgMode==="ramp"){
-    const a=cp.bgAngle*Math.PI/180, r=Math.hypot(RW,RH)/2;
-    const gr=g.createLinearGradient(RW/2-Math.cos(a)*r, RH/2-Math.sin(a)*r, RW/2+Math.cos(a)*r, RH/2+Math.sin(a)*r);
-    if(cp.bgMode==="ramp"){ gr.addColorStop(0,`rgb(${RGB0})`); gr.addColorStop(1,`rgb(${RGB1})`); }
-    else { gr.addColorStop(0,cp.bg1); gr.addColorStop(1,cp.bg2); }
+    const spin = mv*sp*t*Math.PI*2*0.25;
+    const a=cp.bgAngle*Math.PI/180 + spin, r=Math.hypot(RW,RH)/2;
+    const gr=g.createLinearGradient(RW/2-Math.cos(a)*r, RH/2-Math.sin(a)*r,
+                                    RW/2+Math.cos(a)*r, RH/2+Math.sin(a)*r);
+    if(cp.bgMode==="ramp"){
+      const off = mv*sp*t, N=8;
+      for(let i=0;i<=N;i++){
+        const p=i/N;
+        let q=(p+off)%1; if(q<0) q+=1;
+        gr.addColorStop(p, "rgb("+CS[Math.min(NL-1,(q*(NL-1))|0)]+")");
+      }
+    } else {
+      // the two stops slide past each other rather than staying pinned to the corners
+      const w = mv ? (Math.sin(t*sp*Math.PI*2)*.5+.5)*.35*mv : 0;
+      gr.addColorStop(0, cp.bg1);
+      gr.addColorStop(Math.max(.001,Math.min(.999,.5+w-.25)), cp.bg2);
+      gr.addColorStop(1, cp.bg1);
+    }
     g.fillStyle=gr;
   } else g.fillStyle=cp.bg1;
   g.fillRect(0,0,RW,RH);
@@ -563,7 +581,7 @@ function drawFrame(t){
 
   /* --- work layer: background (+ trail) + glyphs --- */
   wx.globalCompositeOperation="source-over";
-  if(ma.trail>0){ wx.globalAlpha=1-ma.trail; drawBg(wx); wx.globalAlpha=1; } else drawBg(wx);
+  if(ma.trail>0){ wx.globalAlpha=1-ma.trail; drawBg(wx,t); wx.globalAlpha=1; } else drawBg(wx,t);
 
   const inset=cp.margin*Math.min(RW,RH);
   if(inset>0){ wx.save(); wx.beginPath(); wx.rect(inset,inset,RW-inset*2,RH-inset*2); wx.clip(); }
@@ -573,8 +591,12 @@ function drawFrame(t){
   wx.textBaseline="alphabetic"; wx.textAlign="left"; wx.direction="ltr";
   wx.globalCompositeOperation=ma.blend;
   wx.lineWidth=ma.stroke*K;
-  wx.shadowBlur = ma.glow>0 ? ma.glow*K : 0;
-  wx.shadowColor = ma.glowMode==="white" ? "#fff" : "transparent";
+  /* A canvas shadow is applied per draw call, so glow used to cost a blur on every one
+     of a few thousand glyphs — measured at 3.5x the frame time. The text layer is already
+     drawn to its own canvas, so the glow is now one blurred composite of that whole layer:
+     the cost stops depending on how many glyphs there are. */
+  wx.shadowBlur = 0;
+  wx.shadowColor = "transparent";
 
   const layers=Math.max(1,Math.round(ma.layers)), dk=Math.round(ma.depth*3);
   const outline = ma.style==="outline", duo = ma.style==="duo", mis = ma.style==="misprint";
@@ -610,7 +632,10 @@ function drawFrame(t){
       if(mk.sizeMod>0) sc = 1-mk.sizeMod*(1-m);
       if(a<=.004) continue;
     }
-    const st = a<.999 ? "rgba("+CS[idx]+","+a.toFixed(3)+")" : "rgb("+CS[idx]+")";
+    // a mask gives every glyph its own alpha, which missed the style cache on every
+    // glyph and allocated a string each time; 1/64 steps are indistinguishable
+    const aq = a<.999 ? (Math.round(a*64)/64) : 1;
+    const st = aq<.999 ? "rgba("+CS[idx]+","+aq+")" : "rgb("+CS[idx]+")";
     if(st!==cur){ cur=st; wx.fillStyle=st; wx.strokeStyle=st; if(ma.glowMode==="self"&&ma.glow>0) wx.shadowColor=st; }
 
     if(sc!==1){
@@ -630,6 +655,15 @@ function drawFrame(t){
 
   /* --- finish layer: composite + grain + vignette + guides --- */
   ctx.globalCompositeOperation="source-over"; ctx.globalAlpha=1;
+  if(ma.glow>0){
+    ctx.save();
+    ctx.filter="blur("+(ma.glow*K*0.9).toFixed(1)+"px)";
+    ctx.globalCompositeOperation="lighter";
+    ctx.globalAlpha=Math.min(1,.35+ma.glow/28);
+    if(ma.glowMode==="white"){ ctx.drawImage(wc,0,0); }
+    else ctx.drawImage(wc,0,0);
+    ctx.restore();
+  }
   ctx.drawImage(wc,0,0);
 
   if(cp.grain>0){
@@ -795,6 +829,7 @@ const SEC = [
             {p:"comp.margin",l:"שוליים",t:"r",min:0,max:.25,step:.005} ],
     det:[ {p:"comp.bg2",l:"צבע שני",t:"col",when:()=>CP().bgMode==="gradient"},
           {p:"comp.bgAngle",l:"זווית רקע",t:"r",min:0,max:360,step:1,when:()=>CP().bgMode!=="solid"},
+          {p:"comp.bgMotion",l:"תנועת רקע",t:"r",min:0,max:1,step:.05,when:()=>CP().bgMode!=="solid"},
           {p:"comp.grain",l:"גריין",t:"r",min:0,max:1,step:.01},
           {p:"comp.vignette",l:"וינייטה",t:"r",min:0,max:1,step:.01},
           {p:"comp.guides",l:"קווי בטיחות",t:"c"} ] }
