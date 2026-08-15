@@ -2462,13 +2462,25 @@ function takeHandoff(){
       const db=q.result;
       if(!db.objectStoreNames.contains("handoff")) return;
       const get=db.transaction("handoff","readonly").objectStore("handoff").get("sheet");
+      const st=db.transaction("handoff","readonly").objectStore("handoff");
+      const meta=st.get("meta");
       get.onsuccess=()=>{
         const blob=get.result; if(!blob) return;
-        const im=new Image();
-        im.onload=()=>{ URL.revokeObjectURL(im.src); im._id=++imgId; src=im; isVideo=false;
-          srcKey=""; $("drop").innerHTML="<b>קומפוזיציה</b>"+im.width+"×"+im.height+" · התקבלה מלשונית הקומפוזיציה";
-          schedule(); };
-        im.src=URL.createObjectURL(blob);
+        meta.onsuccess=()=>{
+          const m=meta.result||{};
+          if(m.kind==="video"||/^video\//.test(blob.type||"")){
+            // a clip, so the separations, the screen and the boil run on every frame
+            loadVideo(new File([blob],"composition."+(m.ext||"mp4"),{type:blob.type||"video/mp4"}));
+            $("drop").innerHTML="<b>קומפוזיציה</b>קליפ "+(m.seconds?m.seconds.toFixed(1)+"s · ":"")+
+              (m.w&&m.h?m.w+"×"+m.h:"")+" · התקבל מלשונית הקומפוזיציה";
+            return;
+          }
+          const im=new Image();
+          im.onload=()=>{ URL.revokeObjectURL(im.src); im._id=++imgId; src=im; isVideo=false;
+            srcKey=""; $("drop").innerHTML="<b>קומפוזיציה</b>"+im.width+"×"+im.height+" · התקבלה מלשונית הקומפוזיציה";
+            schedule(); };
+          im.src=URL.createObjectURL(blob);
+        };
       };
     };
   }catch(e){}

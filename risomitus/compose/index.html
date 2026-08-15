@@ -188,8 +188,10 @@ button[disabled]{opacity:.45;cursor:not-allowed;box-shadow:none}
         <button id="png">PNG</button>
         <button id="rec">וידאו</button>
       </div>
-      <p class="note"><b>שלח למכבש</b> מעביר את הגיליון ללשונית ריזו כמקור, עם ההפרדות,
-      המסך והנייר. וידאו מוקלט 6 שניות ב-MP4.</p>
+      <button id="anim" style="margin-top:7px">הצג תנועה</button>
+      <p class="note"><b>שלח למכבש</b> מקליט את הגיליון כקליפ ומעביר אותו ללשונית ריזו
+      כמקור וידאו — כך ההפרדות, המסך והרתיחה פועלים על כל פריים.<br>
+      התצוגה כאן סטילס בכוונה; הפעלת התנועה מרנדרת את כל המנועים ברצף ומכבידה על הדפדפן.</p>
     </section>
   </div>
 </div>
@@ -337,6 +339,7 @@ async function generate(){
     else { const w=$("warn"); w.style.display="none"; }
     clock=0;
     save();
+    requestDraw();
   } finally {
     busy=false; $("busy").classList.remove("on"); $("make").disabled=false;
   }
@@ -382,14 +385,39 @@ function drawSheet(t,all){
     sx.drawImage(src,dx,dy,dw,dh); sx.restore();
   });
 }
+/* The page used to run an unconditional rAF, redrawing every gradient engine forever —
+   that is what locked the browser up. A composition is a thing you look at, so the sheet
+   is drawn once and left alone. Motion is opt-in and throttled, and export does not need
+   the preview to be running at all. */
+let animate=false, pending=false, lastStep=0;
+function requestDraw(all){
+  if(pending) return;
+  pending=true;
+  requestAnimationFrame(()=>{ pending=false; drawSheet(clock,all!==false); paintStat(); });
+}
+function paintStat(){
+  $("stat").textContent = sheet.width+"×"+sheet.height+" · "+rows+"×"+cols
+    + (animate ? " · "+fps.toFixed(0)+"fps" : " · סטילס");
+}
 function loop(now){
+  if(!animate) return;
   requestAnimationFrame(loop);
   const dt=Math.min(.1,(now-lastT)/1000); lastT=now;
+  if(now-lastStep < 62) return;            // ~16fps is plenty for a preview
+  lastStep=now;
   clock+=dt;
-  drawSheet(clock);
-  fps+=((1/Math.max(dt,1e-4))-fps)*.06;
-  $("stat").textContent = sheet.width+"×"+sheet.height+" · "+rows+"×"+cols+" · "+fps.toFixed(0)+"fps";
+  drawSheet(clock,false);
+  fps+=((1000/Math.max(16,now-(loop._p||now)))-fps)*.1; loop._p=now;
+  paintStat();
 }
+function setAnimate(on){
+  animate=on;
+  $("anim").textContent = on ? "עצור תנועה" : "הצג תנועה";
+  $("anim").classList.toggle("on",on);
+  if(on){ lastT=performance.now(); requestAnimationFrame(loop); }
+  else requestDraw();
+}
+$("anim").onclick=()=>setAnimate(!animate);
 
 /* ---------- output ---------- */
 const stamp=()=>{ const d=new Date(), p=x=>String(x).padStart(2,"0");
@@ -401,37 +429,64 @@ function dl(name,blob){
 $("png").onclick=()=>{ drawSheet(clock,true);
   sheet.toBlob(b=>{ if(b) dl("composition-"+stamp()+".png",b); },"image/png"); };
 
-let rec=null;
-$("rec").onclick=async()=>{
-  if(rec){ rec.stop(); return; }
-  const MP4=["video/mp4;codecs=avc1.42E01E","video/mp4;codecs=avc1","video/mp4"],
-        WEBM=["video/webm;codecs=vp9","video/webm;codecs=vp8","video/webm"];
-  const ok=m=>window.MediaRecorder&&MediaRecorder.isTypeSupported(m);
-  const mime=MP4.find(ok)||WEBM.find(ok);
-  if(!mime){ warn("הדפדפן לא תומך בהקלטת וידאו."); return; }
-  const ext=mime.startsWith("video/mp4")?"mp4":"webm", dur=6, chunks=[];
-  rec=new MediaRecorder(sheet.captureStream(30),{mimeType:mime,videoBitsPerSecond:16e6});
+/* Frame-accurate: captureStream(0) hands out nothing on its own, so a frame enters the
+   encoder only after it is drawn. Paced to the wall clock so the duration comes out right. */
+function pickMime(){
+  const want=["video/mp4;codecs=avc1.42E01E","video/mp4;codecs=avc1","video/mp4",
+              "video/webm;codecs=vp9","video/webm;codecs=vp8","video/webm"];
+  return want.find(m=>window.MediaRecorder&&MediaRecorder.isTypeSupported(m))||null;
+}
+function loopSeconds(){
+  let m=0;
+  tiles.forEach(t=>{ if(t.api) m=Math.max(m,t.api.loopSeconds()||0); });
+  return Math.min(12,Math.max(2,m||5));
+}
+let recording=false;
+async function recordSheet(label){
+  const mime=pickMime();
+  if(!mime){ warn("הדפדפן לא תומך בהקלטת וידאו."); return null; }
+  const ext=mime.startsWith("video/mp4")?"mp4":"webm";
+  const fps=25, dur=loopSeconds(), total=Math.max(2,Math.round(dur*fps));
+  const wasAnimating=animate; animate=false;
+  recording=true;
+  const stream=sheet.captureStream(0);
+  const track=stream.getVideoTracks()[0];
+  if(!track||!track.requestFrame){ warn("הדפדפן לא תומך בדחיפת פריימים לקנבס."); recording=false; return null; }
+  const chunks=[];
+  const rec=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:14e6});
   rec.ondataavailable=e=>e.data.size&&chunks.push(e.data);
-  const done=new Promise(r=>rec.onstop=r);
+  const done=new Promise(r=>{ rec.onstop=r; });
   rec.start();
   const t0=performance.now();
-  const tick=setInterval(()=>{
-    const el=(performance.now()-t0)/1000;
-    $("rec").textContent="עצור "+el.toFixed(1)+"/"+dur;
-    if(el>=dur&&rec) rec.stop();
-  },80);
-  await done; clearInterval(tick);
-  dl("composition-"+stamp()+"."+ext,new Blob(chunks,{type:mime}));
-  rec=null; $("rec").textContent="וידאו";
+  for(let i=0;i<total;i++){
+    drawSheet(i/fps,true);               // every tile, no round-robin: nothing stale
+    track.requestFrame();
+    $("busy").textContent=label+" "+(i+1)+"/"+total;
+    const due=t0+(i+1)*1000/fps, wait=due-performance.now();
+    if(wait>0) await new Promise(r=>setTimeout(r,wait));
+  }
+  rec.stop(); await done;
+  recording=false;
+  if(wasAnimating) setAnimate(true); else requestDraw();
+  return {blob:new Blob(chunks,{type:mime}), ext, seconds:dur};
+}
+$("rec").onclick=async()=>{
+  if(recording) return;
+  $("busy").classList.add("on"); $("rec").disabled=true;
+  try{
+    const out=await recordSheet("מקליט");
+    if(out) dl("composition-"+stamp()+"."+out.ext,out.blob);
+  } finally { $("busy").classList.remove("on"); $("busy").textContent="מכין…"; $("rec").disabled=false; }
 };
 
 /* the composed sheet reaches the press through IndexedDB: an object URL dies with the
    old document, and the sheet is far past what localStorage will hold */
 $("toRiso").onclick=async()=>{
-  drawSheet(clock,true);
-  const blob=await new Promise(r=>sheet.toBlob(r,"image/png"));
-  if(!blob){ warn("לא הצלחתי לייצר את הגיליון."); return; }
+  if(recording) return;
+  $("busy").classList.add("on"); $("toRiso").disabled=true;
   try{
+    const out=await recordSheet("מכין קליפ");
+    if(!out) return;
     const db=await new Promise((res,rej)=>{
       const q=indexedDB.open("risomitus",1);
       q.onupgradeneeded=()=>{ q.result.createObjectStore("handoff"); };
@@ -439,11 +494,14 @@ $("toRiso").onclick=async()=>{
     });
     await new Promise((res,rej)=>{
       const tx=db.transaction("handoff","readwrite");
-      tx.objectStore("handoff").put(blob,"sheet");
+      const st=tx.objectStore("handoff");
+      st.put(out.blob,"sheet");
+      st.put({kind:"video",ext:out.ext,seconds:out.seconds,w:sheet.width,h:sheet.height},"meta");
       tx.oncomplete=res; tx.onerror=()=>rej(tx.error);
     });
     location.href="../?from=composer";
   }catch(e){ warn("ההעברה נכשלה: "+e.message); }
+  finally{ $("busy").classList.remove("on"); $("busy").textContent="מכין…"; $("toRiso").disabled=false; }
 };
 
 /* ---------- persistence ---------- */
@@ -466,7 +524,7 @@ function restore(){
   }catch(e){ return false; }
 }
 
-$("fmt").onchange=()=>{ sizeSheet(); save(); };
+$("fmt").onchange=()=>{ sizeSheet(); save(); requestDraw(); };
 
 /* ---------- boot ---------- */
 const had=restore();
@@ -474,7 +532,8 @@ document.querySelectorAll("#counts button")
   .forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.n===n)));
 if(!had){ setCount(4); sizeSheet(); setTimeout(generate,900); }
 setInterval(save,5000);
-requestAnimationFrame(loop);
+setAnimate(false);
+requestDraw();
 </script>
 
 <script>
