@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RISOMITUS · קומפוזיציה</title>
+  <meta name="color-scheme" content="light dark">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23F2EDE1'/%3E%3Ccircle cx='12' cy='16' r='8' fill='%23FF3D9A'/%3E%3Ccircle cx='20' cy='16' r='8' fill='%230B5FA5' opacity='.75'/%3E%3C/svg%3E">
+</head>
+<body>
+<style>
+#gate{position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;
+  background:var(--paper,#F2EDE1);color:var(--ink,#1E1A17);font:13px/1.5 "Helvetica Neue",Helvetica,Arial,sans-serif;
+  direction:rtl;padding:24px}
+#gate.open{display:none}
+#gatecard{width:min(420px,100%);text-align:center}
+#gatecard h1{margin:0 0 6px;font:700 30px/1 ui-monospace,SFMono-Regular,Menlo,monospace;
+  letter-spacing:.14em;text-shadow:2px -1.5px 0 #FF3D9A,-2px 1.5px 0 #0B5FA5}
+#gatecard p.k{margin:0 0 26px;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;opacity:.6}
+#gatecard p.d{margin:0 0 22px;font-size:12.5px;line-height:1.7;opacity:.65}
+#code{width:100%;text-align:center;font:700 26px/1 ui-monospace,Menlo,monospace;letter-spacing:.5em;
+  text-indent:.5em;padding:13px 8px;background:var(--field,#DED6C2);color:var(--ink,#1E1A17);border:1.5px solid var(--ink,#1E1A17);border-radius:0}
+#code:focus{outline:2px solid #FF3D9A;outline-offset:2px}
+#enter{width:100%;margin-top:10px;font:11px/1 ui-monospace,Menlo,monospace;letter-spacing:.1em;
+  padding:11px;background:var(--ink,#1E1A17);color:var(--paper,#F2EDE1);border:1.5px solid var(--ink,#1E1A17);cursor:pointer}
+#enter:hover{box-shadow:3px 3px 0 #FF3D9A}
+#gatemsg{min-height:18px;margin-top:12px;font:11px/1.4 ui-monospace,Menlo,monospace;color:#FF3D9A}
+#gatemarks{position:fixed;inset:26px;pointer-events:none}
+#gatemarks i{position:absolute;width:18px;height:18px;opacity:.45}
+#gatemarks i::before,#gatemarks i::after{content:"";position:absolute;background:var(--ink,#1E1A17)}
+#gatemarks i::before{left:8px;top:0;width:2px;height:18px}
+#gatemarks i::after{top:8px;left:0;height:2px;width:18px}
+#gatemarks i:nth-child(1){left:0;top:0} #gatemarks i:nth-child(2){right:0;top:0}
+#gatemarks i:nth-child(3){left:0;bottom:0} #gatemarks i:nth-child(4){right:0;bottom:0}
+.shake{animation:sh .28s}
+@keyframes sh{25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+@media (prefers-reduced-motion:reduce){.shake{animation:none}}
+body:not(.unlocked) #app{visibility:hidden}
+
+/* two-tab switcher, shared by both tools */
+.tabs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin:10px 0 0}
+.tabs a{display:block;text-align:center;text-decoration:none;padding:7px 3px;
+  font:11px/1.2 ui-monospace,Menlo,monospace;letter-spacing:.04em;
+  border:1.5px solid var(--ink,#1E1A17);color:var(--ink,#1E1A17);background:var(--field,#DED6C2)}
+.tabs a small{display:block;font-size:8.5px;opacity:.55;margin-top:2px}
+.tabs a[aria-current=page]{background:var(--ink,#1E1A17);color:var(--paper,#F2EDE1);border-color:var(--ink,#1E1A17)}
+.tabs a:not([aria-current=page]):hover{box-shadow:2px 2px 0 #FF3D9A}
+</style>
+
+<div id="gate">
+  <div id="gatemarks"><i></i><i></i><i></i><i></i></div>
+  <div id="gatecard">
+    <h1>RISOMITUS</h1>
+    <p class="k">קומפוזיציה · פטרנים על גיליון</p>
+    <p class="d">מסדרת כמה פטרנים על גיליון אחד ושולחת את כולו למכבש הריזו. דרוש קוד כניסה.</p>
+    <input id="code" inputmode="numeric" autocomplete="off" maxlength="8"
+           aria-label="קוד כניסה" placeholder="····">
+    <button id="enter">כניסה</button>
+    <div id="gatemsg" role="status" aria-live="polite"></div>
+  </div>
+</div>
+
+<style>
+:root{
+  --paper:#F2EDE1; --paper-2:#E7E0CF; --ink:#1E1A17; --ink-soft:#6B6357;
+  --pink:#FF3D9A; --blue:#0B5FA5; --green:#00A95C; --yellow:#FFC800;
+  --rule:#C9C0AC; --field:#DED6C2;
+}
+@media (prefers-color-scheme:dark){
+  :root{ --paper:#15120F; --paper-2:#1E1A16; --ink:#F0E9DA; --ink-soft:#A2988A;
+         --pink:#FF4FA8; --blue:#4DA3E8; --green:#2ED67F; --yellow:#FFD84D;
+         --rule:#3A332B; --field:#241F1A; }
+}
+:root[data-theme="dark"]{ --paper:#15120F; --paper-2:#1E1A16; --ink:#F0E9DA; --ink-soft:#A2988A;
+  --pink:#FF4FA8; --blue:#4DA3E8; --green:#2ED67F; --yellow:#FFD84D; --rule:#3A332B; --field:#241F1A; }
+:root[data-theme="light"]{ --paper:#F2EDE1; --paper-2:#E7E0CF; --ink:#1E1A17; --ink-soft:#6B6357;
+  --pink:#FF3D9A; --blue:#0B5FA5; --green:#00A95C; --yellow:#FFC800; --rule:#C9C0AC; --field:#DED6C2; }
+
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--paper);color:var(--ink);
+  font:13px/1.5 "Helvetica Neue",Helvetica,Arial,sans-serif}
+#app{display:flex;height:100%;overflow:hidden}
+
+#bed{flex:1;position:relative;display:flex;align-items:center;justify-content:center;overflow:auto;padding:26px}
+#bed::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.28;
+  background:repeating-linear-gradient(90deg,transparent 0 39px,var(--rule) 39px 40px),
+             repeating-linear-gradient(0deg,transparent 0 39px,var(--rule) 39px 40px)}
+#wrap{position:relative}
+canvas#sheet{display:block;max-width:calc(100vw - 420px);max-height:calc(100vh - 62px);
+  box-shadow:0 2px 0 var(--pink),0 -2px 0 var(--blue),0 18px 44px rgba(0,0,0,.28);cursor:pointer}
+#hit{position:absolute;inset:0}
+#hit b{position:absolute;border:2px dashed transparent;display:flex;align-items:center;justify-content:center;
+  font:700 22px/1 ui-monospace,Menlo,monospace;color:#fff;text-shadow:0 2px 8px #000b;cursor:pointer}
+#hit b:hover{border-color:var(--yellow);background:#ffc80022}
+#hit b[data-sel="1"]{border-color:var(--pink);background:#ff3d9a1f}
+#regmarks{position:absolute;inset:-22px;pointer-events:none}
+#regmarks i{position:absolute;width:16px;height:16px;opacity:.7}
+#regmarks i::before,#regmarks i::after{content:"";position:absolute;background:var(--ink)}
+#regmarks i::before{left:7px;top:0;width:2px;height:16px}
+#regmarks i::after{top:7px;left:0;height:2px;width:16px}
+#regmarks i:nth-child(1){left:0;top:0}#regmarks i:nth-child(2){right:0;top:0}
+#regmarks i:nth-child(3){left:0;bottom:0}#regmarks i:nth-child(4){right:0;bottom:0}
+
+#panel{width:404px;flex:0 0 404px;background:var(--paper-2);border-left:2px solid var(--ink);
+  overflow-y:auto;padding:0 18px 40px;direction:rtl}
+#masthead{position:sticky;top:0;z-index:20;background:var(--paper-2);padding:16px 0 10px;
+  border-bottom:2px solid var(--ink)}
+#masthead h1{margin:0;font:700 23px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.12em;
+  text-shadow:2px -1.5px 0 var(--pink),-2px 1.5px 0 var(--blue)}
+#sub{display:flex;justify-content:space-between;align-items:baseline;margin-top:7px;
+  font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft)}
+#stat{font-family:ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums;direction:ltr}
+
+section{border-bottom:1px dashed var(--rule);padding:14px 0}
+section>h2{display:flex;align-items:baseline;gap:8px;margin:0 0 11px;
+  font:700 11px/1 ui-monospace,Menlo,monospace;letter-spacing:.15em;text-transform:uppercase}
+section>h2 em{font-style:normal;font-size:10px;color:var(--paper);background:var(--ink);padding:1px 6px}
+label.f{display:block;margin:0 0 10px}
+label.f>span{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;
+  font-size:11px;color:var(--ink-soft)}
+label.f>span b{font:500 11px/1 ui-monospace,Menlo,monospace;color:var(--ink);
+  font-variant-numeric:tabular-nums;direction:ltr}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:14px;background:transparent;margin:0}
+input[type=range]::-webkit-slider-runnable-track{height:2px;background:var(--rule)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;background:var(--ink);
+  margin-top:-5.5px;border:0;border-radius:0;cursor:grab}
+select,button,input[type=text]{width:100%;font:inherit;font-size:12px;color:var(--ink);background:var(--field);
+  border:1.5px solid var(--ink);border-radius:0;padding:7px 8px;cursor:pointer}
+select,button{font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:.06em}
+button:hover{box-shadow:2px 2px 0 var(--pink)}
+button:active{transform:translate(1px,1px);box-shadow:none}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--pink);outline-offset:2px}
+button.on{background:var(--ink);color:var(--paper);box-shadow:2px 2px 0 var(--green)}
+button[disabled]{opacity:.4;cursor:not-allowed;box-shadow:none}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:8px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-bottom:8px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:8px}
+.note{font-size:10.5px;line-height:1.6;color:var(--ink-soft);margin:7px 0 0}
+#warn{border:1.5px solid var(--pink);background:var(--field);padding:9px;margin:10px 0;
+  font-size:11px;line-height:1.55;display:none}
+.tabs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin:10px 0 0}
+.tabs a{display:block;text-align:center;text-decoration:none;padding:7px 3px;
+  font:11px/1.2 ui-monospace,Menlo,monospace;border:1.5px solid var(--ink);color:var(--ink);background:var(--field)}
+.tabs a small{display:block;font-size:8.5px;opacity:.55;margin-top:2px}
+.tabs a[aria-current=page]{background:var(--ink);color:var(--paper)}
+.tabs a:not([aria-current=page]):hover{box-shadow:2px 2px 0 var(--pink)}
+#slots{display:grid;gap:6px;margin-bottom:9px}
+.slot{display:flex;align-items:center;gap:8px;border:1.5px solid var(--rule);padding:6px 8px;background:var(--field)}
+.slot.sel{border-color:var(--ink);box-shadow:3px 3px 0 var(--ink)}
+.slot .n{font:700 11px/1 ui-monospace,Menlo,monospace;min-width:16px}
+.slot .t{flex:1;font-size:10.5px;color:var(--ink-soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.slot button{width:auto;padding:3px 7px;font-size:10px}
+#frames{position:absolute;width:0;height:0;overflow:hidden;opacity:0;pointer-events:none}
+</style>
+
+<div id="app">
+  <div id="bed">
+    <div id="wrap">
+      <canvas id="sheet" width="10" height="10"></canvas>
+      <div id="hit"></div>
+      <div id="regmarks"><i></i><i></i><i></i><i></i></div>
+    </div>
+  </div>
+
+  <div id="panel">
+    <div id="masthead">
+      <h1>RISOMITUS</h1>
+      <nav class="tabs" aria-label="מערכות"><a href="../">ריזו<small>מכבש הדפסה</small></a><a href="../gradient/">גרדיאנט<small>טיפוגרפיה</small></a><a href="./" aria-current="page">קומפוזיציה<small>פטרנים על גיליון</small></a></nav>
+      <div id="sub"><span>קומפוזיציה · פטרנים על גיליון</span><span id="stat">—</span></div>
+    </div>
+    <div id="warn"></div>
+
+    <section>
+      <h2><em>1</em>גיליון</h2>
+      <label class="f"><span>פורמט</span>
+        <select id="fmt">
+          <option value="1080x1350">פוסט · 1080×1350</option>
+          <option value="1080x1920">סטורי · 1080×1920</option>
+          <option value="1080x1080">ריבוע · 1080×1080</option>
+          <option value="1240x1754">A4 · 150dpi</option>
+          <option value="1754x1240">A4 לרוחב</option>
+        </select></label>
+      <label class="f"><span>שוליים<b id="v_pad"></b></span>
+        <input type="range" id="pad" min="0" max="12" step="0.5" value="4"></label>
+      <label class="f"><span>מרווח בין משבצות<b id="v_gap"></b></span>
+        <input type="range" id="gap" min="0" max="10" step="0.25" value="2"></label>
+      <label class="f"><span>צבע הגיליון</span>
+        <input type="text" id="bg" value="#F2EDE1" spellcheck="false"></label>
+    </section>
+
+    <section>
+      <h2><em>2</em>פריסה</h2>
+      <div class="g4">
+        <button data-grid="1x1">1</button>
+        <button data-grid="2x1">2 ⬍</button>
+        <button data-grid="1x2">2 ⬌</button>
+        <button data-grid="2x2">4</button>
+      </div>
+      <div class="g4">
+        <button data-grid="3x2">6</button>
+        <button data-grid="3x3">9</button>
+        <button data-grid="4x2">8</button>
+        <button data-grid="1x3">3 ⬌</button>
+      </div>
+      <label class="f"><span>שורות<b id="v_rows"></b></span>
+        <input type="range" id="rows" min="1" max="5" step="1" value="2"></label>
+      <label class="f"><span>עמודות<b id="v_cols"></b></span>
+        <input type="range" id="cols" min="1" max="5" step="1" value="2"></label>
+      <label class="f"><span>התאמת פטרן למשבצת</span>
+        <select id="fit">
+          <option value="cover">מילוי · חיתוך</option>
+          <option value="contain">התאמה · שוליים</option>
+          <option value="stretch">מתיחה</option>
+        </select></label>
+    </section>
+
+    <section>
+      <h2><em>3</em>פטרנים</h2>
+      <div id="slots"></div>
+      <div class="g3">
+        <button id="randAll">אקראי לכולם</button>
+        <button id="randOne">אקראי לנבחר</button>
+        <button id="copyTo">שכפל לכולם</button>
+      </div>
+      <div class="g2">
+        <button id="pasteJson">הדבק JSON</button>
+        <button id="pullLast">מהגרדיאנט</button>
+      </div>
+      <p class="note"><b>מהגרדיאנט</b> מושך את ההגדרה האחרונה שעבדת עליה בלשונית גרדיאנט.
+      לחיצה על משבצת בגיליון בוחרת אותה.</p>
+    </section>
+
+    <section>
+      <h2><em>4</em>תנועה</h2>
+      <label class="f"><span>מהירות<b id="v_speed"></b></span>
+        <input type="range" id="speed" min="0" max="200" step="5" value="100"></label>
+      <label class="f"><span>היסט זמן בין משבצות<b id="v_stagger"></b></span>
+        <input type="range" id="stagger" min="0" max="100" step="1" value="0"></label>
+      <div class="g2">
+        <button id="play">עצור</button>
+        <button id="resync">אפס זמן</button>
+      </div>
+      <p class="note">היסט זמן נותן לכל משבצת נקודת התחלה אחרת באותו לופ — הגיליון לא פועם כמו איש אחד.</p>
+    </section>
+
+    <section>
+      <h2><em>5</em>פלט</h2>
+      <div class="g2">
+        <button id="toRiso" class="on">שלח למכבש הריזו ←</button>
+        <button id="png">PNG</button>
+      </div>
+      <div class="g2">
+        <button id="rec">וידאו</button>
+        <select id="vfmt">
+          <option value="mp4">MP4</option>
+          <option value="webm">WebM</option>
+        </select>
+      </div>
+      <label class="f"><span>אורך הקלטה<b id="v_dur"></b></span>
+        <input type="range" id="dur" min="1" max="20" step="0.5" value="6"></label>
+      <p class="note"><b>שלח למכבש</b> מעביר את הגיליון המורכב ללשונית ריזו כמקור, עם כל
+      ההפרדות, המסך והנייר. זה המסלול המלא: פטרנים ← קומפוזיציה ← הדפסה.</p>
+    </section>
+  </div>
+</div>
+<div id="frames"></div>
+
+<script>
+"use strict";
+const $=id=>document.getElementById(id);
+const warn=m=>{ const w=$("warn"); w.style.display="block"; w.textContent=m; };
+const sheet=$("sheet"), sx=sheet.getContext("2d");
+const GRAD="../gradient/?embed=1";
+const LSK_GRAD="gradient-word-system:v2";
+const LSK="risomitus.composer:v1";
+const DB="risomitus", STORE="handoff";
+
+let rows=2, cols=2, tiles=[], sel=0, playing=true, clock=0, lastT=performance.now();
+
+/* ---------- tile frames ----------
+   One hidden iframe of the gradient page per cell. It keeps each tile's engine state
+   isolated for free, and the render is the real thing rather than a reimplementation. */
+function makeTile(){
+  const f=document.createElement("iframe");
+  f.src=GRAD; f.width=520; f.height=650;
+  $("frames").appendChild(f);
+  const t={frame:f, api:null, cfg:null, label:"טוען…"};
+  f.addEventListener("load",()=>{
+    t.api=f.contentWindow.TILE||null;
+    if(!t.api){ t.label="נכשל"; warn("משבצת לא נטענה — ודאי שהלשונית גרדיאנט קיימת."); }
+    else { if(t.cfg) t.api.setConfig(t.cfg); else t.cfg=t.api.config();
+           if(t.api.setScale) try{ t.api.setScale(tileScale); }catch(e){}
+           t.label=describe(t.cfg); }
+    renderSlots();
+  });
+  return t;
+}
+function describe(c){
+  if(!c) return "—";
+  const w=(c.type&&c.type.word)||"", e=(c.motion&&c.motion.engine)||"";
+  return (w?("«"+w+"» "):"")+e;
+}
+function setCount(n){
+  while(tiles.length<n) tiles.push(makeTile());
+  while(tiles.length>n){ const t=tiles.pop(); t.frame.remove(); }
+  if(sel>=tiles.length) sel=tiles.length-1;
+  renderSlots();
+}
+
+/* ---------- layout ---------- */
+function cellRects(){
+  const [W,H]=$("fmt").value.split("x").map(Number);
+  const pad=(+$("pad").value/100)*Math.min(W,H);
+  const gap=(+$("gap").value/100)*Math.min(W,H);
+  const cw=(W-pad*2-gap*(cols-1))/cols, ch=(H-pad*2-gap*(rows-1))/rows;
+  const out=[];
+  for(let r=0;r<rows;r++) for(let c=0;c<cols;c++)
+    out.push({x:pad+c*(cw+gap), y:pad+r*(ch+gap), w:cw, h:ch});
+  return {W,H,rects:out};
+}
+function resize(){
+  const {W,H}=cellRects();
+  if(sheet.width!==W||sheet.height!==H){ sheet.width=W; sheet.height=H; }
+  setCount(rows*cols);
+  applyTileScale();
+  placeHits();
+}
+/* Render each tile near the size it is actually shown at, not at the full format. */
+function applyTileScale(){
+  const {rects}=cellRects();
+  if(!rects.length) return;
+  const need=Math.max(rects[0].w, rects[0].h);
+  const k=Math.max(.25, Math.min(1, need/1080*1.15));
+  tiles.forEach(t=>{ if(t.api&&t.api.setScale) try{ t.api.setScale(k); }catch(e){} });
+  tileScale=k;
+}
+let tileScale=1;
+function placeHits(){
+  const {W,H,rects}=cellRects(), hit=$("hit");
+  hit.innerHTML="";
+  const sc=sheet.clientWidth/W;
+  rects.forEach((r,i)=>{
+    const b=document.createElement("b");
+    b.style.left=(r.x*sc)+"px"; b.style.top=(r.y*sc)+"px";
+    b.style.width=(r.w*sc)+"px"; b.style.height=(r.h*sc)+"px";
+    b.textContent=String(i+1);
+    b.dataset.sel = i===sel ? "1" : "0";
+    b.onclick=()=>{ sel=i; renderSlots(); placeHits(); };
+    hit.appendChild(b);
+  });
+}
+
+/* ---------- draw ---------- */
+function drawSheet(t){
+  const {W,H,rects}=cellRects();
+  sx.fillStyle=$("bg").value||"#F2EDE1";
+  sx.fillRect(0,0,W,H);
+  const fit=$("fit").value, stag=+$("stagger").value/100;
+  rects.forEach((r,i)=>{
+    const tile=tiles[i]; if(!tile||!tile.api) return;
+    const loop=tile.api.loopSeconds()||1;
+    tile.api.draw(t + stag*loop*(i/Math.max(1,rects.length)));
+    const src=tile.api.canvas;
+    if(!src.width) return;
+    if(fit==="stretch"){ sx.drawImage(src,r.x,r.y,r.w,r.h); return; }
+    const sa=src.width/src.height, da=r.w/r.h;
+    let dw=r.w, dh=r.h, dx=r.x, dy=r.y;
+    const wider = fit==="cover" ? sa>da : sa<da;
+    if(wider){ dh=r.h; dw=dh*sa; dx=r.x+(r.w-dw)/2; }
+    else     { dw=r.w; dh=dw/sa; dy=r.y+(r.h-dh)/2; }
+    sx.save(); sx.beginPath(); sx.rect(r.x,r.y,r.w,r.h); sx.clip();
+    sx.drawImage(src,dx,dy,dw,dh); sx.restore();
+  });
+}
+let fps=60;
+function loop(now){
+  requestAnimationFrame(loop);
+  const dt=Math.min(.1,(now-lastT)/1000); lastT=now;
+  if(playing) clock += dt*(+$("speed").value/100);
+  drawSheet(clock);
+  fps += ((1/Math.max(dt,1e-4))-fps)*.06;
+  $("stat").textContent = sheet.width+"×"+sheet.height+" · "+tiles.length+"·"+tileScale.toFixed(2)+"x · "+fps.toFixed(0)+"fps";
+}
+
+/* ---------- slots ---------- */
+function renderSlots(){
+  const box=$("slots"); box.innerHTML="";
+  tiles.forEach((t,i)=>{
+    const d=document.createElement("div");
+    d.className="slot"+(i===sel?" sel":"");
+    d.innerHTML='<span class="n">'+(i+1)+'</span><span class="t"></span>';
+    d.querySelector(".t").textContent=t.label||"—";
+    const b=document.createElement("button"); b.textContent="אקראי";
+    b.onclick=e=>{ e.stopPropagation(); randTile(i); };
+    d.appendChild(b);
+    d.onclick=()=>{ sel=i; renderSlots(); placeHits(); };
+    box.appendChild(d);
+  });
+}
+function randTile(i){
+  const t=tiles[i]; if(!t||!t.api) return;
+  t.api.randomize(); t.cfg=t.api.config(); t.label=describe(t.cfg);
+  renderSlots();
+}
+
+/* ---------- controls ---------- */
+const RO={pad:"%",gap:"%",rows:"",cols:"",speed:"%",stagger:"%",dur:"s"};
+function readouts(){ for(const k in RO) $("v_"+k).textContent=$(k).value+RO[k]; }
+for(const k in RO) $(k).addEventListener("input",()=>{
+  if(k==="rows") rows=+$("rows").value;
+  if(k==="cols") cols=+$("cols").value;
+  readouts(); resize(); save();
+});
+["fmt","fit","bg"].forEach(k=>$(k).addEventListener("input",()=>{ resize(); save(); }));
+document.querySelectorAll("[data-grid]").forEach(b=>b.onclick=()=>{
+  const [r,c]=b.dataset.grid.split("x").map(Number);
+  rows=r; cols=c; $("rows").value=r; $("cols").value=c;
+  readouts(); resize(); save();
+});
+$("play").onclick=()=>{ playing=!playing; $("play").textContent=playing?"עצור":"הפעל"; };
+$("resync").onclick=()=>{ clock=0; };
+$("randAll").onclick=()=>tiles.forEach((_,i)=>randTile(i));
+$("randOne").onclick=()=>randTile(sel);
+$("copyTo").onclick=()=>{
+  const src=tiles[sel]; if(!src||!src.cfg) return;
+  tiles.forEach((t,i)=>{ if(i===sel||!t.api) return;
+    t.cfg=JSON.parse(JSON.stringify(src.cfg)); t.api.setConfig(t.cfg); t.label=describe(t.cfg); });
+  renderSlots();
+};
+$("pasteJson").onclick=()=>{
+  const s=prompt("הדביקי JSON של פטרן מהלשונית גרדיאנט:");
+  if(!s) return;
+  try{ const o=JSON.parse(s); const t=tiles[sel];
+       t.cfg=o; t.api.setConfig(o); t.label=describe(o); renderSlots(); }
+  catch(e){ warn("JSON לא תקין: "+e.message); }
+};
+$("pullLast").onclick=()=>{
+  let s=null; try{ s=localStorage.getItem(LSK_GRAD); }catch(e){}
+  if(!s){ warn("לא נמצאה הגדרה שמורה — פתחי את לשונית גרדיאנט, כווני משהו, וחזרי."); return; }
+  try{ const o=JSON.parse(s); const t=tiles[sel];
+       t.cfg=o; t.api.setConfig(o); t.label=describe(o); renderSlots(); }
+  catch(e){ warn("ההגדרה השמורה פגומה."); }
+};
+
+/* ---------- output ---------- */
+const stamp=()=>{ const d=new Date(), p=n=>String(n).padStart(2,"0");
+  return `${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`; };
+function dl(name,blob){
+  const u=URL.createObjectURL(blob), a=document.createElement("a");
+  a.href=u; a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(u),5000);
+}
+$("png").onclick=()=>{ drawSheet(clock);
+  sheet.toBlob(b=>{ if(b) dl("composition-"+stamp()+".png",b); },"image/png"); };
+
+let rec=null;
+$("rec").onclick=async()=>{
+  if(rec){ rec.stop(); return; }
+  const MP4=["video/mp4;codecs=avc1.42E01E","video/mp4;codecs=avc1","video/mp4"],
+        WEBM=["video/webm;codecs=vp9","video/webm;codecs=vp8","video/webm"];
+  const ok=m=>window.MediaRecorder&&MediaRecorder.isTypeSupported(m);
+  const want=$("vfmt").value==="mp4"?MP4:WEBM;
+  const mime=want.find(ok)||[...MP4,...WEBM].find(ok);
+  if(!mime){ warn("הדפדפן לא תומך בהקלטת וידאו."); return; }
+  const ext=mime.startsWith("video/mp4")?"mp4":"webm";
+  const dur=+$("dur").value, chunks=[];
+  const stream=sheet.captureStream(30);
+  rec=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:16e6});
+  rec.ondataavailable=e=>e.data.size&&chunks.push(e.data);
+  const done=new Promise(r=>rec.onstop=r);
+  if(!playing){ playing=true; $("play").textContent="עצור"; }
+  rec.start();
+  $("rec").classList.add("on");
+  const t0=performance.now();
+  const tick=setInterval(()=>{
+    const el=(performance.now()-t0)/1000;
+    $("rec").textContent="עצור "+el.toFixed(1)+"/"+dur;
+    if(el>=dur&&rec) rec.stop();
+  },80);
+  await done; clearInterval(tick);
+  dl("composition-"+stamp()+"."+ext,new Blob(chunks,{type:mime}));
+  rec=null; $("rec").textContent="וידאו"; $("rec").classList.remove("on");
+};
+
+/* hand the composed sheet to the press. A blob in IndexedDB survives the navigation;
+   an object URL would not, and the sheet is far too big for localStorage. */
+function idb(){
+  return new Promise((res,rej)=>{
+    const q=indexedDB.open(DB,1);
+    q.onupgradeneeded=()=>{ q.result.createObjectStore(STORE); };
+    q.onsuccess=()=>res(q.result); q.onerror=()=>rej(q.error);
+  });
+}
+$("toRiso").onclick=async()=>{
+  drawSheet(clock);
+  const blob=await new Promise(r=>sheet.toBlob(r,"image/png"));
+  if(!blob){ warn("לא הצלחתי לייצר את הגיליון."); return; }
+  try{
+    const db=await idb();
+    await new Promise((res,rej)=>{
+      const tx=db.transaction(STORE,"readwrite");
+      tx.objectStore(STORE).put(blob,"sheet");
+      tx.oncomplete=res; tx.onerror=()=>rej(tx.error);
+    });
+    location.href="../?from=composer";
+  }catch(e){ warn("ההעברה נכשלה: "+e.message); }
+};
+
+/* ---------- persistence ---------- */
+function save(){
+  try{ localStorage.setItem(LSK,JSON.stringify({
+    rows,cols,fmt:$("fmt").value,fit:$("fit").value,bg:$("bg").value,
+    pad:$("pad").value,gap:$("gap").value,speed:$("speed").value,stagger:$("stagger").value,
+    cfgs:tiles.map(t=>t.cfg)
+  })); }catch(e){}
+}
+function load(){
+  let s=null; try{ s=localStorage.getItem(LSK); }catch(e){}
+  if(!s) return null;
+  try{ return JSON.parse(s); }catch(e){ return null; }
+}
+
+/* ---------- boot ---------- */
+const saved=load();
+if(saved){
+  rows=saved.rows||2; cols=saved.cols||2;
+  $("rows").value=rows; $("cols").value=cols;
+  ["fmt","fit","bg","pad","gap","speed","stagger"].forEach(k=>{ if(saved[k]!=null) $(k).value=saved[k]; });
+}
+readouts(); resize();
+if(saved&&saved.cfgs) tiles.forEach((t,i)=>{ if(saved.cfgs[i]) t.cfg=saved.cfgs[i]; });
+addEventListener("resize",placeHits);
+new ResizeObserver(placeHits).observe(sheet);
+setInterval(save,4000);
+requestAnimationFrame(loop);
+</script>
+
+<script>
+/* A code on a static page is a curtain, not a lock: this whole file reaches the visitor's
+   browser, so anyone who opens the source walks straight past it. It keeps passers-by out,
+   and that is all it does. One key for both tools, so the code is asked once. */
+(function(){
+  var CODE="1111", KEY="risomitus.entered";
+  var gate=document.getElementById("gate"), inp=document.getElementById("code"),
+      btn=document.getElementById("enter"), msg=document.getElementById("gatemsg"),
+      card=document.getElementById("gatecard");
+  function open(){
+    gate.classList.add("open"); document.body.classList.add("unlocked");
+    try{ localStorage.setItem(KEY,"1"); }catch(e){}
+    window.dispatchEvent(new Event("resize"));
+  }
+  function tryCode(){
+    if(inp.value.trim()===CODE){ open(); return; }
+    msg.textContent="קוד שגוי";
+    card.classList.remove("shake"); void card.offsetWidth; card.classList.add("shake");
+    inp.select();
+  }
+  btn.addEventListener("click",tryCode);
+  inp.addEventListener("keydown",function(e){ if(e.key==="Enter") tryCode(); });
+  inp.addEventListener("input",function(){ msg.textContent=""; if(inp.value.trim()===CODE) tryCode(); });
+  var seen=false; try{ seen=localStorage.getItem(KEY)==="1"; }catch(e){}
+  if(seen) open(); else setTimeout(function(){ inp.focus(); },60);
+})();
+</script>
+
+</body>
+</html>
