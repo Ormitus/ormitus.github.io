@@ -953,8 +953,11 @@ function randomize(){
     m.turb=+(.3+Math.random()*1.2).toFixed(2); m.arms=1+((Math.random()*5)|0); m.count=1+((Math.random()*7)|0);
     m.shape=pick(["linear","linear","smooth","mirror","steps"]); m.shapeAmt=2+((Math.random()*8)|0); }
   if(!locks.color){ const c=C();
+    // Array.from's callback gets (element, index) only — there is no third array
+    // argument, so the old `a.length` threw and aborted the rest of randomize()
+    // whenever this branch was taken. Count the stops up front instead.
     c.stops = Math.random()<.6 ? pick(Object.values(PALETTES)).map(s=>({...s}))
-      : Array.from({length:2+((Math.random()*3)|0)},(_,i,a)=>({p:i/(a.length-1||1),c:randHex()}));
+      : (ns=>Array.from({length:ns},(_,i)=>({p:ns>1?i/(ns-1):0,c:randHex()})))(2+((Math.random()*3)|0));
     c.posterize = Math.random()<.3 ? 2+((Math.random()*6)|0) : 1;
     c.hueDrift = Math.random()<.2 ? pick([1,-1]) : 0; buildRamp(); renderStops(); }
   if(!locks.material){ const a=MA();
