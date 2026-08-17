@@ -170,8 +170,8 @@
 @media (prefers-reduced-motion:reduce){.shake{animation:none}}
 body:not(.unlocked) #stage,body:not(.unlocked) #panel{visibility:hidden}
 
-/* two-tab switcher, shared by both tools */
-.tabs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin:10px 0 0}
+/* switcher, shared by every tool */
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin:10px 0 0}
 .tabs a{display:block;text-align:center;text-decoration:none;padding:7px 3px;
   font:11px/1.2 ui-monospace,Menlo,monospace;letter-spacing:.04em;
   border:1.5px solid var(--line2,#33333d);color:var(--txt,#ececed);background:var(--surf2,#16161a)}
@@ -208,7 +208,7 @@ body:not(.unlocked) #stage,body:not(.unlocked) #panel{visibility:hidden}
   <div class="head">
     <h1>גרדיאנט</h1>
     <p>מערכת טיפוגרפיה מונפשת — הגרדיאנט עשוי מהמילה</p>
-    <nav class="tabs" aria-label="מערכות"><a href="../">ריזו<small>מכבש הדפסה</small></a><a href="./" aria-current="page">גרדיאנט<small>טיפוגרפיה</small></a><a href="../compose/">קומפוזיציה<small>פטרנים על גיליון</small></a></nav>
+    <nav class="tabs" aria-label="מערכות"><a href="../">ריזו<small>מכבש הדפסה</small></a><a href="./" aria-current="page">גרדיאנט<small>טיפוגרפיה</small></a><a href="../compose/">קומפוזיציה<small>פטרנים על גיליון</small></a><a href="../shader/">שיידר<small>GLSL</small></a></nav>
     <div class="seg" role="group" aria-label="פורמט">
       <button id="f_post" aria-pressed="true">פוסט<small>1080 × 1350</small></button>
       <button id="f_story" aria-pressed="false">סטורי<small>1080 × 1920</small></button>

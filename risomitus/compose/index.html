@@ -38,8 +38,8 @@
 @media (prefers-reduced-motion:reduce){.shake{animation:none}}
 body:not(.unlocked) #app{visibility:hidden}
 
-/* two-tab switcher, shared by both tools */
-.tabs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin:10px 0 0}
+/* switcher, shared by every tool */
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin:10px 0 0}
 .tabs a{display:block;text-align:center;text-decoration:none;padding:7px 3px;
   font:11px/1.2 ui-monospace,Menlo,monospace;letter-spacing:.04em;
   border:1.5px solid var(--ink,#1E1A17);color:var(--ink,#1E1A17);background:var(--field,#DED6C2)}
@@ -151,7 +151,7 @@ button[disabled]{opacity:.45;cursor:not-allowed;box-shadow:none}
   <div id="panel">
     <div id="masthead">
       <h1>RISOMITUS</h1>
-      <nav class="tabs" aria-label="מערכות"><a href="../">ריזו<small>מכבש הדפסה</small></a><a href="../gradient/">גרדיאנט<small>טיפוגרפיה</small></a><a href="./" aria-current="page">קומפוזיציה<small>פטרנים על גיליון</small></a></nav>
+      <nav class="tabs" aria-label="מערכות"><a href="../">ריזו<small>מכבש הדפסה</small></a><a href="../gradient/">גרדיאנט<small>טיפוגרפיה</small></a><a href="./" aria-current="page">קומפוזיציה<small>פטרנים על גיליון</small></a><a href="../shader/">שיידר<small>GLSL</small></a></nav>
       <div id="sub"><span>קומפוזיציה</span><span id="stat">—</span></div>
     </div>
     <div id="warn"></div>
