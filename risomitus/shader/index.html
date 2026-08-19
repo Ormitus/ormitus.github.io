@@ -155,7 +155,7 @@ body:not(.unlocked) #wrap{visibility:hidden}
     <div class="head">
       <h1>שיידר</h1>
       <nav class="tabs" aria-label="מערכות"><a href="../">ריזו<small>מכבש הדפסה</small></a><a href="../gradient/">גרדיאנט<small>טיפוגרפיה</small></a><a href="../compose/">קומפוזיציה<small>פטרנים על גיליון</small></a><a href="./" aria-current="page">שיידר<small>GLSL</small></a></nav>
-      <p>הפונט חיים נכנס ל־GLSL. האותיות נצרבות לטקסטורה, נגזר מהן שדה מרחק, ועשרה שיידרים עובדים עליו.</p>
+      <p>הפונט חיים נכנס ל־GLSL. האותיות נצרבות לטקסטורה, נגזר מהן שדה מרחק, ועשרים שיידרים עובדים עליו.</p>
     </div>
 
     <div class="grp">
@@ -257,7 +257,12 @@ const SHADERS=[
   ["ripple","גלים","RIPPLE"], ["chrome","מתכת","CHROME"],
   ["melt","נמס","MELT"],     ["moire","מוארה","MOIRE"],
   ["plasma","פלזמה","PLASMA"],["scan","סריקה","SCAN"],
-  ["contour","קווי גובה","CONTOUR"], ["shatter","שברים","SHATTER"]
+  ["contour","קווי גובה","CONTOUR"], ["shatter","שברים","SHATTER"],
+  ["halftone","רשת","HALFTONE"], ["emboss","הטבעה","EMBOSS"],
+  ["neon","ניאון","NEON"],       ["flow","זרם","FLOW"],
+  ["crystal","גביש","CRYSTAL"],  ["extrude","הטלה","EXTRUDE"],
+  ["droplets","טיפות","DROPLETS"],["weave","אריג","WEAVE"],
+  ["dunes","דיונות","DUNES"],    ["echo","הד","ECHO"]
 ];
 /* Each shader reads the six knobs its own way; the labels change with it so the
    panel says what the slider actually does here. */
@@ -271,7 +276,17 @@ const KNOBS={
   plasma:{amt:"משיכה",scale:"קנה מידה",speed:"קצב",detail:"פסים",warp:"הילה",thick:"רוחב הילה"},
   scan:{amt:"הסטה",scale:"שורות",speed:"קצב",detail:"גליץ׳",warp:"פיצול צבע",thick:"עוצמה"},
   contour:{amt:"טווח",scale:"מרווח",speed:"קצב",detail:"גוון",warp:"ניגודיות",thick:"עובי קו"},
-  shatter:{amt:"תזוזה",scale:"מספר שברים",speed:"קצב",detail:"סיבוב",warp:"צבע תפר",thick:"עובי תפר"}
+  shatter:{amt:"תזוזה",scale:"מספר שברים",speed:"קצב",detail:"סיבוב",warp:"צבע תפר",thick:"עובי תפר"},
+  halftone:{amt:"רעש טון",scale:"צפיפות רשת",speed:"קצב",detail:"גודל ענן",warp:"סיבוב רשת",thick:"פרישת טון"},
+  emboss:{amt:"עומק הטבעה",scale:"גרעין נייר",speed:"סיבוב אור",detail:"חספוס",warp:"צבע שקוע",thick:"רוחב שיפוע"},
+  neon:{amt:"פרישת זוהר",scale:"—",speed:"קצב הבהוב",detail:"עוצמת הבהוב",warp:"גוון הילה",thick:"עובי שפופרת"},
+  flow:{amt:"אורך זרם",scale:"פיתול",speed:"קצב",detail:"פירוט",warp:"כיוון מול קווי מתאר",thick:"רקע"},
+  crystal:{amt:"שבירה",scale:"קנה מידה",speed:"קצב",detail:"מספר פאות",warp:"גוון פאה",thick:"עובי שבר"},
+  extrude:{amt:"אורך הטלה",scale:"מדרג צבע",speed:"סיבוב",detail:"צבע פנים",warp:"צבע צד",thick:"דעיכה"},
+  droplets:{amt:"הגדלה",scale:"צפיפות טיפות",speed:"קצב ריצוד",detail:"חדות שפה",warp:"כהות שפה",thick:"גודל טיפה"},
+  weave:{amt:"עיוות חוט",scale:"צפיפות אריגה",speed:"קצב",detail:"הצללת שתי",warp:"רוויה",thick:"עובי חוט"},
+  dunes:{amt:"משיכת אות",scale:"קנה מידה",speed:"קצב",detail:"מספר רכסים",warp:"ניגודיות מדרון",thick:"בהירות פנים"},
+  echo:{amt:"פרישה",scale:"מדרג צבע",speed:"קצב",detail:"סחרור",warp:"סיבוב",thick:"עוצמת הד"}
 };
 const KEYS=["amt","scale","speed","detail","warp","thick"];
 
@@ -609,6 +624,217 @@ vec3 shade(vec2 uv){
   vec3 ink=ink3(bo.x*0.7+bo.y*0.35);
   vec3 seam=mix(uBG,uC2,uWarp);
   return mix(seam,mix(uBG,ink,clamp(c,0.0,1.0)),edge);
+}`,
+
+/* A real screen: dot area follows tone, and tone is the letter's coverage softened
+   outward by the distance field plus a drifting cloud, so the type dissolves into
+   halftone rather than sitting on top of it. */
+halftone:`
+vec3 shade(vec2 uv){
+  float d=sdfAt(uv);
+  vec2 p=cen(uv);
+  float tone=clamp(smoothstep(2.0,-(2.0+uThick*70.0),d)*0.95
+                  +(fbm(p*(0.8+uDetail*6.0)+orbit(0.5+uSpeed*1.5))-0.35)*uAmt*1.3,0.0,1.0);
+  float cells=40.0+uScale*280.0;
+  float a=0.4+TAU*uT*floor(uWarp*3.0);
+  mat2 R=mat2(cos(a),-sin(a),sin(a),cos(a));
+  vec2 f=fract(R*p*cells)-0.5;
+  float r=sqrt(tone)*0.66;
+  float dot_=smoothstep(r,r-0.07,length(f));
+  return mix(uBG,ink3(tone*0.9),dot_);
+}`,
+
+/* Blind embossing: no ink, just a raking light across the pressed edge. Wants a
+   paper-coloured background — the light palettes are what this one is for. */
+emboss:`
+vec3 shade(vec2 uv){
+  float d=sdfAt(uv);
+  vec2 g=grad(uv);
+  vec2 gn=g/(length(g)+1e-5);
+  float K=2.0+uThick*45.0;
+  float h=smoothstep(K,-K,d);
+  float ridge=exp(-abs(d)/(1.0+uAmt*22.0));
+  float a=TAU*uT;
+  float lam=dot(gn,vec2(cos(a),sin(a)));
+  vec3 lit=uBG*(1.0+lam*ridge*(0.30+uAmt*1.3));
+  vec3 c=mix(lit,ink3(0.2+h*0.5),h*uWarp*0.55);
+  float tooth=(vnoise(uv*vec2(uRes.x/uRes.y,1.0)*(150.0+uScale*950.0))-0.5)*uDetail*0.13;
+  return c+tooth;
+}`,
+
+/* Tube, not outline: the bright core sits at a fixed distance from the letter edge
+   and two exponentials of very different reach carry the glow out from it. */
+neon:`
+vec3 shade(vec2 uv){
+  float d=abs(sdfAt(uv));
+  float w=1.0+uThick*16.0;
+  float tube=exp(-pow(d/w,2.0));
+  float out_=max(d-w,0.0);
+  float g1=exp(-out_/(5.0+uAmt*80.0));
+  float g2=exp(-out_/(28.0+uAmt*420.0));
+  float a=TAU*uT;
+  float dip=step(0.55,h21(vec2(floor(uT*18.0),7.0)))
+           *max(0.0,sin(a*floor(3.0+uSpeed*9.0)))*uDetail*0.55;
+  float on=1.0-dip;
+  vec3 core=mix(uC2,vec3(1.0),0.75);
+  vec3 halo=ink3(0.15+0.5*sin(a)+uWarp);
+  return uBG+(core*tube+halo*(g1*0.75+g2*0.4))*on;
+}`,
+
+/* Ink streaming off the letters: march back along a direction that blends the
+   distance-field normal with a turning wind, picking up coverage as it goes. */
+flow:`
+vec3 shade(vec2 uv){
+  vec2 g=grad(uv);
+  vec2 gn=g/(length(g)+1e-5);
+  float a=TAU*uT;
+  vec2 wind=vec2(cos(a),sin(a));
+  vec2 dir=normalize(mix(-gn,wind,0.35+uWarp*0.6)+1e-5);
+  vec2 o=orbit(0.5+uSpeed*1.4);
+  float head=covAt(uv);
+  float tail=0.0,w=1.0;
+  vec2 q=uv;
+  for(int i=0;i<8;i++){
+    float n=vnoise(q*(3.0+uDetail*22.0)+o);
+    vec2 bend=vec2(cos(n*TAU),sin(n*TAU))*(0.004+uAmt*0.012);
+    q+=dir*(0.004+uAmt*0.026)+bend;
+    tail=max(tail,covAt(q)*w); w*=0.86;
+  }
+  tail=clamp(tail-head,0.0,1.0);
+  vec3 bg=mix(uBG,ink3(0.6),0.03+uThick*0.22);
+  vec3 ink=ink3(0.15+tail*0.9);
+  return mix(bg,ink,clamp(head*1.25+tail*0.9,0.0,1.0));
+}`,
+
+/* Faceted glass: the noise field is quantised into flats, each flat refracts the
+   type by its own constant offset, and the three channels take slightly different ones. */
+crystal:`
+vec3 shade(vec2 uv){
+  vec2 p=cen(uv)*(1.5+uScale*9.0);
+  vec2 o=orbit(0.4+uSpeed*1.3);
+  float n=fbm(p+o);
+  float q=2.0+uDetail*9.0;
+  float cellf=floor(n*q);
+  float ang=cellf*2.399963;
+  vec2 nrm=vec2(cos(ang),sin(ang));
+  float sp=uAmt*0.07;
+  float r=covAt(uv+nrm*sp*1.18), gg=covAt(uv+nrm*sp), b=covAt(uv+nrm*sp*0.82);
+  float edge=smoothstep(0.0,0.03+uThick*0.14,abs(fract(n*q)-0.5));
+  vec3 c=uC0*r+uC1*gg+uC2*b;
+  return uBG+c*(0.45+edge*0.75)+ink3(cellf*0.17+uWarp)*(1.0-edge)*0.28;
+}`,
+
+/* Solid extrusion: the deepest step that still lands on ink sets both the shadow and
+   its colour, so the slab reads as depth rather than as a blur. */
+extrude:`
+vec3 shade(vec2 uv){
+  float a=TAU*uT;
+  vec2 dir=vec2(cos(a),sin(a))*(0.01+uAmt*0.16);
+  float body=covAt(uv);
+  float sh=0.0,at=0.0;
+  for(int i=1;i<=14;i++){
+    float f=float(i)/14.0;
+    float v=covAt(uv-dir*f)*(1.0-f*(0.15+uThick*0.8));
+    if(v>sh){ sh=v; at=f; }
+  }
+  vec3 side=ink3(0.1+at*(0.25+uScale*1.3)+uWarp*0.45);
+  vec3 face=ink3(0.55+uDetail*0.45);
+  return mix(mix(uBG,side,clamp(sh,0.0,1.0)),face,body);
+}`,
+
+/* Water sitting on the sheet: each cell may hold one drop, and inside a drop the
+   sample point is pulled toward its centre — a lens, so the type magnifies. */
+droplets:`
+vec3 shade(vec2 uv){
+  float cells=6.0+uScale*38.0;
+  vec2 asp=vec2(uRes.x/uRes.y,1.0);
+  vec2 p=uv*asp*cells;
+  vec2 ip=floor(p),fp=fract(p);
+  float best=1e9,br=1.0; vec2 bc=vec2(0.5);
+  float wob=TAU*uT*floor(1.0+uSpeed*3.0);
+  for(int j=-1;j<=1;j++) for(int i=-1;i<=1;i++){
+    vec2 g=vec2(float(i),float(j));
+    float h=h21(ip+g),h2=h21(ip+g+17.3);
+    if(h<0.34) continue;
+    vec2 c=g+0.5+(vec2(h,h2)-0.5)*0.66
+          +0.10*vec2(cos(wob+h*9.0),sin(wob+h2*9.0));
+    float rr=(0.15+h2*0.28)*(0.45+uThick*1.1);
+    float dd=length(fp-c)-rr;
+    if(dd<best){ best=dd; bc=c; br=rr; }
+  }
+  vec2 rel=(fp-bc)/max(br,1e-4);
+  float r2=min(1.0,dot(rel,rel));
+  float lens=1.0-sqrt(max(0.0,1.0-r2));
+  float in_=step(best,0.0);
+  vec2 off=-rel*lens*uAmt*0.9*in_/(asp*cells);
+  float c=covAt(uv+off);
+  float rim=smoothstep(0.0,0.015+uDetail*0.07,abs(best));
+  float spec=pow(max(0.0,1.0-length(rel-vec2(-0.35,0.35))),7.0)*in_;
+  vec3 base=mix(uBG,ink3(0.3+c*0.6),clamp(c,0.0,1.0));
+  // a lit inner edge as well as the darkened one: over a dark ground the drop would
+  // otherwise show nothing but its glint, and read as sparkle instead of as water
+  float lip=(1.0-rim)*in_;
+  return base*(1.0-(1.0-rim)*0.4*uWarp)+ink3(0.55)*lip*0.5*uWarp+vec3(1.0)*spec*0.85;
+}`,
+
+/* Cloth: warp and weft as two sine combs, each bent by the distance field, with a
+   checkerboard deciding which thread is on top in a given square. */
+weave:`
+vec3 shade(vec2 uv){
+  float k=26.0+uScale*230.0;
+  vec2 p=uv*vec2(uRes.x/uRes.y,1.0)*k;
+  float d=sdfAt(uv);
+  float b=d*(0.003+uAmt*0.05);
+  float a=TAU*uT*floor(1.0+uSpeed*3.0);
+  float th=0.10+uThick*0.30;
+  float sx=abs(fract(p.x+sin(p.y*0.55+b+a)*0.20)-0.5);
+  float sy=abs(fract(p.y+sin(p.x*0.55-b+a)*0.20)-0.5);
+  float lx=smoothstep(th,th-0.07,sx);
+  float ly=smoothstep(th,th-0.07,sy);
+  float over=step(0.5,fract((floor(p.x)+floor(p.y))*0.5));
+  float inside=smoothstep(1.0,-1.0,d);
+  vec3 tx=mix(uC0,uC1,inside), ty=mix(uC1,uC2,inside);
+  vec3 c = over>0.5 ? mix(mix(uBG,ty,ly),tx,lx) : mix(mix(uBG,tx,lx),ty,ly);
+  float shd=1.0-uDetail*0.4*(over>0.5?ly*(1.0-lx):lx*(1.0-ly));
+  c=mix(vec3(dot(c,vec3(0.299,0.587,0.114))),c,0.3+uWarp*0.9);
+  return mix(uBG,c*shd,clamp(max(lx,ly),0.0,1.0));
+}`,
+
+/* Sand: contour bands of a noise height field that the letter pulls on, shaded by the
+   field's own slope so the ridges catch light and the lee sides fall away. */
+dunes:`
+vec3 shade(vec2 uv){
+  vec2 p=cen(uv)*(0.8+uScale*5.0);
+  vec2 o=orbit(0.35+uSpeed*1.2);
+  float d=sdfAt(uv);
+  float pull=d*(0.0015+uAmt*0.018);
+  float f=fbm(p*1.5+o)*1.2+pull;
+  float k=4.0+uDetail*40.0;
+  float band=fract(f*k);
+  float ridge=smoothstep(0.0,0.35,band)*smoothstep(1.0,0.62,band);
+  float sl=fbm((p+vec2(0.035,0.0))*1.5+o)-fbm((p-vec2(0.035,0.0))*1.5+o);
+  vec3 sand=ink3(0.15+f*0.5);
+  vec3 c=sand*(0.65+sl*(2.0+uWarp*9.0))*(0.5+ridge*0.8);
+  float inside=smoothstep(1.0,-1.0,d);
+  return mix(mix(uBG,c,0.92),c*(1.15+uThick*0.9),inside);
+}`,
+
+/* Eight copies of the word, each scaled and turned a little further out, fading as
+   they go — the trail a shape leaves when it is pushed toward the viewer. */
+echo:`
+vec3 shade(vec2 uv){
+  vec2 ctr=vec2(0.5);
+  float a=TAU*uT;
+  vec3 col=vec3(0.0);
+  for(int i=0;i<8;i++){
+    float f=float(i)/8.0;
+    float sc=1.0+f*(0.05+uAmt*1.5);
+    float rot=(f*(0.02+uWarp*0.55)+float(i)*uDetail*0.06)*sin(a);
+    mat2 R=mat2(cos(rot),-sin(rot),sin(rot),cos(rot));
+    float c=covAt(ctr+R*((uv-ctr)/sc))*(1.0-f)*(0.35+uThick*1.1);
+    col+=ink3(f*(0.35+uScale)+a/TAU)*c;
+  }
+  return mix(uBG+col*0.55,ink3(0.85),covAt(uv));
 }`
 
 };
