@@ -257,7 +257,7 @@ const DEF=()=>({
   amt:.28, scale:.4, speed:.45, detail:.5, warp:.35, thick:.45,
   bg:"#0a0910", c0:"#FF48B0", c1:"#0078BF", c2:"#FFE800",
   grain:.09, loop:6, fmt:"post", vfmt:"mp4",
-  depth:.35, rot:.32, persp:.35, light:.6, ao:.5
+  depth:.35, rot:.32, persp:.35, light:.6, ao:.5, relief:.4
 });
 let ST=DEF();
 
@@ -430,7 +430,7 @@ precision highp float;
 uniform sampler2D uSDF,uType;
 uniform vec2 uRes;
 uniform float uT,uAmt,uScale,uSpeed,uDetail,uWarp,uThick,uGrain,uSeed;
-uniform float uDepth,uRot,uPersp,uLight,uAO;
+uniform float uDepth,uRot,uPersp,uLight,uAO,uRelief;
 uniform vec3 uC0,uC1,uC2,uBG;
 out vec4 O;
 #define TAU 6.28318530718
@@ -453,7 +453,8 @@ float covAt(vec2 pl){
   vec2 uv=vec2(pl.x/asp(),pl.y)*0.5+0.5;
   return texture(uType,clamp(uv,0.0,1.0)).r;
 }
-float map(vec3 p){
+/* the bare letter solid, before the shader carves into it */
+float baseMap(vec3 p){
   vec2 pl=vec2(p.x/asp(),p.y);
   float d2=sdf2(clamp(pl*0.5+0.5,0.0,1.0))/uRes.y*2.0;
   vec2 q=abs(pl)-vec2(1.0);
@@ -461,11 +462,7 @@ float map(vec3 p){
   vec2 w=vec2(d2,abs(p.z)-dep());
   return min(max(w.x,w.y),0.0)+length(max(w,0.0));
 }
-vec3 nrm(vec3 p){
-  vec2 e=vec2(1.0,-1.0)*0.0014;
-  return normalize(e.xyy*map(p+e.xyy)+e.yyx*map(p+e.yyx)
-                  +e.yxy*map(p+e.yxy)+e.xxx*map(p+e.xxx));
-}
+float relief(){ return uRelief*0.055; }
 vec2 slab(vec3 ro,vec3 rd,vec3 b){
   vec3 m=1.0/(rd+1e-9),k=abs(m)*b;
   vec3 t1=-m*ro-k,t2=-m*ro+k;
@@ -503,6 +500,7 @@ vec3 cell3(vec3 p){
   }
   return vec3(d1,d2-d1,id);
 }
+float height(vec3 p);
 vec3 surface(vec3 p,vec3 n,float dd,float c,vec3 rd);
 `;
 
@@ -755,6 +753,67 @@ vec3 surface(vec3 p,vec3 n,float dd,float c,vec3 rd){
 }`
 
 };
+/* ---- relief -------------------------------------------------------------
+   Each shader also declares a height: the same pattern, read as material.
+   map() subtracts it from the letter solid, so the field is carved into the
+   geometry and shows up in the silhouette — bumps, ridges, cells and dots that
+   are actually there, not painted on. Cheap variants on purpose: this runs per
+   march step, while the colour runs once per pixel. */
+const HEIGHT={
+liquid:`float height(vec3 p){ vec3 q=p*(1.4+uScale*6.0)+orbit3(0.5+uSpeed*1.6);
+  return fbm3(q*1.2); }`,
+chroma:`float height(vec3 p){ return fbm3(p*(1.2+uScale*5.0)+orbit3(0.4+uSpeed*1.5)); }`,
+ripple:`float height(vec3 p){ vec3 s=orbit3(0.30); float r=length(p-s);
+  return 0.5+0.5*sin(r*(10.0+uScale*80.0)-TAU*uT*floor(2.0+uSpeed*6.0))*exp(-r*(0.4+uDetail*3.0)); }`,
+chrome:`float height(vec3 p){ float dd=letterDist(p.xy);
+  return 0.5+0.5*sin(dd*(0.04+uScale*0.45)+TAU*uT); }`,
+melt:`float height(vec3 p){ float col=h21(vec2(floor(p.x*(15.0+uScale*120.0)),3.0));
+  float drive=0.5-0.5*cos(TAU*(uT*floor(1.0+uSpeed*3.0)+col));
+  return fbm3(vec3(p.x*(6.0+uDetail*30.0),p.y*2.0-drive*3.0,p.z*4.0)); }`,
+moire:`float height(vec3 p){ vec3 q=p*(45.0+uScale*260.0); float a1=TAU*uT;
+  return 0.5+0.5*sin(q.x*cos(a1)+q.y*sin(a1)+q.z*0.8)*sin(q.x*cos(a1+0.3)+q.y*sin(a1+0.3)); }`,
+plasma:`float height(vec3 p){ return fbm3(p*(1.6+uScale*8.0)+orbit3(0.7+uSpeed*2.2)); }`,
+scan:`float height(vec3 p){ float rows=12.0+uScale*140.0; float row=floor(p.y*rows);
+  return fract(h21(vec2(row,1.0))+uT*floor(1.0+uSpeed*5.0)); }`,
+contour:`float height(vec3 p){ float sp=3.0+uScale*80.0;
+  float f=fract(letterDist(p.xy)/sp-uT*floor(1.0+uSpeed*4.0));
+  return 1.0-min(f,1.0-f)*2.0; }`,
+shatter:`float height(vec3 p){ vec3 v=cell3(p*(3.0+uScale*30.0)+orbit3(0.4+uSpeed*1.4));
+  return smoothstep(0.0,0.05+uThick*0.25,v.y); }`,
+halftone:`float height(vec3 p){ float t=clamp(smoothstep(2.0,-(2.0+uThick*70.0),letterDist(p.xy)),0.0,1.0);
+  vec3 f=fract(p*(20.0+uScale*160.0))-0.5;
+  return smoothstep(sqrt(t)*0.7,sqrt(t)*0.7-0.15,length(f)); }`,
+emboss:`float height(vec3 p){ return exp(-abs(letterDist(p.xy))/(1.0+uAmt*22.0)); }`,
+neon:`float height(vec3 p){ float w=1.0+uThick*16.0;
+  return exp(-pow(abs(letterDist(p.xy))/w,2.0)); }`,
+flow:`float height(vec3 p){ float a=TAU*uT;
+  return fbm3(p*(2.0+uScale*8.0)+vec3(cos(a),sin(a),0.3)*(0.3+uAmt*1.2)); }`,
+crystal:`float height(vec3 p){ float k=2.0+uDetail*9.0;
+  return floor(fbm3(p*(1.5+uScale*9.0)+orbit3(0.4+uSpeed*1.3))*k)/k; }`,
+extrude:`float height(vec3 p){ float a=TAU*uT;
+  return covAt(p.xy-vec2(cos(a),sin(a))*(0.02+uAmt*0.16)); }`,
+droplets:`float height(vec3 p){ vec3 v=cell3(p*(4.0+uScale*26.0)+orbit3(0.2+uSpeed*0.9));
+  float r=0.18+uThick*0.34;
+  return sqrt(max(0.0,1.0-pow(min(v.x/r,1.0),2.0))); }`,
+weave:`float height(vec3 p){ vec3 q=p*(16.0+uScale*140.0); float a=TAU*uT*floor(1.0+uSpeed*3.0);
+  float sx=abs(fract(q.x+sin(q.y*0.55+a)*0.2)-0.5), sy=abs(fract(q.y+sin(q.x*0.55+a)*0.2)-0.5);
+  float th=0.10+uThick*0.30;
+  return max(smoothstep(th,th-0.09,sx),smoothstep(th,th-0.09,sy)); }`,
+dunes:`float height(vec3 p){ vec3 q=p*(0.8+uScale*5.0)+orbit3(0.35+uSpeed*1.2);
+  float f=fbm3(q*1.5)*1.2;
+  float b=fract(f*(4.0+uDetail*40.0));
+  return smoothstep(0.0,0.35,b)*smoothstep(1.0,0.62,b); }`,
+echo:`float height(vec3 p){ float a=TAU*uT,acc=0.0;
+  for(int i=0;i<4;i++){ float f=float(i)/4.0;
+    acc=max(acc,covAt(p.xy/(1.0+f*(0.05+uAmt*1.5)))*(1.0-f)); }
+  return acc; }`
+};
+/* the composed shaders carve exactly what they colour: the same field, same warp */
+const GEN_HEIGHT=`
+float height(vec3 p){
+  return clamp(FIELD(WARP(p,vec3(0.0,0.0,1.0))*(0.4+uScale*7.0),letterDist(p.xy)),0.0,1.0);
+}`;
+
 /* ═══ the composed shaders ══════════════════════════════════════════════════
    The twenty above are written out by hand. A hundred and five more are
    assembled from three interchangeable stages, all of them working in space:
@@ -918,6 +977,20 @@ vec3 surface(vec3 p,vec3 n,float dd,float c,vec3 rd){
    the stored field saturates at 512px, so crossing the empty space in front of
    the sheet would otherwise eat the whole step budget. */
 const POST=`
+/* The displaced solid. Subtracting a height field costs the field its exact
+   distance property, so the march damps its steps near the surface — and it only
+   evaluates the field when it is already within reach of it, which is what keeps
+   a per-step cellular lookup affordable. */
+float map(vec3 p){
+  float a=relief();
+  if(a<=0.0) return baseMap(p);
+  return baseMap(p)-clamp(height(p),0.0,1.0)*a;
+}
+vec3 nrm(vec3 p){
+  vec2 e=vec2(1.0,-1.0)*(0.0014+relief()*0.06);
+  return normalize(e.xyy*map(p+e.xyy)+e.yyx*map(p+e.yyx)
+                  +e.yxy*map(p+e.yxy)+e.xxx*map(p+e.xxx));
+}
 float shadow(vec3 ro,vec3 L){
   float t=0.012,r=1.0;
   for(int i=0;i<20;i++){
@@ -946,14 +1019,17 @@ void main(){
 
   vec3 p=vec3(0.0),n=vec3(0.0,0.0,1.0);
   float c=0.0; bool got=false; int steps=0;
-  vec2 tt=slab(ro,rd,vec3(asp()*1.02,1.02,dep()));
+  vec2 tt=slab(ro,rd,vec3(asp()*1.02+relief(),1.02+relief(),dep()+relief()));
   if(tt.y>max(tt.x,0.0)){
-    float t=max(tt.x,0.0);
-    for(int i=0;i<64;i++){
+    float t=max(tt.x,0.0), a=relief();
+    for(int i=0;i<72;i++){
       vec3 w=ro+rd*t;
-      float h=map(w); steps=i;
+      float b=baseMap(w); steps=i;
+      float h; float k;
+      if(b<a*1.6){ h=b-clamp(height(w),0.0,1.0)*a; k=0.55; }  // in the relief band
+      else       { h=b-a;                          k=0.92; }  // still outside it
       if(h<0.0011){ p=w; n=nrm(w); c=1.0; got=true; break; }
-      t+=h*0.92;
+      t+=max(h*k,0.0006);
       if(t>tt.y) break;
     }
   }
@@ -968,7 +1044,7 @@ void main(){
   vec3 alb=surface(p,n,dd,c,rd);
   float dif=max(dot(n,L),0.0);
   float amb=0.45+0.25*max(n.z,0.0);
-  float ao=clamp(1.0-uAO*float(steps)/64.0*2.2,0.25,1.0);
+  float ao=clamp(1.0-uAO*float(steps)/72.0*2.2,0.25,1.0);
   float sh=mix(1.0,shadow(p+n*0.007,L),uAO*0.9);
   vec3 lit=alb*((amb+dif*sh*(0.3+uLight*1.4))*ao);
   vec3 col=mix(alb,lit,uLight);
@@ -1232,11 +1308,11 @@ const hex=h=>{ const n=parseInt(h.slice(1),16);
 function shaderProg(name){
   if(pCache[name]) return pCache[name];
   let mid;
-  if(BODY[name]) mid=BODY[name];
+  if(BODY[name]) mid=HEIGHT[name]+"\n"+BODY[name];
   else if(GEN[name]){
     const g=GEN[name];
-    mid=FIELDS[g.f].glsl+"\n"+WARPS[g.w]+"\n"+INKS[g.i]+"\n"+GEN_MAIN;
-  } else mid=BODY.liquid;
+    mid=FIELDS[g.f].glsl+"\n"+WARPS[g.w]+"\n"+INKS[g.i]+"\n"+GEN_HEIGHT+"\n"+GEN_MAIN;
+  } else mid=HEIGHT.liquid+"\n"+BODY.liquid;
   const p=prog(PRE+mid+"\n"+POST);
   pCache[name]=p; return p;
 }
@@ -1263,6 +1339,7 @@ function draw(phase){
   gl.uniform1f(loc(p,"uPersp"),ST.persp);
   gl.uniform1f(loc(p,"uLight"),ST.light);
   gl.uniform1f(loc(p,"uAO"),ST.ao);
+  gl.uniform1f(loc(p,"uRelief"),ST.relief);
   gl.drawArrays(gl.TRIANGLES,0,3);
 }
 
@@ -1310,8 +1387,8 @@ function knobs(){
     };
   });
 }
-const D3=[["depth","עומק"],["rot","סיבוב"],["persp","פרספקטיבה"],
-          ["light","אור"],["ao","הצללה"]];
+const D3=[["depth","עומק"],["relief","תבליט"],["rot","סיבוב"],
+          ["persp","פרספקטיבה"],["light","אור"],["ao","הצללה"]];
 function knobs3d(){
   const box=$("knobs3d"); box.innerHTML="";
   D3.forEach(([k,l])=>{
@@ -1413,6 +1490,7 @@ $("b_rand").onclick=()=>{
   ST.persp=+(0.10+Math.random()*0.8).toFixed(2);
   ST.light=+(0.35+Math.random()*0.6).toFixed(2);
   ST.ao=+(0.20+Math.random()*0.7).toFixed(2);
+  ST.relief=+(0.15+Math.random()*0.8).toFixed(2);
   ST.loop=[4,5,6,8][(Math.random()*4)|0];
   seed=Math.random()*100;
   clock=0; sync(); buildType();
