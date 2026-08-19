@@ -243,6 +243,7 @@ function makeTile(){
 function applyCfg(t){
   if(!t.api||!t.cfg) return;
   t.cfg.type = Object.assign({}, t.cfg.type, {font:HAIM});   // the house face, always
+  if(!t.cfg.comp || t.cfg.comp.bgMode==="solid") gradientGround(t.cfg);  // heals old saves
   t.api.setConfig(t.cfg);
   if(t.api.setScale) try{ t.api.setScale(tileScale); }catch(e){}
 }
@@ -307,11 +308,37 @@ function affordable(cfg,count){
     glow: count>=4 ? 0 : cfg.material.glow });
   return cfg;
 }
+/* The engine's randomiser never touches the background, so every rolled tile came out
+   on the same flat DEF colour. Each one now gets a real gradient built from its own
+   palette — darkened, because the type has to stay legible over it, and because the
+   contrast probe below cannot tell a vivid background from a visible pattern. */
+function gradientGround(cfg){
+  const stops=((cfg.color&&cfg.color.stops)||[]).map(s=>s&&s.c)
+    .filter(c=>typeof c==="string"&&/^#[0-9a-f]{6}$/i.test(c));
+  const shade=(hex,k)=>{
+    const v=parseInt(hex.slice(1),16), b=x=>Math.round(Math.min(255,x*k)).toString(16).padStart(2,"0");
+    return "#"+b(v>>16&255)+b(v>>8&255)+b(v&255);
+  };
+  // two different stops where the palette has them, and disjoint darkening ranges, so
+  // the two ends never land on the same colour and collapse back into a flat ground
+  const a=stops.length?pick(stops):"#2a2a48";
+  const rest=stops.filter(c=>c!==a);
+  const b=rest.length?pick(rest):(stops.length?a:"#101018");
+  cfg.comp=Object.assign({},cfg.comp,{
+    bgMode:"gradient",
+    bg1:shade(a,rnd(.08,.18)),
+    bg2:shade(b,rnd(.30,.50)),
+    bgAngle:(Math.random()*360)|0,
+    bgMotion:+rnd(.3,1).toFixed(2)
+  });
+  return cfg;
+}
+
 function rollUntilVisible(t,tries=6){
   let best=null, bestV=-1;
   for(let i=0;i<tries;i++){
     t.api.randomize();
-    const cfg=affordable(t.api.config(),tiles.length);
+    const cfg=gradientGround(affordable(t.api.config(),tiles.length));
     t.api.setConfig(cfg);
     const v=visibility(t);
     if(v>bestV){ bestV=v; best=cfg; }
