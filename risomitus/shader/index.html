@@ -112,6 +112,11 @@ body:not(.unlocked) #wrap{visibility:hidden}
   .seg button[aria-pressed=true]{background:var(--txt);color:var(--bg);border-color:var(--txt)}
   .seg button:not([aria-pressed=true]):hover{border-color:var(--pink)}
 
+  .filt{display:grid;grid-template-columns:1fr 108px;gap:4px;margin-bottom:6px}
+  #shbox{max-height:290px;overflow-y:auto;overscroll-behavior:contain;
+    border:1px solid var(--line);padding:4px;background:var(--bg)}
+  #shcount{float:inline-end;font-size:9px;color:var(--dim2);letter-spacing:0}
+  .none{margin:14px 0;text-align:center;font-size:10.5px;color:var(--dim2)}
   #shaders{display:grid;grid-template-columns:1fr 1fr;gap:4px}
   #shaders button{font:10.5px/1.2 ui-monospace,Menlo,monospace;padding:9px 3px;cursor:pointer;
     background:var(--surf2);color:var(--txt);border:1px solid var(--line2)}
@@ -155,7 +160,7 @@ body:not(.unlocked) #wrap{visibility:hidden}
     <div class="head">
       <h1>שיידר</h1>
       <nav class="tabs" aria-label="מערכות"><a href="../">ריזו<small>מכבש הדפסה</small></a><a href="../gradient/">גרדיאנט<small>טיפוגרפיה</small></a><a href="../compose/">קומפוזיציה<small>פטרנים על גיליון</small></a><a href="./" aria-current="page">שיידר<small>GLSL</small></a></nav>
-      <p>הפונט חיים נכנס ל־GLSL. האותיות נצרבות לטקסטורה, נגזר מהן שדה מרחק, ועשרים שיידרים עובדים עליו.</p>
+      <p>הפונט חיים נכנס ל־GLSL. האותיות נצרבות לטקסטורה, נגזר מהן שדה מרחק, ומאה עשרים וחמישה שיידרים עובדים עליו.</p>
     </div>
 
     <div class="grp">
@@ -170,8 +175,12 @@ body:not(.unlocked) #wrap{visibility:hidden}
     </div>
 
     <div class="grp">
-      <h2>השיידר</h2>
-      <div id="shaders"></div>
+      <h2>השיידר <span id="shcount"></span></h2>
+      <div class="filt">
+        <input id="shq" type="text" placeholder="חיפוש" spellcheck="false" aria-label="חיפוש שיידר">
+        <select id="shfam" aria-label="משפחה"></select>
+      </div>
+      <div id="shbox"><div id="shaders"></div></div>
     </div>
 
     <div class="grp">
@@ -263,7 +272,7 @@ const SHADERS=[
   ["crystal","גביש","CRYSTAL"],  ["extrude","הטלה","EXTRUDE"],
   ["droplets","טיפות","DROPLETS"],["weave","אריג","WEAVE"],
   ["dunes","דיונות","DUNES"],    ["echo","הד","ECHO"]
-];
+].map(x=>x.concat(["כתובים ביד"]));
 /* Each shader reads the six knobs its own way; the labels change with it so the
    panel says what the slider actually does here. */
 const KNOBS={
@@ -289,6 +298,8 @@ const KNOBS={
   echo:{amt:"פרישה",scale:"מדרג צבע",speed:"קצב",detail:"סחרור",warp:"סיבוב",thick:"עוצמת הד"}
 };
 const KEYS=["amt","scale","speed","detail","warp","thick"];
+/* the composed shaders share one meaning for the six knobs, so they share one label set */
+const KNOBS_DEF={amt:"עוצמה",scale:"קנה מידה",speed:"קצב",detail:"פירוט",warp:"עיוות",thick:"עובי"};
 
 /* ============================ GL ============================ */
 const cv=$("cv");
@@ -839,6 +850,311 @@ vec3 shade(vec2 uv){
 
 };
 
+/* ═══ the composed shaders ══════════════════════════════════════════════════
+   Twenty shaders are written out by hand above. A hundred more are assembled
+   from three interchangeable stages, because a hundred hand-written ones would
+   have been a hundred near-copies:
+
+     FIELD(p,d)          the pattern, and how the letter's distance bends it
+     WARP(uv,d,gn)       where the type is sampled from
+     INK(v,c,d,uv)       how field, coverage and distance become colour
+
+   One program per named combination, compiled the first time it is picked.
+   Every field loops in uT — nothing rides a bare clock. ═══════════════════ */
+const FIELDS={
+ fbmflow:{he:"ערפל",glsl:`
+float FIELD(vec2 p,float d){ return fbm(p*1.3+orbit(0.5+uSpeed*1.6))+d*(0.0008+uAmt*0.012); }`},
+ rings:{he:"טבעות",glsl:`
+float FIELD(vec2 p,float d){
+  float r=length(p-orbit(0.25));
+  return sin(r*(6.0+uDetail*50.0)-TAU*uT*floor(1.0+uSpeed*5.0)+d*(0.01+uAmt*0.13))*0.5+0.5; }`},
+ bands:{he:"פסים",glsl:`
+float FIELD(vec2 p,float d){
+  float a=TAU*uT*floor(uSpeed*4.0)+0.6;
+  return sin(dot(p,vec2(cos(a),sin(a)))*(4.0+uDetail*40.0)+d*(0.01+uAmt*0.16))*0.5+0.5; }`},
+ checks:{he:"משבצות",glsl:`
+float FIELD(vec2 p,float d){
+  vec2 q=p*(1.0+uDetail*8.0)+orbit(0.35+uSpeed);
+  return step(0.5,fract((floor(q.x)+floor(q.y))*0.5+d*(0.0004+uAmt*0.006))); }`},
+ voronoi:{he:"תאים",glsl:`
+float FIELD(vec2 p,float d){
+  vec2 q=p*(0.8+uDetail*5.0)+orbit(0.3+uSpeed);
+  vec2 ip=floor(q),fp=fract(q);
+  float bd=9.0,id=0.0;
+  for(int j=-1;j<=1;j++) for(int i=-1;i<=1;i++){
+    vec2 g=vec2(float(i),float(j));
+    vec2 r=g+vec2(h21(ip+g),h21(ip+g+7.1))-fp;
+    float dd=dot(r,r);
+    if(dd<bd){ bd=dd; id=h21(ip+g+3.3); } }
+  return id+d*(0.0006+uAmt*0.008); }`},
+ vorEdge:{he:"קווי תאים",glsl:`
+float FIELD(vec2 p,float d){
+  vec2 q=p*(0.8+uDetail*5.0)+orbit(0.3+uSpeed);
+  vec2 ip=floor(q),fp=fract(q);
+  vec2 mr=vec2(0.0); float bd=9.0;
+  for(int j=-1;j<=1;j++) for(int i=-1;i<=1;i++){
+    vec2 g=vec2(float(i),float(j));
+    vec2 r=g+vec2(h21(ip+g),h21(ip+g+7.1))-fp;
+    float dd=dot(r,r);
+    if(dd<bd){ bd=dd; mr=r; } }
+  float e=9.0;
+  for(int j=-2;j<=2;j++) for(int i=-2;i<=2;i++){
+    vec2 g=vec2(float(i),float(j));
+    vec2 r=g+vec2(h21(ip+g),h21(ip+g+7.1))-fp;
+    vec2 dv=r-mr;
+    if(dot(dv,dv)>1e-5) e=min(e,dot(0.5*(mr+r),normalize(dv))); }
+  return smoothstep(0.0,0.06+uThick*0.25,e)+d*(0.0004+uAmt*0.006); }`},
+ spiral:{he:"ספירלה",glsl:`
+float FIELD(vec2 p,float d){
+  float a=atan(p.y,p.x),r=length(p);
+  return sin(a*floor(1.0+uDetail*8.0)+r*(2.0+uDetail*20.0)
+            -TAU*uT*floor(1.0+uSpeed*4.0)+d*(0.01+uAmt*0.11))*0.5+0.5; }`},
+ dots:{he:"נקודות",glsl:`
+float FIELD(vec2 p,float d){
+  vec2 f=fract(p*(2.0+uDetail*14.0)+orbit(0.2+uSpeed*0.8))-0.5;
+  float t=clamp(smoothstep(2.0,-(2.0+uThick*70.0),d),0.0,1.0);
+  float r=sqrt(t)*0.64;
+  return smoothstep(r,r-0.09,length(f)); }`},
+ stripesN:{he:"פסי רעש",glsl:`
+float FIELD(vec2 p,float d){
+  float n=fbm(p*0.7+orbit(0.4+uSpeed));
+  return sin((p.x+n*(1.0+uWarp*4.0))*(4.0+uDetail*40.0)+d*(0.01+uAmt*0.13))*0.5+0.5; }`},
+ ridge:{he:"רכסים",glsl:`
+float FIELD(vec2 p,float d){
+  vec2 q=p+orbit(0.4+uSpeed);
+  float s=0.0,a=0.5;
+  for(int i=0;i<5;i++){ s+=a*(1.0-abs(vnoise(q)*2.0-1.0)); q*=2.03; a*=0.5; }
+  return s+d*(0.0008+uAmt*0.011); }`},
+ turb:{he:"סערה",glsl:`
+float FIELD(vec2 p,float d){
+  return abs(fbm(p*1.4+orbit(0.5+uSpeed*1.4))*2.0-1.0)+d*(0.0008+uAmt*0.013); }`},
+ grid:{he:"רשת קווים",glsl:`
+float FIELD(vec2 p,float d){
+  vec2 q=p*(2.0+uDetail*20.0)+vec2(d*(0.002+uAmt*0.03))+orbit(0.25+uSpeed*0.9);
+  vec2 g=abs(fract(q)-0.5);
+  return 1.0-smoothstep(0.0,0.06+uThick*0.3,min(g.x,g.y)); }`},
+ tri:{he:"משולשים",glsl:`
+float FIELD(vec2 p,float d){
+  vec2 q=p*(1.5+uDetail*12.0)+orbit(0.3+uSpeed*0.9);
+  q.x+=q.y*0.5;
+  vec2 f=fract(q);
+  float t=step(f.x+f.y,1.0);
+  return fract(h21(floor(q)+t*0.37)+d*(0.0006+uAmt*0.008)); }`},
+ rowhash:{he:"שורות",glsl:`
+float FIELD(vec2 p,float d){
+  float rows=8.0+uDetail*90.0;
+  float r=floor((p.y+d*(0.002+uAmt*0.022))*rows);
+  return fract(h21(vec2(r,3.0))+uT*floor(1.0+uSpeed*4.0)); }`},
+ polarzig:{he:"זיגזג",glsl:`
+float FIELD(vec2 p,float d){
+  float a=atan(p.y,p.x)/TAU, r=length(p);
+  float k=floor(3.0+uDetail*20.0);
+  return abs(fract(a*k-r*(0.5+uAmt*6.0)+d*(0.002+uAmt*0.02)+uT*floor(1.0+uSpeed*4.0))*2.0-1.0); }`},
+ worley2:{he:"סדקים",glsl:`
+float FIELD(vec2 p,float d){
+  vec2 q=p*(0.8+uDetail*5.0)+orbit(0.3+uSpeed);
+  vec2 ip=floor(q),fp=fract(q);
+  float d1=9.0,d2=9.0;
+  for(int j=-1;j<=1;j++) for(int i=-1;i<=1;i++){
+    vec2 g=vec2(float(i),float(j));
+    vec2 r=g+vec2(h21(ip+g),h21(ip+g+7.1))-fp;
+    float dd=length(r);
+    if(dd<d1){ d2=d1; d1=dd; } else if(dd<d2) d2=dd; }
+  return (d2-d1)+d*(0.0006+uAmt*0.008); }`}
+};
+
+const WARPS={
+ none:`vec2 WARP(vec2 uv,float d,vec2 gn){ return uv; }`,
+ noise:`vec2 WARP(vec2 uv,float d,vec2 gn){
+  vec2 o=orbit(0.5+uSpeed);
+  return uv+(vec2(fbm(uv*6.0+o),fbm(uv*6.0+o.yx+13.0))-0.5)*uAmt*0.18; }`,
+ push:`vec2 WARP(vec2 uv,float d,vec2 gn){
+  return uv-gn*(uAmt*0.11)*(0.35+0.65*sin(TAU*uT)); }`,
+ swirl:`vec2 WARP(vec2 uv,float d,vec2 gn){
+  vec2 q=uv-0.5;
+  float a=(uAmt*2.4)*exp(-length(q)*(1.0+uDetail*6.0))*sin(TAU*uT);
+  float s=sin(a),c=cos(a);
+  return 0.5+mat2(c,-s,s,c)*q; }`,
+ rows:`vec2 WARP(vec2 uv,float d,vec2 gn){
+  float rows=20.0+uScale*200.0, r=floor(uv.y*rows);
+  return vec2(uv.x+sin(TAU*(uT*floor(1.0+uSpeed*4.0)+h21(vec2(r,2.0))))*uAmt*0.13,(r+0.5)/rows); }`,
+ cols:`vec2 WARP(vec2 uv,float d,vec2 gn){
+  float n=20.0+uScale*200.0, c=floor(uv.x*n);
+  return vec2((c+0.5)/n,uv.y+sin(TAU*(uT*floor(1.0+uSpeed*4.0)+h21(vec2(c,9.0))))*uAmt*0.13); }`,
+ lens:`vec2 WARP(vec2 uv,float d,vec2 gn){
+  vec2 q=uv-(0.5+orbit(0.18));
+  return uv+q*(uAmt*1.3)*(0.25-dot(q,q)); }`,
+ cells:`vec2 WARP(vec2 uv,float d,vec2 gn){
+  vec2 ip=floor(uv*vec2(uRes.x/uRes.y,1.0)*(4.0+uScale*30.0));
+  float a=TAU*(h21(ip)+uT*floor(1.0+uSpeed*3.0));
+  return uv+vec2(cos(a),sin(a))*uAmt*0.05*(0.3+h21(ip+5.5)); }`,
+ zoom:`vec2 WARP(vec2 uv,float d,vec2 gn){
+  return 0.5+(uv-0.5)/(1.0+uAmt*0.8*sin(TAU*uT)); }`,
+ wave:`vec2 WARP(vec2 uv,float d,vec2 gn){
+  float a=TAU*uT; vec2 ax=vec2(cos(a),sin(a));
+  return uv+ax*sin(dot(uv-0.5,vec2(-ax.y,ax.x))*(10.0+uScale*90.0))*uAmt*0.06; }`
+};
+
+const INKS={
+ fill:`vec3 INK(float v,float c,float d,vec2 uv){ return mix(uBG,ink3(v),clamp(c,0.0,1.0)); }`,
+ knock:`vec3 INK(float v,float c,float d,vec2 uv){ return mix(ink3(v),uBG,clamp(c,0.0,1.0)); }`,
+ duo:`vec3 INK(float v,float c,float d,vec2 uv){
+  vec3 g=mix(uBG,uC0,clamp(v,0.0,1.0)*(0.3+uWarp*0.7));
+  return mix(g,mix(uC1,uC2,clamp(v,0.0,1.0)),clamp(c,0.0,1.0)); }`,
+ screen:`vec3 INK(float v,float c,float d,vec2 uv){
+  float k=smoothstep(0.44,0.56,fract(v));
+  return mix(uBG,mix(uC0,uC2,k),clamp(c,0.0,1.0)); }`,
+ halo:`vec3 INK(float v,float c,float d,vec2 uv){
+  float h=exp(-max(d,0.0)/(4.0+uThick*90.0));
+  return mix(uBG,ink3(v),clamp(c*1.2+h*(0.2+uWarp*0.6),0.0,1.0)); }`,
+ outline:`vec3 INK(float v,float c,float d,vec2 uv){
+  float w=1.0+uThick*16.0;
+  float r=exp(-pow(abs(d)/w,2.0));
+  return uBG+ink3(v)*r+ink3(v+0.4)*exp(-max(abs(d)-w,0.0)/(20.0+uAmt*300.0))*0.35; }`,
+ poster:`vec3 INK(float v,float c,float d,vec2 uv){
+  float q=2.0+floor(uDetail*7.0);
+  float b=floor(clamp(v,0.0,1.0)*q)/q;
+  return mix(mix(uBG,ink3(b),0.85),ink3(b+0.45),clamp(c,0.0,1.0)); }`,
+ add:`vec3 INK(float v,float c,float d,vec2 uv){
+  return uBG+uC0*clamp(c,0.0,1.0)+uC1*clamp(v,0.0,1.0)*(0.25+uWarp*0.65); }`,
+ shadowed:`vec3 INK(float v,float c,float d,vec2 uv){
+  float a=TAU*uT;
+  float sh=covAt(uv-vec2(cos(a),sin(a))*(0.008+uAmt*0.05));
+  vec3 ground=mix(uBG,ink3(v),0.2+uWarp*0.6);
+  return mix(mix(ground,ground*0.32,clamp(sh,0.0,1.0)),ink3(v+0.5),clamp(c,0.0,1.0)); }`,
+ relief:`vec3 INK(float v,float c,float d,vec2 uv){
+  vec2 g=grad(uv); vec2 gn=g/(length(g)+1e-5);
+  float a=TAU*uT;
+  float ridge=exp(-abs(d)/(1.0+uThick*22.0));
+  vec3 base=mix(uBG,ink3(v),0.15+uWarp*0.5);
+  return base*(1.0+dot(gn,vec2(cos(a),sin(a)))*ridge*(0.4+uAmt*1.2)); }`
+};
+
+const GEN_MAIN=`
+vec3 shade(vec2 uv){
+  float d0=sdfAt(uv);
+  vec2 g=grad(uv);
+  vec2 gn=g/(length(g)+1e-5);
+  vec2 suv=WARP(uv,d0,gn);
+  float c=covAt(suv);
+  float d=sdfAt(suv);
+  float f=FIELD(cen(uv)*(0.4+uScale*7.0),d0);
+  return INK(f,c,d,suv);
+}`;
+
+/* key, Hebrew, English, field, warp, ink — a hundred curated combinations. */
+const GEN_LIST=[
+["smoke","עשן","SMOKE","fbmflow","none","fill"],
+["vapour","אדים","VAPOUR","fbmflow","noise","halo"],
+["marble","שיש","MARBLE","fbmflow","none","poster"],
+["river","נהר","RIVER","fbmflow","push","duo"],
+["whirlpool","מערבולת","WHIRLPOOL","fbmflow","swirl","fill"],
+["inkcloud","ענן דיו","INK CLOUD","fbmflow","none","knock"],
+["magnet","מגנט","MAGNET","fbmflow","push","outline"],
+["ripples","אדוות","RIPPLES","rings","none","fill"],
+["radar","רדאר","RADAR","rings","none","outline"],
+["stonepool","אבן בבריכה","STONE POOL","rings","lens","halo"],
+["frequency","תדר","FREQUENCY","rings","rows","add"],
+["circles","עיגולים","CIRCLES","rings","none","poster"],
+["stillwater","מים עומדים","STILL WATER","rings","wave","relief"],
+["shelf","מדף","SHELF","bands","none","fill"],
+["blind","תריס","BLIND","bands","none","knock"],
+["heatlines","גלי חום","HEAT LINES","bands","noise","halo"],
+["barcode","ברקוד","BARCODE","bands","none","poster"],
+["diagonal","אלכסון","DIAGONAL","bands","swirl","duo"],
+["lightbars","פסי אור","LIGHT BARS","bands","none","add"],
+["chess","לוח שחמט","CHESS","checks","none","fill"],
+["tile","אריח","TILE","checks","none","knock"],
+["pixels","פיקסלים","PIXELS","checks","none","poster"],
+["pavement","מרצפות","PAVEMENT","checks","swirl","relief"],
+["mosaic","פסיפס","MOSAIC","checks","noise","duo"],
+["errorscreen","מסך שגיאה","ERROR SCREEN","checks","rows","add"],
+["cells","תאים","CELLS","voronoi","none","fill"],
+["leather","עור","LEATHER","voronoi","none","relief"],
+["stones","אבנים","STONES","voronoi","none","poster"],
+["bubbles","בועות","BUBBLES","voronoi","lens","halo"],
+["ice","קרח","ICE","voronoi","cells","duo"],
+["fracture","שבר","FRACTURE","voronoi","cells","knock"],
+["cracknet","רשת סדקים","CRACK NET","vorEdge","none","fill"],
+["stainedglass","ויטראז׳","STAINED GLASS","vorEdge","none","duo"],
+["continents","יבשות","CONTINENTS","vorEdge","none","outline"],
+["leaf","עלה","LEAF","vorEdge","push","relief"],
+["cobweb","קורי עכביש","COBWEB","vorEdge","none","add"],
+["borders","גבולות","BORDERS","vorEdge","swirl","knock"],
+["spiral2","ספירלה","SPIRAL","spiral","none","fill"],
+["vortex","מערבולת קוטבית","VORTEX","spiral","swirl","halo"],
+["galaxy","גלקסיה","GALAXY","spiral","none","add"],
+["fan","מניפה","FAN","spiral","none","poster"],
+["record","תקליט","RECORD","spiral","none","outline"],
+["dizzy","סחרחורת","DIZZY","spiral","lens","duo"],
+["finescreen","רשת עדינה","FINE SCREEN","dots","none","fill"],
+["shading","הצללה","SHADING","dots","none","knock"],
+["pop","פופ","POP","dots","none","duo"],
+["lightdots","נקודות אור","LIGHT DOTS","dots","none","add"],
+["coarseprint","הדפס גס","COARSE PRINT","dots","noise","poster"],
+["dotrelief","תבליט נקודות","DOT RELIEF","dots","none","relief"],
+["phosphor","זרחן","PHOSPHOR","dots","rows","add"],
+["wood","עץ","WOOD","stripesN","none","fill"],
+["rosemarble","שיש ורוד","ROSE MARBLE","stripesN","none","poster"],
+["lineflow","זרם קווים","LINE FLOW","stripesN","push","duo"],
+["water","מים","WATER","stripesN","wave","halo"],
+["fingerprint","טביעת אצבע","FINGERPRINT","stripesN","none","outline"],
+["rope","חבל","ROPE","stripesN","swirl","relief"],
+["ridges","רכסים","RIDGES","ridge","none","fill"],
+["mountains","הרים","MOUNTAINS","ridge","none","relief"],
+["chalk","גיר","CHALK","ridge","none","knock"],
+["torncloud","ענן קרוע","TORN CLOUD","ridge","noise","halo"],
+["heightmap","מפת גובה","HEIGHT MAP","ridge","none","poster"],
+["rock","סלע","ROCK","ridge","push","duo"],
+["crumpled","נייר מקומט","CRUMPLED","ridge","noise","relief"],
+["storm","סערה","STORM","turb","none","fill"],
+["flame","להבה","FLAME","turb","none","add"],
+["tempest","סופה","TEMPEST","turb","swirl","halo"],
+["blacksmoke","עשן שחור","BLACK SMOKE","turb","none","knock"],
+["darkmarble","שיש כהה","DARK MARBLE","turb","none","poster"],
+["heatwave","גל חום","HEAT WAVE","turb","wave","duo"],
+["foil","רדיד","FOIL","turb","swirl","relief"],
+["graphpaper","נייר משבצות","GRAPH PAPER","grid","none","fill"],
+["blueprint","שרטוט","BLUEPRINT","grid","none","knock"],
+["scaffold","פיגום","SCAFFOLD","grid","none","outline"],
+["wire","תיל","WIRE","grid","swirl","add"],
+["map","מפה","MAP","grid","push","duo"],
+["mesh","מסך רשת","MESH","grid","rows","relief"],
+["triangles","משולשים","TRIANGLES","tri","none","fill"],
+["origami","אוריגמי","ORIGAMI","tri","none","relief"],
+["tricrystal","גביש משולש","TRI CRYSTAL","tri","none","poster"],
+["arrow","חץ","ARROW","tri","none","knock"],
+["folded","קיפול","FOLDED","tri","swirl","duo"],
+["diamond","יהלום","DIAMOND","tri","lens","halo"],
+["lines","שורות","LINES","rowhash","none","fill"],
+["glitch","גליץ׳","GLITCH","rowhash","rows","knock"],
+["tape","קלטת","TAPE","rowhash","rows","add"],
+["hbarcode","ברקוד אופקי","H BARCODE","rowhash","none","poster"],
+["fault","תקלה","FAULT","rowhash","cols","duo"],
+["tvbars","פסי טלוויזיה","TV BARS","rowhash","none","outline"],
+["zigzag","זיגזג","ZIGZAG","polarzig","none","fill"],
+["sun","שמש","SUN","polarzig","none","add"],
+["paperfan","מניפת נייר","PAPER FAN","polarzig","none","poster"],
+["star","כוכב","STAR","polarzig","none","outline"],
+["cog","גלגל שיניים","COG","polarzig","swirl","knock"],
+["flower","פרח","FLOWER","polarzig","lens","duo"],
+["cracks","סדקים","CRACKS","worley2","none","fill"],
+["parched","יובש","PARCHED","worley2","none","relief"],
+["glassbreak","שבר זכוכית","GLASS BREAK","worley2","cells","knock"],
+["veins","עורקים","VEINS","worley2","none","add"],
+["honeycomb","תאי דבש","HONEYCOMB","worley2","none","poster"],
+["enamel","אמייל","ENAMEL","worley2","noise","halo"],
+["longshadow","צל ארוך","LONG SHADOW","fbmflow","none","shadowed"],
+["cutpaper","נייר גזור","CUT PAPER","checks","none","shadowed"],
+["reliefmap","תבליט","RELIEF MAP","vorEdge","none","shadowed"],
+["screenprint","הדפס רשת","SCREEN PRINT","dots","none","screen"],
+["duotone","דואוטון","DUOTONE","fbmflow","none","screen"]
+];
+const GEN={}; GEN_LIST.forEach(g=>{ GEN[g[0]]={f:g[3],w:g[4],i:g[5]}; });
+/* the picker treats hand-written and composed alike; the family is what the field is */
+GEN_LIST.forEach(g=>SHADERS.push([g[0],g[1],g[2],FIELDS[g[3]].he]));
+const FAMILIES=["הכל"].concat([...new Set(SHADERS.map(x=>x[3]))]);
+
 /* ============================ resources ============================ */
 let W=0,H=0;
 let texType=null, texSDF=null, fbA=null, fbB=null, texA0=null,texA1=null,texB0=null,texB1=null, fbSDF=null;
@@ -978,10 +1294,17 @@ function buildSDF(){
 const hex=h=>{ const n=parseInt(h.slice(1),16);
   return [(n>>16&255)/255,(n>>8&255)/255,(n&255)/255]; };
 
-/* Compiled on first pick, not at boot: ten programs is a visible stall on a cold GPU. */
+/* Compiled on first pick, not at boot: a hundred and twenty-five programs up front
+   would be a long stall, and most of them will never be looked at in one sitting. */
 function shaderProg(name){
   if(pCache[name]) return pCache[name];
-  const p=prog(PRE+(BODY[name]||BODY.liquid));
+  let src;
+  if(BODY[name]) src=PRE+BODY[name];
+  else if(GEN[name]){
+    const g=GEN[name];
+    src=PRE+FIELDS[g.f].glsl+"\n"+WARPS[g.w]+"\n"+INKS[g.i]+"\n"+GEN_MAIN;
+  } else src=PRE+BODY.liquid;
+  const p=prog(src);
   pCache[name]=p; return p;
 }
 let seed=Math.random()*100;
@@ -1027,7 +1350,7 @@ function seg(id,key,after){
   });
 }
 function knobs(){
-  const box=$("knobs"); const lab=KNOBS[ST.shader]||KNOBS.liquid;
+  const box=$("knobs"); const lab=KNOBS[ST.shader]||KNOBS_DEF;
   box.innerHTML="";
   const rows=KEYS.map(k=>[k,lab[k]]).concat([["grain","גרעין"],["loop","אורך לולאה"],["size","גודל אות"],["track","מרווח"]]);
   rows.forEach(([k,l])=>{
@@ -1062,15 +1385,29 @@ function pals(){
     box.appendChild(b);
   });
 }
+let shQuery="", shFam="הכל";
 function shaderList(){
+  const fam=$("shfam");
+  if(fam && fam.options.length!==FAMILIES.length){
+    fam.innerHTML=FAMILIES.map(f=>'<option>'+f+'</option>').join("");
+    fam.value=shFam;
+  }
+  const q=shQuery.trim().toLowerCase();
+  const hits=SHADERS.filter(([k,he,en,f])=>
+    (shFam==="הכל"||f===shFam) &&
+    (!q||he.includes(q)||en.toLowerCase().includes(q)||k.includes(q)));
   const box=$("shaders"); box.innerHTML="";
-  SHADERS.forEach(([k,he,en])=>{
+  hits.forEach(([k,he,en])=>{
     const b=document.createElement("button");
     b.innerHTML=he+"<small>"+en+"</small>";
     b.setAttribute("aria-pressed",String(k===ST.shader));
     b.onclick=()=>{ ST.shader=k; sync(); };
     box.appendChild(b);
   });
+  if(!hits.length) box.innerHTML='<p class="none">אין התאמה</p>';
+  $("shcount").textContent=hits.length+" / "+SHADERS.length;
+  const cur=box.querySelector('[aria-pressed=true]');
+  if(cur) cur.scrollIntoView({block:"nearest"});
 }
 function hud(){
   const s=SHADERS.find(x=>x[0]===ST.shader);
@@ -1091,11 +1428,14 @@ function resize(){
   buildType(); hud();
 }
 
+$("shq").oninput=()=>{ shQuery=$("shq").value; shaderList(); };
+$("shfam").onchange=()=>{ shFam=$("shfam").value; shaderList(); };
 $("c_text").oninput=()=>{ ST.text=$("c_text").value; retype(); };
 $("b_play").onclick=()=>{ playing=!playing; last=0; sync(); };
 $("b_rand").onclick=()=>{
   const pick=a=>a[(Math.random()*a.length)|0];
   ST.shader=pick(SHADERS)[0];
+  shQuery=""; shFam="הכל"; $("shq").value=""; $("shfam").value="הכל";
   KEYS.forEach(k=>ST[k]=Math.round(Math.random()*100)/100);
   ST.amt=0.2+Math.random()*0.7;
   const p=pick(PALS); ST.bg=p[0]; ST.c0=p[1]; ST.c1=p[2]; ST.c2=p[3];
