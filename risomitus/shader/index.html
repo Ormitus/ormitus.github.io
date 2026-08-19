@@ -113,14 +113,20 @@ body:not(.unlocked) #wrap{visibility:hidden}
   .seg button:not([aria-pressed=true]):hover{border-color:var(--pink)}
 
   .filt{display:grid;grid-template-columns:1fr 108px;gap:4px;margin-bottom:6px}
-  #shbox{max-height:290px;overflow-y:auto;overscroll-behavior:contain;
+  #shbox{max-height:min(52vh,520px);overflow-y:auto;overscroll-behavior:contain;
     border:1px solid var(--line);padding:4px;background:var(--bg)}
   #shcount{float:inline-end;font-size:9px;color:var(--dim2);letter-spacing:0}
   .none{margin:14px 0;text-align:center;font-size:10.5px;color:var(--dim2)}
-  #shaders{display:grid;grid-template-columns:1fr 1fr;gap:4px}
-  #shaders button{font:10.5px/1.2 ui-monospace,Menlo,monospace;padding:9px 3px;cursor:pointer;
-    background:var(--surf2);color:var(--txt);border:1px solid var(--line2)}
-  #shaders button small{display:block;font-size:8px;opacity:.45;margin-top:3px;letter-spacing:.06em}
+  #shaders{display:grid;grid-template-columns:repeat(3,1fr);gap:3px}
+  #shaders button{font:9.5px/1.15 ui-monospace,Menlo,monospace;padding:6px 2px;cursor:pointer;
+    background:var(--surf2);color:var(--txt);border:1px solid var(--line2);
+    overflow:hidden;text-overflow:ellipsis}
+  #shaders button small{display:block;font-size:7px;opacity:.4;margin-top:2px;letter-spacing:.04em;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #shaders .fam{grid-column:1/-1;position:sticky;top:-4px;z-index:1;margin:6px 0 1px;
+    padding:3px 4px;background:var(--bg);font:8.5px/1 ui-monospace,Menlo,monospace;
+    letter-spacing:.16em;color:var(--dim2);border-bottom:1px solid var(--line)}
+  #shaders .fam:first-child{margin-top:0}
   #shaders button[aria-pressed=true]{background:var(--pink);color:#fff;border-color:var(--pink)}
   #shaders button:not([aria-pressed=true]):hover{border-color:var(--pink)}
 
@@ -1395,11 +1401,25 @@ function shaderList(){
   const q=shQuery.trim().toLowerCase();
   const hits=SHADERS.filter(([k,he,en,f])=>
     (shFam==="הכל"||f===shFam) &&
-    (!q||he.includes(q)||en.toLowerCase().includes(q)||k.includes(q)));
+    (!q||he.includes(q)||en.toLowerCase().includes(q)||k.includes(q)))
+    // stable sort by family: a handful of shaders are authored out of order, and
+    // without this their family heading appears a second time further down
+    .map((x,idx)=>[x,idx])
+    .sort((a,b)=>(FAMILIES.indexOf(a[0][3])-FAMILIES.indexOf(b[0][3]))||(a[1]-b[1]))
+    .map(x=>x[0]);
   const box=$("shaders"); box.innerHTML="";
-  hits.forEach(([k,he,en])=>{
+  /* Every shader is its own button and they are all on screen at once — a wall to
+     scan, not a list to query. The family headings are what make 125 of them
+     readable; the search box above is a shortcut, never the way in. */
+  let group=null;
+  hits.forEach(([k,he,en,f])=>{
+    if(f!==group){ group=f;
+      const h=document.createElement("h3"); h.className="fam"; h.textContent=f;
+      box.appendChild(h);
+    }
     const b=document.createElement("button");
     b.innerHTML=he+"<small>"+en+"</small>";
+    b.title=he+" · "+en;
     b.setAttribute("aria-pressed",String(k===ST.shader));
     b.onclick=()=>{ ST.shader=k; sync(); };
     box.appendChild(b);
