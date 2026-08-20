@@ -200,6 +200,12 @@ body:not(.unlocked) #wrap{visibility:hidden}
     </div>
 
     <div class="grp">
+      <h2>עדשה</h2>
+      <div class="row"><label for="c_lens">אפקט</label><select id="c_lens"></select></div>
+      <div id="knobsLens"></div>
+    </div>
+
+    <div class="grp">
       <h2>הצבע</h2>
       <div id="pals"></div>
       <div class="cols">
@@ -261,7 +267,8 @@ const DEF=()=>({
   bg:"#0a0910", c0:"#FF48B0", c1:"#0078BF", c2:"#FFE800",
   grain:.028, loop:6, fmt:"post", vfmt:"mp4",
   depth:.35, rot:.32, persp:.35, light:.6, ao:.5, relief:.4,
-  rough:.35, metal:.1, env:.6, aa:1
+  rough:.35, metal:.1, env:.6, aa:1,
+  lens:0, lensAmt:.5, eyeSep:.5
 });
 let ST=DEF();
 
@@ -397,7 +404,7 @@ uniform sampler2D uSDF,uType;
 uniform vec2 uRes;
 uniform float uT,uAmt,uScale,uSpeed,uDetail,uWarp,uThick,uGrain,uSeed;
 uniform float uDepth,uRot,uPersp,uLight,uAO,uRelief;
-uniform float uRough,uMetal,uEnv,uAA;
+uniform float uRough,uMetal,uEnv,uAA,uEye;
 uniform vec3 uC0,uC1,uC2,uBG;
 out vec4 O;
 #define TAU 6.28318530718
@@ -966,13 +973,15 @@ vec3 envSpec(vec3 r,float rough,vec3 L,vec3 tint){
   return mix(sharp,avg,rough*rough);
 }
 
-vec3 render(vec2 px){
+vec4 render(vec2 px){
   vec2 suv=px/uRes;
   vec2 sc=suv*2.0-1.0; sc.x*=asp();
   /* camera distance tracks focal length, so the sheet keeps its framing at any
      perspective: the z=0 plane always lands exactly on sc */
   float f=2.4+(1.0-uPersp)*26.0;
-  vec3 ro=vec3(0.0,0.0,f), rd=normalize(vec3(sc,-f));
+  /* A real eye offset, not a screen-space shift: the two views are separate
+     marches from separate camera positions, so the parallax is the scene's. */
+  vec3 ro=vec3(uEye,0.0,f), rd=normalize(vec3(sc-vec2(uEye*0.5,0.0),-f));
   float a=TAU*uT;
   /* The camera orbits at distance f, and f doubles as focal length — up to 28. A
      fixed tilt angle therefore swings the camera metres vertically and puts it
@@ -993,7 +1002,7 @@ vec3 render(vec2 px){
   ro=R*ro; rd=R*rd;
   vec3 L=normalize(vec3(0.45,0.7,0.85));
 
-  if(cove(ro)<0.0) return uBG;      // camera outside the room: nothing sane to draw
+  if(cove(ro)<0.0) return vec4(uBG,1.0);   // camera outside the room
   vec3 p=vec3(0.0),n=vec3(0.0,0.0,1.0);
   float c=0.0; bool got=false;
   float t=0.0, amp=relief();
@@ -1012,10 +1021,11 @@ vec3 render(vec2 px){
   }
   if(!got){
     vec4 v0=volume(ro,rd,f+7.0);
-    return uBG*(1.0-v0.a)+v0.rgb;
+    return vec4(uBG*(1.0-v0.a)+v0.rgb,1.0);
   }
+  float zdep=clamp(t/(f+5.0),0.0,1.0);            // kept for depth of field and outline
   vec3 alb=surface(p,n,letterDist(p.xy),c,rd);
-  if(uLight<=0.001) return alb;
+  if(uLight<=0.001) return vec4(alb,zdep);
 
   vec3 albL=toLin(clamp(alb,0.0,1.0));
   vec3 tint=toLin(clamp(uBG,0.0,1.0))*1.5;
@@ -1071,13 +1081,13 @@ vec3 render(vec2 px){
   float vig=1.0-0.30*pow(clamp(length(sc/vec2(asp(),1.0))*0.72,0.0,1.0),2.4);
   vec3 outc=mix(alb,disp*vig,uLight);
   vec4 vol=volume(ro,rd,t);                 // flame, smoke, spray — in front of it all
-  return outc*(1.0-vol.a)+vol.rgb;
+  return vec4(outc*(1.0-vol.a)+vol.rgb,zdep);
 }
 void main(){
   /* Hard silhouettes at one sample a pixel are the loudest tell that something
      was computed rather than photographed. Rotated-grid 2x2 when quality is up;
      the recorder turns it on regardless of what the panel says. */
-  vec3 col;
+  vec4 col;
   if(uAA>1.5){
     col=(render(gl_FragCoord.xy+vec2(-0.125,-0.375))
         +render(gl_FragCoord.xy+vec2( 0.375,-0.125))
@@ -1085,13 +1095,163 @@ void main(){
         +render(gl_FragCoord.xy+vec2(-0.375, 0.125)))*0.25;
   } else col=render(gl_FragCoord.xy);
   float g=(h31(vec3(gl_FragCoord.xy*0.731,uT*97.0))-0.5)*uGrain;
-  O=vec4(clamp(col+g,0.0,1.0),1.0);
+  O=vec4(clamp(col.rgb+g,0.0,1.0),col.a);        // alpha carries depth to the lens
 }`;
+
+/* ═══ the lens ══════════════════════════════════════════════════════════════
+   Ported in spirit from the three.js examples — the stereo family (anaglyph,
+   side-by-side, parallax barrier) plus the post effects worth having. These are
+   optics, not materials, so they sit on top of the 52 rather than among them.
+
+   Rewritten for a raymarcher rather than copied: the stereo modes get two real
+   eye renders with a proper camera offset, not a screen-space fake, and depth
+   of field reads the true hit distance the march already knows.
+
+   Skipped deliberately: FXAA/SMAA/SSAA/TAA (the render already supersamples),
+   SSAO/SAO/GTAO (occlusion here is measured against the real distance field,
+   which is better than any screen-space guess), and afterimage (it needs a
+   history buffer, and a trail that carries across the loop seam would break
+   the closed loops every export depends on). */
+const POSTFX=`#version 300 es
+precision highp float;
+uniform sampler2D uL,uR;
+uniform vec2 uRes;
+uniform int uLens;
+uniform float uLensAmt,uT,uSeed;
+out vec4 O;
+#define TAU 6.28318530718
+float h21(vec2 p){ p=fract(p*vec2(123.34,456.21)+uSeed); p+=dot(p,p+45.32); return fract(p.x*p.y); }
+float lum(vec3 c){ return dot(c,vec3(0.299,0.587,0.114)); }
+const uint GLYPH[9]=uint[9](0u,4194304u,4194432u,14336u,459200u,4339844u,22511061u,11512810u,15119918u);
+
+void main(){
+  vec2 uv=gl_FragCoord.xy/uRes;
+  vec3 c;
+
+  if(uLens==1){                                   // anaglyph, red / cyan
+    vec3 l=texture(uL,uv).rgb, r=texture(uR,uv).rgb;
+    c=vec3(lum(l),r.g,r.b);
+    c=mix(vec3(lum(l),lum(r),lum(r)),c,uLensAmt);
+  }
+  else if(uLens==2){                              // stereo pair, side by side
+    vec2 q=vec2(fract(uv.x*2.0),uv.y);
+    c=uv.x<0.5?texture(uL,q).rgb:texture(uR,q).rgb;
+  }
+  else if(uLens==3){                              // parallax barrier
+    bool even=mod(gl_FragCoord.x+gl_FragCoord.y,2.0)<1.0;
+    c=even?texture(uL,uv).rgb:texture(uR,uv).rgb;
+  }
+  else if(uLens==4){                              // ascii
+    float cell=6.0+floor((1.0-uLensAmt)*22.0);
+    vec2 cellPx=vec2(cell*5.0/6.0,cell);
+    vec2 base=floor(gl_FragCoord.xy/cellPx)*cellPx;
+    vec3 s=texture(uL,(base+cellPx*0.5)/uRes).rgb;
+    int g=int(clamp(lum(s)*9.0,0.0,8.0));
+    vec2 f=floor((gl_FragCoord.xy-base)/cellPx*vec2(5.0,6.0));
+    int bit=int(f.y)*5+int(f.x);
+    float on=float((GLYPH[g]>>uint(bit))&1u);
+    c=s*on*1.25;
+  }
+  else if(uLens==5){                              // rgb halftone
+    float sc=3.0+floor((1.0-uLensAmt)*14.0);
+    vec3 o=vec3(0.2618,1.309,2.3562);             // 15, 75, 135 degrees
+    vec3 d;
+    for(int i=0;i<3;i++){
+      float a=o[i];
+      vec2 p=vec2(uv.x*uRes.x,uv.y*uRes.y)/sc;
+      vec2 rp=vec2(p.x*cos(a)-p.y*sin(a),p.x*sin(a)+p.y*cos(a));
+      float v=texture(uL,uv)[i];
+      d[i]=smoothstep(sqrt(v)*0.72,sqrt(v)*0.72-0.18,length(fract(rp)-0.5));
+    }
+    c=d;
+  }
+  else if(uLens==6){                              // sobel
+    vec2 e=1.0/uRes;
+    float gx=0.0,gy=0.0;
+    for(int j=-1;j<=1;j++) for(int i=-1;i<=1;i++){
+      float v=lum(texture(uL,uv+vec2(float(i),float(j))*e).rgb);
+      float kx=float(i)*(j==0?2.0:1.0), ky=float(j)*(i==0?2.0:1.0);
+      gx+=v*kx; gy+=v*ky;
+    }
+    float g=clamp(length(vec2(gx,gy))*(0.6+uLensAmt*3.0),0.0,1.0);
+    c=mix(texture(uL,uv).rgb,vec3(g),0.85);
+  }
+  else if(uLens==7){                              // pixelate
+    float px=2.0+floor(uLensAmt*46.0);
+    vec2 q=(floor(gl_FragCoord.xy/px)+0.5)*px/uRes;
+    c=texture(uL,q).rgb;
+  }
+  else if(uLens==8){                              // glitch
+    float band=floor(uv.y*(18.0+uLensAmt*90.0));
+    float k=step(0.86-uLensAmt*0.35,h21(vec2(band,floor(uT*14.0))));
+    float sh=(h21(vec2(band,7.0))-0.5)*uLensAmt*0.22*k;
+    float ca=uLensAmt*0.012*(0.3+k);
+    c=vec3(texture(uL,uv+vec2(sh+ca,0.0)).r,
+           texture(uL,uv+vec2(sh,0.0)).g,
+           texture(uL,uv+vec2(sh-ca,0.0)).b);
+  }
+  else if(uLens==9){                              // bloom
+    vec3 b=vec3(0.0); float wsum=0.0;
+    for(int i=0;i<24;i++){
+      float a=float(i)*2.39996323, r=sqrt(float(i)/24.0)*(0.012+uLensAmt*0.05);
+      vec2 o2=vec2(cos(a),sin(a))*r*vec2(1.0,uRes.x/uRes.y);
+      vec3 s=texture(uL,uv+o2).rgb;
+      float w=1.0/(1.0+r*18.0);
+      b+=max(s-0.62,0.0)*w; wsum+=w;
+    }
+    c=texture(uL,uv).rgb+b/wsum*(1.0+uLensAmt*3.5);
+  }
+  else if(uLens==10){                             // depth of field
+    float d=texture(uL,uv).a;
+    float foc=texture(uL,vec2(0.5,0.42)).a;       // focus on what is centre frame
+    float coc=clamp(abs(d-foc)*(3.0+uLensAmt*22.0),0.0,1.0)*(0.004+uLensAmt*0.03);
+    vec3 s=vec3(0.0);
+    for(int i=0;i<16;i++){
+      float a=float(i)*2.39996323, r=sqrt(float(i)/16.0)*coc;
+      s+=texture(uL,uv+vec2(cos(a),sin(a))*r*vec2(1.0,uRes.x/uRes.y)).rgb;
+    }
+    c=s/16.0;
+  }
+  else if(uLens==11){                             // god rays
+    vec2 src=vec2(0.62,0.78);
+    vec2 dir=(uv-src)/24.0;
+    vec3 acc=vec3(0.0); vec2 q=uv; float w=1.0;
+    for(int i=0;i<24;i++){
+      q-=dir;
+      acc+=max(texture(uL,q).rgb-0.66,0.0)*w;
+      w*=0.93;
+    }
+    c=texture(uL,uv).rgb+acc/24.0*(1.0+uLensAmt*7.0);
+  }
+  else if(uLens==12){                             // outline, from depth
+    vec2 e=1.5/uRes;
+    float d0=texture(uL,uv).a;
+    float m=0.0;
+    m=max(m,abs(texture(uL,uv+vec2(e.x,0.0)).a-d0));
+    m=max(m,abs(texture(uL,uv-vec2(e.x,0.0)).a-d0));
+    m=max(m,abs(texture(uL,uv+vec2(0.0,e.y)).a-d0));
+    m=max(m,abs(texture(uL,uv-vec2(0.0,e.y)).a-d0));
+    float line=smoothstep(0.002,0.002+0.02*(1.0-uLensAmt),m);
+    c=mix(texture(uL,uv).rgb,vec3(0.0),line);
+  }
+  else c=texture(uL,uv).rgb;
+
+  O=vec4(clamp(c,0.0,1.0),1.0);
+}`;
+
+const LENSES=[
+  ["כלום","NONE"],["אנגליף","ANAGLYPH"],["סטריאו","STEREO"],["מחסום פרלקסה","PARALLAX"],
+  ["ASCII","ASCII"],["רשת RGB","RGB HALFTONE"],["סובל","SOBEL"],["פיקסול","PIXEL"],
+  ["גליץ׳","GLITCH"],["בלום","BLOOM"],["עומק שדה","DOF"],["קרני אור","GOD RAYS"],
+  ["קו מתאר","OUTLINE"]
+];
+const STEREO_LENS=[1,2,3];      // the only ones that need a second eye rendered
 
 /* ============================ resources ============================ */
 let W=0,H=0;
 let texType=null, texSDF=null, fbA=null, fbB=null, texA0=null,texA1=null,texB0=null,texB1=null, fbSDF=null;
-let pSeed=null,pJFA=null,pSDF=null;
+let pSeed=null,pJFA=null,pSDF=null,pPost=null;
+let texL=null,texR=null,fbL=null,fbR=null;
 const pCache={};
 
 function tex2d(w,h){
@@ -1114,12 +1274,14 @@ function del(x,fn){ if(x) fn.call(gl,x); }
 
 function allocate(w,h){
   if(w===W&&h===H) return;
-  [texType,texSDF,texA0,texA1,texB0,texB1].forEach(t=>del(t,gl.deleteTexture));
-  [fbA,fbB,fbSDF].forEach(f=>del(f,gl.deleteFramebuffer));
+  [texType,texSDF,texA0,texA1,texB0,texB1,texL,texR].forEach(t=>del(t,gl.deleteTexture));
+  [fbA,fbB,fbSDF,fbL,fbR].forEach(f=>del(f,gl.deleteFramebuffer));
   W=w; H=h; cv.width=w; cv.height=h;
   texType=tex2d(w,h); texSDF=tex2d(w,h);
   texA0=tex2d(w,h); texA1=tex2d(w,h); texB0=tex2d(w,h); texB1=tex2d(w,h);
+  texL=tex2d(w,h); texR=tex2d(w,h);
   fbA=fbo([texA0,texA1]); fbB=fbo([texB0,texB1]); fbSDF=fbo([texSDF]);
+  fbL=fbo([texL]); fbR=fbo([texR]);
   gl.bindFramebuffer(gl.FRAMEBUFFER,null);
 }
 
@@ -1239,11 +1401,20 @@ function shaderProg(name){
 
 let seed=Math.random()*100;
 
+/* One march per eye, off screen, then the lens composites to the canvas. A single
+   eye for every lens but the stereo three, so nothing else pays for them. */
+function renderEye(fb,eye,phase){
+  const p=use(shaderProg(ST.shader));
+  gl.bindFramebuffer(gl.FRAMEBUFFER,fb);
+  gl.drawBuffers([gl.COLOR_ATTACHMENT0]);
+  gl.viewport(0,0,W,H);
+  gl.uniform1f(loc(p,"uEye"),eye);
+  return p;
+}
 function draw(phase){
   aaNow=recording?2:(ST.aa>1?2:1);
-  const p=use(shaderProg(ST.shader));
-  gl.bindFramebuffer(gl.FRAMEBUFFER,null);
-  gl.viewport(0,0,W,H);
+  const stereo=STEREO_LENS.indexOf(ST.lens)>=0;
+  const p=renderEye(fbL,stereo?-ST.eyeSep*0.06:0,phase);
   gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D,texType);
   gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D,texSDF);
   gl.uniform1i(loc(p,"uType"),0); gl.uniform1i(loc(p,"uSDF"),1);
@@ -1266,6 +1437,25 @@ function draw(phase){
   gl.uniform1f(loc(p,"uMetal"),ST.metal);
   gl.uniform1f(loc(p,"uEnv"),ST.env);
   gl.uniform1f(loc(p,"uAA"),aaNow);
+  gl.drawArrays(gl.TRIANGLES,0,3);
+  if(stereo){
+    renderEye(fbR,ST.eyeSep*0.06,phase);
+    gl.uniform1f(loc(p,"uEye"),ST.eyeSep*0.06);
+    gl.drawArrays(gl.TRIANGLES,0,3);
+  }
+
+  if(!pPost) pPost=prog(POSTFX);
+  const q=use(pPost);
+  gl.bindFramebuffer(gl.FRAMEBUFFER,null);
+  gl.viewport(0,0,W,H);
+  gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D,texL);
+  gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D,stereo?texR:texL);
+  gl.uniform1i(loc(q,"uL"),0); gl.uniform1i(loc(q,"uR"),1);
+  gl.uniform2f(loc(q,"uRes"),W,H);
+  gl.uniform1i(loc(q,"uLens"),ST.lens);
+  gl.uniform1f(loc(q,"uLensAmt"),ST.lensAmt);
+  gl.uniform1f(loc(q,"uT"),phase-Math.floor(phase));
+  gl.uniform1f(loc(q,"uSeed"),seed);
   gl.drawArrays(gl.TRIANGLES,0,3);
 }
 
@@ -1332,6 +1522,27 @@ function knobs3d(){
     inp.oninput=()=>{ ST[k]=parseFloat(inp.value); val.textContent=ST[k].toFixed(2); };
   });
 }
+function lensUI(){
+  const sel=$("c_lens");
+  if(sel.options.length!==LENSES.length)
+    sel.innerHTML=LENSES.map((l,i)=>'<option value="'+i+'">'+l[0]+' · '+l[1]+'</option>').join("");
+  sel.value=String(ST.lens);
+  sel.onchange=()=>{ ST.lens=+sel.value; sync(); };
+  const box=$("knobsLens"); box.innerHTML="";
+  const rows=[["lensAmt","עוצמה"]];
+  if(STEREO_LENS.indexOf(ST.lens)>=0) rows.push(["eyeSep","מרחק עיניים"]);
+  if(ST.lens===0) return;
+  rows.forEach(([k,l])=>{
+    const r=document.createElement("div"); r.className="row";
+    r.innerHTML='<label for="L_'+k+'">'+l+'</label>'+
+      '<div class="rr"><input id="L_'+k+'" type="range" min="0" max="1" step="0.01">'+
+      '<span class="val"></span></div>';
+    box.appendChild(r);
+    const inp=r.querySelector("input"), val=r.querySelector(".val");
+    inp.value=ST[k]; val.textContent=ST[k].toFixed(2);
+    inp.oninput=()=>{ ST[k]=parseFloat(inp.value); val.textContent=ST[k].toFixed(2); };
+  });
+}
 let typeTimer=0;
 function retype(){ clearTimeout(typeTimer); typeTimer=setTimeout(buildType,180); }
 
@@ -1388,7 +1599,7 @@ function hud(){
   $("hud").textContent=(s?s[2]:"")+" · "+W+"×"+H+" · לולאה "+ST.loop+"s";
 }
 function sync(){
-  shaderList(); knobs(); knobs3d(); seg("c_mode","mode",buildType); seg("c_fmt","fmt",resize);
+  shaderList(); knobs(); knobs3d(); lensUI(); seg("c_mode","mode",buildType); seg("c_fmt","fmt",resize);
   seg("c_vfmt","vfmt",null);
   [...$("c_aa").children].forEach(b=>{
     b.setAttribute("aria-pressed",String(+b.dataset.v===ST.aa));
