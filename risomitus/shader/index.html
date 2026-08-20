@@ -259,7 +259,7 @@ const DEF=()=>({
   shader:"liquid",
   amt:.28, scale:.4, speed:.45, detail:.5, warp:.35, thick:.45,
   bg:"#0a0910", c0:"#FF48B0", c1:"#0078BF", c2:"#FFE800",
-  grain:.09, loop:6, fmt:"post", vfmt:"mp4",
+  grain:.028, loop:6, fmt:"post", vfmt:"mp4",
   depth:.35, rot:.32, persp:.35, light:.6, ao:.5, relief:.4,
   rough:.35, metal:.1, env:.6, aa:1
 });
@@ -469,6 +469,16 @@ float baseMap(vec3 p){
   return min(max(w.x,w.y),0.0)+length(max(w,0.0))-r;
 }
 float relief(){ return uRelief*0.055; }
+/* The seamless sweep a product photographer shoots against: a floor and a back wall
+   joined by a fillet, so there is no corner line and no horizon. It goes in the
+   distance function rather than being faked behind the letters, which is what earns
+   the contact shadow and the occlusion where a letter meets the floor. */
+float cove(vec3 p){
+  float back=dep()+0.9, r=0.55;
+  float u=p.z+back, v=p.y+1.02;
+  if(u>r||v>r) return min(u,v);
+  return r-length(vec2(r-u,r-v));
+}
 vec2 slab(vec3 ro,vec3 rd,vec3 b){
   vec3 m=1.0/(rd+1e-9),k=abs(m)*b;
   vec3 t1=-m*ro-k,t2=-m*ro+k;
@@ -1006,10 +1016,16 @@ vec3 nrm(vec3 p){
   return normalize(e.xyy*map(p+e.xyy)+e.yyx*map(p+e.yyx)
                   +e.yxy*map(p+e.yxy)+e.xxx*map(p+e.xxx));
 }
+float mapAll(vec3 p){ return min(map(p),cove(p)); }
+vec3 nrmAll(vec3 p){
+  vec2 e=vec2(1.0,-1.0)*0.0016;
+  return normalize(e.xyy*mapAll(p+e.xyy)+e.yyx*mapAll(p+e.yyx)
+                  +e.yxy*mapAll(p+e.yxy)+e.xxx*mapAll(p+e.xxx));
+}
 float shadow(vec3 ro,vec3 L){
   float t=0.012,r=1.0;
   for(int i=0;i<24;i++){
-    float h=baseMap(ro+L*t)-relief()*0.5;   // the bare solid: relief casts nothing readable
+    float h=min(baseMap(ro+L*t)-relief()*0.5,cove(ro+L*t));  // relief casts nothing readable
     if(h<0.0009) return 0.0;
     r=min(r,9.0*h/t);
     t+=clamp(h,0.012,0.18);
@@ -1023,7 +1039,7 @@ float sdfAO(vec3 p,vec3 n){
   float o=0.0,s=1.0;
   for(int i=1;i<=5;i++){
     float h=0.010*pow(2.2,float(i-1));
-    o+=(h-map(p+n*h))*s; s*=0.72;
+    o+=(h-mapAll(p+n*h))*s; s*=0.72;
   }
   return clamp(1.0-1.35*o,0.0,1.0);
 }
@@ -1075,7 +1091,14 @@ vec3 render(vec2 px){
   float f=2.4+(1.0-uPersp)*26.0;
   vec3 ro=vec3(0.0,0.0,f), rd=normalize(vec3(sc,-f));
   float a=TAU*uT;
-  float ry=sin(a)*uRot*1.15, rx=cos(a)*uRot*0.4;
+  /* The camera orbits at distance f, and f doubles as focal length — up to 28. A
+     fixed tilt angle therefore swings the camera metres vertically and puts it
+     under the floor of the cove, which is what an orbiting camera in a fixed room
+     must never do. So the tilt is derived from the height we actually want, and
+     that height is clamped to stay above the sweep at any focal length. */
+  float ry=sin(a)*uRot*1.15;
+  float lift=uRot*(0.45+0.55*cos(a));            // -0.10 .. 1.00, floor sits at -1.02
+  float rx=asin(clamp(-lift/max(f,0.001),-0.9,0.9));
   float cy=cos(ry),sy=sin(ry),cx=cos(rx),sx=sin(rx);
   mat3 R=mat3(cy,0.0,-sy, 0.0,1.0,0.0, sy,0.0,cy)
         *mat3(1.0,0.0,0.0, 0.0,cx,sx, 0.0,-sx,cx);
@@ -1087,29 +1110,23 @@ vec3 render(vec2 px){
   ro=R*ro; rd=R*rd;
   vec3 L=normalize(vec3(0.45,0.7,0.85));
 
+  if(cove(ro)<0.0) return uBG;      // camera outside the room: nothing sane to draw
   vec3 p=vec3(0.0),n=vec3(0.0,0.0,1.0);
   float c=0.0; bool got=false;
-  vec2 tt=slab(ro,rd,vec3(asp()*1.02+relief(),1.02+relief(),dep()+relief()));
-  if(tt.y>max(tt.x,0.0)){
-    float t=max(tt.x,0.0), amp=relief();
-    for(int i=0;i<72;i++){
-      vec3 w=ro+rd*t;
-      float b=baseMap(w);
-      float h,k;
-      if(b<amp*1.6){ h=b-clamp(height(w),0.0,1.0)*amp; k=0.55; }  // in the relief band
-      else         { h=b-amp;                          k=0.92; }  // still outside it
-      if(h<0.0011){ p=w; n=nrm(w); c=1.0; got=true; break; }
-      t+=max(h*k,0.0006);
-      if(t>tt.y) break;
-    }
+  float t=0.0, amp=relief();
+  for(int i=0;i<96;i++){
+    vec3 w=ro+rd*t;
+    float b=baseMap(w);
+    float dl,k;
+    if(b<amp*1.6){ dl=b-clamp(height(w),0.0,1.0)*amp; k=0.55; }  // in the relief band
+    else         { dl=b-amp;                          k=0.92; }  // still outside it
+    float dc=cove(w);
+    float h=min(dl,dc);
+    if(h<0.0012){ p=w; c=dl<dc?1.0:0.0; n=c>0.5?nrm(w):nrmAll(w); got=true; break; }
+    t+=max(h*(dc<dl?0.95:k),0.0006);
+    if(t>f+7.0) break;
   }
-  if(!got){
-    float back=dep()+0.55;
-    float dz=(abs(rd.z)<1e-4)?1e-4:rd.z;
-    float tb=(-back-ro.z)/dz;
-    if(tb<=0.0) return uBG;
-    p=ro+rd*tb;
-  }
+  if(!got) return uBG;
   vec3 alb=surface(p,n,letterDist(p.xy),c,rd);
   if(uLight<=0.001) return alb;
 
@@ -1125,16 +1142,38 @@ vec3 render(vec2 px){
   vec3 f0=mix(vec3(0.04),metalF0,uMetal);
   vec3 diffCol=albL*(1.0-uMetal);
 
-  vec3 N=n, V=-rd, H=normalize(V+L);
-  float NoV=max(dot(N,V),1e-4), NoL=max(dot(N,L),0.0);
-  float NoH=max(dot(N,H),0.0), VoH=max(dot(V,H),0.0);
-
+  vec3 N=n, V=-rd;
+  float NoV=max(dot(N,V),1e-4);
   float sh=mix(1.0,shadow(p+N*0.007,L),uAO*0.95);
   float ao=mix(1.0,sdfAO(p,N),uAO);
 
-  vec3 F=F_Schlick(f0,VoH);
-  vec3 direct=(diffCol/PI*(1.0-F)+F*D_GGX(NoH,rough)*V_Smith(NoV,NoL,rough))
-              *NoL*sh*vec3(1.0,0.96,0.90)*(1.1+uLight*3.2);
+  /* Three lights, the way a photographer would set them: a sharp warm key that
+     casts, a broad cool fill from the opposite side that does not, and a rim from
+     behind to lift the silhouette off the sweep. One lamp is what makes a render
+     look rendered. */
+  vec3 fillL=normalize(vec3(-0.62,0.18,0.55));
+  vec3 rimL =normalize(vec3(-0.30,0.45,-0.80));
+  float gain=1.1+uLight*3.2;
+  vec3 direct=vec3(0.0);
+  {
+    vec3 H=normalize(V+L);
+    float NoL=max(dot(N,L),0.0), NoH=max(dot(N,H),0.0), VoH=max(dot(V,H),0.0);
+    vec3 F=F_Schlick(f0,VoH);
+    direct+=(diffCol/PI*(1.0-F)+F*D_GGX(NoH,rough)*V_Smith(NoV,NoL,rough))
+            *NoL*sh*vec3(1.0,0.96,0.90)*gain;
+  }
+  {
+    vec3 H=normalize(V+fillL);
+    float NoL=max(dot(N,fillL),0.0), NoH=max(dot(N,H),0.0), VoH=max(dot(V,H),0.0);
+    vec3 F=F_Schlick(f0,VoH);
+    direct+=(diffCol/PI*(1.0-F)+F*D_GGX(NoH,max(rough,0.35))*V_Smith(NoV,NoL,max(rough,0.35)))
+            *NoL*vec3(0.70,0.79,1.0)*gain*0.34;
+  }
+  {
+    float NoL=max(dot(N,rimL),0.0);
+    float fres=pow(1.0-NoV,3.5);
+    direct+=vec3(1.0,0.97,0.93)*NoL*fres*gain*0.55*mix(0.35,1.0,uMetal+0.3);
+  }
 
   vec3 R2=reflect(-V,N);
   vec2 ab=envBRDF(NoV,rough);
@@ -1605,7 +1644,7 @@ $("b_rand").onclick=()=>{
   ST.amt=0.2+Math.random()*0.7;
   const p=pick(PALS); ST.bg=p[0]; ST.c0=p[1]; ST.c1=p[2]; ST.c2=p[3];
   ST.mode=pick(["fit","fit","stack","tile","giant"]);
-  ST.grain=Math.round(Math.random()*24)/100;
+  ST.grain=Math.round(Math.random()*7)/100;
   ST.depth=+(0.12+Math.random()*0.7).toFixed(2);
   ST.rot=+(0.10+Math.random()*0.6).toFixed(2);
   ST.persp=+(0.10+Math.random()*0.8).toFixed(2);
