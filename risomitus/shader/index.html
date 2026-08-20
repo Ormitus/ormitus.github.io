@@ -219,6 +219,9 @@ body:not(.unlocked) #wrap{visibility:hidden}
           <button data-v="sq">ריבוע<small>1080×1080</small></button>
         </div>
       </div>
+      <div class="row"><label>איכות</label>
+        <div class="seg c2" id="c_aa"><button data-v="1">טיוטה</button><button data-v="2">מלא<small>2×2</small></button></div>
+      </div>
       <div class="row"><label>קובץ וידאו</label>
         <div class="seg c2" id="c_vfmt"><button data-v="mp4">MP4</button><button data-v="webm">WebM</button></div>
       </div>
@@ -257,7 +260,8 @@ const DEF=()=>({
   amt:.28, scale:.4, speed:.45, detail:.5, warp:.35, thick:.45,
   bg:"#0a0910", c0:"#FF48B0", c1:"#0078BF", c2:"#FFE800",
   grain:.09, loop:6, fmt:"post", vfmt:"mp4",
-  depth:.35, rot:.32, persp:.35, light:.6, ao:.5, relief:.4
+  depth:.35, rot:.32, persp:.35, light:.6, ao:.5, relief:.4,
+  rough:.35, metal:.1, env:.6, aa:1
 });
 let ST=DEF();
 
@@ -431,6 +435,7 @@ uniform sampler2D uSDF,uType;
 uniform vec2 uRes;
 uniform float uT,uAmt,uScale,uSpeed,uDetail,uWarp,uThick,uGrain,uSeed;
 uniform float uDepth,uRot,uPersp,uLight,uAO,uRelief;
+uniform float uRough,uMetal,uEnv,uAA;
 uniform vec3 uC0,uC1,uC2,uBG;
 out vec4 O;
 #define TAU 6.28318530718
@@ -459,8 +464,9 @@ float baseMap(vec3 p){
   float d2=sdf2(clamp(pl*0.5+0.5,0.0,1.0))/uRes.y*2.0;
   vec2 q=abs(pl)-vec2(1.0);
   d2=max(d2,length(max(q,0.0))+min(max(q.x,q.y),0.0));
-  vec2 w=vec2(d2,abs(p.z)-dep());
-  return min(max(w.x,w.y),0.0)+length(max(w,0.0));
+  float r=0.004+uDepth*0.012;
+  vec2 w=vec2(d2+r,abs(p.z)-max(dep()-r,0.0015));
+  return min(max(w.x,w.y),0.0)+length(max(w,0.0))-r;
 }
 float relief(){ return uRelief*0.055; }
 vec2 slab(vec3 ro,vec3 rd,vec3 b){
@@ -488,15 +494,24 @@ float fbm3(vec3 p){ float a=0.5,s=0.0; for(int i=0;i<4;i++){ s+=a*vnoise3(p); p*
 /* time travels a closed circle, so the last frame meets the first exactly */
 vec3 orbit3(float r){ float a=TAU*uT; return vec3(cos(a),sin(a),sin(a)*0.6)*r; }
 vec3 ink3(float t){ t=fract(clamp(t,-90.0,90.0)); return t<0.5?mix(uC0,uC1,t*2.0):mix(uC1,uC2,t*2.0-1.0); }
+/* Three decorrelated values for the price of one hash. cell3 runs 27 times per
+   call and sits inside map(), so this is the difference between the cellular
+   shaders being usable and not. */
+vec3 h33(vec3 p){
+  p=fract(p*vec3(127.1,311.7,74.7)+uSeed);
+  p+=dot(p,p.yzx+45.32);
+  return fract(vec3((p.x+p.y)*p.z,(p.y+p.z)*p.x,(p.z+p.x)*p.y));
+}
 /* nearest cell and the gap to the next one — used by every cellular pattern */
 vec3 cell3(vec3 p){
   vec3 ip=floor(p),fp=fract(p);
   float d1=9.0,d2=9.0,id=0.0;
   for(int k=-1;k<=1;k++) for(int j=-1;j<=1;j++) for(int i=-1;i<=1;i++){
     vec3 g=vec3(float(i),float(j),float(k));
-    vec3 o=vec3(h31(ip+g),h31(ip+g+7.1),h31(ip+g+19.3));
+    vec3 o=h33(ip+g);
     float dd=length(g+o-fp);
-    if(dd<d1){ d2=d1; d1=dd; id=h31(ip+g+3.3); } else if(dd<d2) d2=dd;
+    if(dd<d1){ d2=d1; d1=dd; id=fract(o.x*3.7+o.y*7.3+o.z*11.9); }
+    else if(dd<d2) d2=dd;
   }
   return vec3(d1,d2-d1,id);
 }
@@ -993,8 +1008,8 @@ vec3 nrm(vec3 p){
 }
 float shadow(vec3 ro,vec3 L){
   float t=0.012,r=1.0;
-  for(int i=0;i<20;i++){
-    float h=map(ro+L*t);
+  for(int i=0;i<24;i++){
+    float h=baseMap(ro+L*t)-relief()*0.5;   // the bare solid: relief casts nothing readable
     if(h<0.0009) return 0.0;
     r=min(r,9.0*h/t);
     t+=clamp(h,0.012,0.18);
@@ -1002,8 +1017,58 @@ float shadow(vec3 ro,vec3 L){
   }
   return clamp(r,0.0,1.0);
 }
-void main(){
-  vec2 suv=gl_FragCoord.xy/uRes;
+/* Occlusion measured against the field itself — how much closer the surface is
+   than an unoccluded step would put it — rather than inferred from step count. */
+float sdfAO(vec3 p,vec3 n){
+  float o=0.0,s=1.0;
+  for(int i=1;i<=5;i++){
+    float h=0.010*pow(2.2,float(i-1));
+    o+=(h-map(p+n*h))*s; s*=0.72;
+  }
+  return clamp(1.0-1.35*o,0.0,1.0);
+}
+
+/* ---- light transport ----------------------------------------------------
+   Colours are authored in display space and lit in linear, which is the single
+   thing that stops shaded midtones going chalky. One filmic curve on the way
+   back out. At light 0 none of this runs and the flat albedo is returned
+   untouched, so every look built before this still reads exactly as it did. */
+#define PI 3.14159265
+vec3 toLin(vec3 c){ return c*c*(c*0.305306011+0.682171111)+c*0.012522878; }
+vec3 toSRGB(vec3 c){ c=max(c,0.0); return 1.055*pow(c,vec3(1.0/2.4))-0.055; }
+vec3 aces(vec3 x){ return clamp((x*(2.51*x+0.03))/(x*(2.43*x+0.59)+0.14),0.0,1.0); }
+
+float D_GGX(float NoH,float a){ float a2=a*a,d=NoH*NoH*(a2-1.0)+1.0; return a2/(PI*d*d); }
+float V_Smith(float NoV,float NoL,float a){
+  float a2=a*a;
+  float gv=NoL*sqrt(NoV*NoV*(1.0-a2)+a2), gl=NoV*sqrt(NoL*NoL*(1.0-a2)+a2);
+  return 0.5/max(gv+gl,1e-5);
+}
+vec3 F_Schlick(vec3 f0,float u){ return f0+(1.0-f0)*pow(1.0-u,5.0); }
+/* Karis' split-sum fit — the environment term without a precomputed LUT */
+vec2 envBRDF(float NoV,float r){
+  vec4 c0=vec4(-1.0,-0.0275,-0.572,0.022), c1=vec4(1.0,0.0425,1.04,-0.04);
+  vec4 q=r*c0+c1;
+  float a=min(q.x*q.x,exp2(-9.28*NoV))*q.x+q.y;
+  return vec2(-1.04,1.04)*a+q.zw;
+}
+/* A room rather than a constant: cool overhead light, warm bounce off the floor,
+   the sheet's own colour bled through it, and the key light present as a disc so
+   glossy surfaces have something to actually reflect. */
+vec3 envSky(vec3 d,vec3 L,vec3 tint){
+  float t=smoothstep(0.0,1.0,clamp(d.y*0.5+0.5,0.0,1.0));
+  vec3 e=mix(vec3(0.085,0.080,0.076),vec3(0.40,0.48,0.62),t);
+  e=mix(e,tint,0.38);
+  return e+vec3(1.0,0.96,0.90)*pow(max(dot(d,L),0.0),40.0)*1.7;
+}
+vec3 envSpec(vec3 r,float rough,vec3 L,vec3 tint){
+  vec3 sharp=envSky(r,L,tint);
+  vec3 avg=0.5*(envSky(vec3(0.0,1.0,0.0),L,tint)+envSky(vec3(0.0,-1.0,0.0),L,tint));
+  return mix(sharp,avg,rough*rough);
+}
+
+vec3 render(vec2 px){
+  vec2 suv=px/uRes;
   vec2 sc=suv*2.0-1.0; sc.x*=asp();
   /* camera distance tracks focal length, so the sheet keeps its framing at any
      perspective: the z=0 plane always lands exactly on sc */
@@ -1014,20 +1079,25 @@ void main(){
   float cy=cos(ry),sy=sin(ry),cx=cos(rx),sx=sin(rx);
   mat3 R=mat3(cy,0.0,-sy, 0.0,1.0,0.0, sy,0.0,cy)
         *mat3(1.0,0.0,0.0, 0.0,cx,sx, 0.0,-sx,cx);
+  /* R moves the camera, not the letters: the solid sits unrotated at the origin,
+     so object space is world space. The key light and the environment therefore
+     stay put while the camera swings — which is the whole difference between a
+     word turning under a fixed lamp and a camera walking around a still word.
+     Multiplying L by R here would bolt the light to the lens and undo it. */
   ro=R*ro; rd=R*rd;
-  vec3 L=R*normalize(vec3(0.45,0.7,0.85));
+  vec3 L=normalize(vec3(0.45,0.7,0.85));
 
   vec3 p=vec3(0.0),n=vec3(0.0,0.0,1.0);
-  float c=0.0; bool got=false; int steps=0;
+  float c=0.0; bool got=false;
   vec2 tt=slab(ro,rd,vec3(asp()*1.02+relief(),1.02+relief(),dep()+relief()));
   if(tt.y>max(tt.x,0.0)){
-    float t=max(tt.x,0.0), a=relief();
+    float t=max(tt.x,0.0), amp=relief();
     for(int i=0;i<72;i++){
       vec3 w=ro+rd*t;
-      float b=baseMap(w); steps=i;
-      float h; float k;
-      if(b<a*1.6){ h=b-clamp(height(w),0.0,1.0)*a; k=0.55; }  // in the relief band
-      else       { h=b-a;                          k=0.92; }  // still outside it
+      float b=baseMap(w);
+      float h,k;
+      if(b<amp*1.6){ h=b-clamp(height(w),0.0,1.0)*amp; k=0.55; }  // in the relief band
+      else         { h=b-amp;                          k=0.92; }  // still outside it
       if(h<0.0011){ p=w; n=nrm(w); c=1.0; got=true; break; }
       t+=max(h*k,0.0006);
       if(t>tt.y) break;
@@ -1037,17 +1107,55 @@ void main(){
     float back=dep()+0.55;
     float dz=(abs(rd.z)<1e-4)?1e-4:rd.z;
     float tb=(-back-ro.z)/dz;
-    if(tb<=0.0){ O=vec4(uBG,1.0); return; }
+    if(tb<=0.0) return uBG;
     p=ro+rd*tb;
   }
-  float dd=letterDist(p.xy);
-  vec3 alb=surface(p,n,dd,c,rd);
-  float dif=max(dot(n,L),0.0);
-  float amb=0.45+0.25*max(n.z,0.0);
-  float ao=clamp(1.0-uAO*float(steps)/72.0*2.2,0.25,1.0);
-  float sh=mix(1.0,shadow(p+n*0.007,L),uAO*0.9);
-  vec3 lit=alb*((amb+dif*sh*(0.3+uLight*1.4))*ao);
-  vec3 col=mix(alb,lit,uLight);
+  vec3 alb=surface(p,n,letterDist(p.xy),c,rd);
+  if(uLight<=0.001) return alb;
+
+  vec3 albL=toLin(clamp(alb,0.0,1.0));
+  vec3 tint=toLin(clamp(uBG,0.0,1.0))*1.5;
+  float rough=clamp(uRough*uRough+0.025,0.025,1.0);
+  /* A metal's reflectance is its albedo in the naive formulation, which turns a
+     dark ink into a near-black surface — no real metal reflects 2%. Keep the
+     ink's hue but lift it into the range metals actually occupy, so "metallic"
+     on a black ink gives chrome and on a magenta one gives tinted metal. */
+  float mx=max(albL.r,max(albL.g,albL.b));
+  vec3 metalF0=(mx>1e-4?albL/mx:vec3(1.0))*mix(0.55,0.95,1.0-uRough);
+  vec3 f0=mix(vec3(0.04),metalF0,uMetal);
+  vec3 diffCol=albL*(1.0-uMetal);
+
+  vec3 N=n, V=-rd, H=normalize(V+L);
+  float NoV=max(dot(N,V),1e-4), NoL=max(dot(N,L),0.0);
+  float NoH=max(dot(N,H),0.0), VoH=max(dot(V,H),0.0);
+
+  float sh=mix(1.0,shadow(p+N*0.007,L),uAO*0.95);
+  float ao=mix(1.0,sdfAO(p,N),uAO);
+
+  vec3 F=F_Schlick(f0,VoH);
+  vec3 direct=(diffCol/PI*(1.0-F)+F*D_GGX(NoH,rough)*V_Smith(NoV,NoL,rough))
+              *NoL*sh*vec3(1.0,0.96,0.90)*(1.1+uLight*3.2);
+
+  vec3 R2=reflect(-V,N);
+  vec2 ab=envBRDF(NoV,rough);
+  vec3 ambient=diffCol*envSky(N,L,tint)*uEnv*ao
+              +envSpec(R2,rough,L,tint)*uEnv*(f0*ab.x+ab.y)*mix(1.0,ao,0.7);
+
+  vec3 disp=toSRGB(aces(direct+ambient));
+  float vig=1.0-0.30*pow(clamp(length(sc/vec2(asp(),1.0))*0.72,0.0,1.0),2.4);
+  return mix(alb,disp*vig,uLight);
+}
+void main(){
+  /* Hard silhouettes at one sample a pixel are the loudest tell that something
+     was computed rather than photographed. Rotated-grid 2x2 when quality is up;
+     the recorder turns it on regardless of what the panel says. */
+  vec3 col;
+  if(uAA>1.5){
+    col=(render(gl_FragCoord.xy+vec2(-0.125,-0.375))
+        +render(gl_FragCoord.xy+vec2( 0.375,-0.125))
+        +render(gl_FragCoord.xy+vec2( 0.125, 0.375))
+        +render(gl_FragCoord.xy+vec2(-0.375, 0.125)))*0.25;
+  } else col=render(gl_FragCoord.xy);
   float g=(h31(vec3(gl_FragCoord.xy*0.731,uT*97.0))-0.5)*uGrain;
   O=vec4(clamp(col+g,0.0,1.0),1.0);
 }`;
@@ -1319,6 +1427,7 @@ function shaderProg(name){
 let seed=Math.random()*100;
 
 function draw(phase){
+  aaNow=recording?2:(ST.aa>1?2:1);
   const p=use(shaderProg(ST.shader));
   gl.bindFramebuffer(gl.FRAMEBUFFER,null);
   gl.viewport(0,0,W,H);
@@ -1340,10 +1449,17 @@ function draw(phase){
   gl.uniform1f(loc(p,"uLight"),ST.light);
   gl.uniform1f(loc(p,"uAO"),ST.ao);
   gl.uniform1f(loc(p,"uRelief"),ST.relief);
+  gl.uniform1f(loc(p,"uRough"),ST.rough);
+  gl.uniform1f(loc(p,"uMetal"),ST.metal);
+  gl.uniform1f(loc(p,"uEnv"),ST.env);
+  gl.uniform1f(loc(p,"uAA"),aaNow);
   gl.drawArrays(gl.TRIANGLES,0,3);
 }
 
 let playing=true, clock=0, last=0, raf=0, recording=false;
+/* the panel may be on draft for a responsive preview; an exported frame is
+   always supersampled, since that is the file people actually keep */
+let aaNow=1;
 function tick(now){
   raf=requestAnimationFrame(tick);
   if(recording) return;
@@ -1388,7 +1504,8 @@ function knobs(){
   });
 }
 const D3=[["depth","עומק"],["relief","תבליט"],["rot","סיבוב"],
-          ["persp","פרספקטיבה"],["light","אור"],["ao","הצללה"]];
+          ["persp","פרספקטיבה"],["light","אור"],["ao","הצללה"],
+          ["rough","חספוס"],["metal","מתכתיות"],["env","סביבה"]];
 function knobs3d(){
   const box=$("knobs3d"); box.innerHTML="";
   D3.forEach(([k,l])=>{
@@ -1460,6 +1577,10 @@ function hud(){
 function sync(){
   shaderList(); knobs(); knobs3d(); seg("c_mode","mode",buildType); seg("c_fmt","fmt",resize);
   seg("c_vfmt","vfmt",null);
+  [...$("c_aa").children].forEach(b=>{
+    b.setAttribute("aria-pressed",String(+b.dataset.v===ST.aa));
+    b.onclick=()=>{ ST.aa=+b.dataset.v; sync(); };
+  });
   ["bg","c0","c1","c2"].forEach(k=>{ const e=$("c_"+k); e.value=ST[k];
     e.oninput=()=>{ ST[k]=e.value; }; });
   $("c_text").value=ST.text;
@@ -1491,6 +1612,9 @@ $("b_rand").onclick=()=>{
   ST.light=+(0.35+Math.random()*0.6).toFixed(2);
   ST.ao=+(0.20+Math.random()*0.7).toFixed(2);
   ST.relief=+(0.15+Math.random()*0.8).toFixed(2);
+  ST.rough=+(0.08+Math.random()*0.8).toFixed(2);
+  ST.metal=Math.random()<0.35?+(0.5+Math.random()*0.5).toFixed(2):+(Math.random()*0.2).toFixed(2);
+  ST.env=+(0.35+Math.random()*0.6).toFixed(2);
   ST.loop=[4,5,6,8][(Math.random()*4)|0];
   seed=Math.random()*100;
   clock=0; sync(); buildType();
