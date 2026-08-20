@@ -277,47 +277,7 @@ const PALS=[
   ["#0a0d14","#0B5FA5","#62C2B1","#FF48B0"]
 ];
 
-const SHADERS=[
-  ["liquid","נוזל","LIQUID"], ["chroma","כרומה","CHROMA"],
-  ["ripple","גלים","RIPPLE"], ["chrome","מתכת","CHROME"],
-  ["melt","נמס","MELT"],     ["moire","מוארה","MOIRE"],
-  ["plasma","פלזמה","PLASMA"],["scan","סריקה","SCAN"],
-  ["contour","קווי גובה","CONTOUR"], ["shatter","שברים","SHATTER"],
-  ["halftone","רשת","HALFTONE"], ["emboss","הטבעה","EMBOSS"],
-  ["neon","ניאון","NEON"],       ["flow","זרם","FLOW"],
-  ["crystal","גביש","CRYSTAL"],  ["extrude","הטלה","EXTRUDE"],
-  ["droplets","טיפות","DROPLETS"],["weave","אריג","WEAVE"],
-  ["dunes","דיונות","DUNES"],    ["echo","הד","ECHO"],
-  ["fire","אש","FIRE"]
-].map(x=>x.concat(["כתובים ביד"]));
-/* Each shader reads the six knobs its own way; the labels change with it so the
-   panel says what the slider actually does here. */
-const KNOBS={
-  liquid:{amt:"זרימה",scale:"צפיפות",speed:"קצב",detail:"פירוט",warp:"רקע",thick:"הילה"},
-  chroma:{amt:"פיצול",scale:"צפיפות",speed:"קצב",detail:"פירוט",warp:"זוהר",thick:"רוחב זוהר"},
-  ripple:{amt:"שבירה",scale:"תדר",speed:"קצב",detail:"דעיכה",warp:"טבעות",thick:"רקע"},
-  chrome:{amt:"בליטה",scale:"פסי השתקפות",speed:"סיבוב אור",detail:"חדות ברק",warp:"עיוות פני שטח",thick:"עומק שיפוע"},
-  melt:{amt:"נזילה",scale:"רוחב טפטוף",speed:"קצב",detail:"רעש",warp:"רקע",thick:"עומק"},
-  moire:{amt:"עיוות",scale:"תדר קווים",speed:"קצב",detail:"זווית שנייה",warp:"רקע",thick:"עובי קו"},
-  plasma:{amt:"משיכה",scale:"קנה מידה",speed:"קצב",detail:"פסים",warp:"הילה",thick:"רוחב הילה"},
-  scan:{amt:"הסטה",scale:"שורות",speed:"קצב",detail:"גליץ׳",warp:"פיצול צבע",thick:"עוצמה"},
-  contour:{amt:"טווח",scale:"מרווח",speed:"קצב",detail:"גוון",warp:"ניגודיות",thick:"עובי קו"},
-  shatter:{amt:"תזוזה",scale:"מספר שברים",speed:"קצב",detail:"סיבוב",warp:"צבע תפר",thick:"עובי תפר"},
-  halftone:{amt:"רעש טון",scale:"צפיפות רשת",speed:"קצב",detail:"גודל ענן",warp:"סיבוב רשת",thick:"פרישת טון"},
-  emboss:{amt:"עומק הטבעה",scale:"גרעין נייר",speed:"סיבוב אור",detail:"חספוס",warp:"צבע שקוע",thick:"רוחב שיפוע"},
-  neon:{amt:"פרישת זוהר",scale:"—",speed:"קצב הבהוב",detail:"עוצמת הבהוב",warp:"גוון הילה",thick:"עובי שפופרת"},
-  flow:{amt:"אורך זרם",scale:"פיתול",speed:"קצב",detail:"פירוט",warp:"כיוון מול קווי מתאר",thick:"רקע"},
-  crystal:{amt:"שבירה",scale:"קנה מידה",speed:"קצב",detail:"מספר פאות",warp:"גוון פאה",thick:"עובי שבר"},
-  extrude:{amt:"אורך הטלה",scale:"מדרג צבע",speed:"סיבוב",detail:"צבע פנים",warp:"צבע צד",thick:"דעיכה"},
-  droplets:{amt:"הגדלה",scale:"צפיפות טיפות",speed:"קצב ריצוד",detail:"חדות שפה",warp:"כהות שפה",thick:"גודל טיפה"},
-  weave:{amt:"עיוות חוט",scale:"צפיפות אריגה",speed:"קצב",detail:"הצללת שתי",warp:"רוויה",thick:"עובי חוט"},
-  dunes:{amt:"משיכת אות",scale:"קנה מידה",speed:"קצב",detail:"מספר רכסים",warp:"ניגודיות מדרון",thick:"בהירות פנים"},
-  echo:{amt:"פרישה",scale:"מדרג צבע",speed:"קצב",detail:"סחרור",warp:"סיבוב",thick:"עוצמת הד"},
-  fire:{amt:"גובה להבה",scale:"גודל להבות",speed:"קצב עלייה",detail:"עובי עשן",warp:"זוהר גחלים",thick:"פחם"}
-};
 const KEYS=["amt","scale","speed","detail","warp","thick"];
-/* the composed shaders share one meaning for the six knobs, so they share one label set */
-const KNOBS_DEF={amt:"עוצמה",scale:"קנה מידה",speed:"קצב",detail:"פירוט",warp:"עיוות",thick:"עובי"};
 
 /* ============================ GL ============================ */
 const cv=$("cv");
@@ -545,256 +505,143 @@ float extra(vec3 p);
 vec4 volume(vec3 ro,vec3 rd,float tMax);
 `;
 
-/* Each of these is now a surface in space: it is handed the hit point p, the real
-   surface normal n, the distance dd from the letter outline on the sheet plane, and
-   c — 1 on the solid, 0 on the wall behind it. Nothing reads a screen coordinate,
-   so the pattern carries round the extruded sides instead of smearing down them. */
-const BODY={
+/* ═══ what the letter is made of ════════════════════════════════════════════
+   Each matter supplies its own albedo, its own surface detail, and the two
+   numbers that decide how light leaves it. They are substances, not patterns:
+   the roughness and reflectance are the point, and the colour follows the
+   palette so a stone can still be printed in Riso pink. ═══════════════════ */
+const MATTER={
+ metal:{he:"מתכת",glsl:`
+float mHeight(vec3 p){ return 0.5+0.5*sin(p.x*(140.0+uScale*400.0)+fbm3(p*8.0)*3.0); }
+float mRough(){ return 0.06+uRough*0.35; }
+float mMetal(){ return 0.85+uMetal*0.15; }
+vec3 mAlbedo(vec3 p,vec3 n,float dd,float c){
+  float brush=0.5+0.5*sin(p.x*(90.0+uScale*260.0)+fbm3(p*6.0)*2.5);
+  return mix(uC0,uC1,0.35+brush*0.3)*(0.85+brush*0.3); }`},
+ glass:{he:"זכוכית",glsl:`
+float mHeight(vec3 p){ return fbm3(p*(3.0+uScale*8.0))*0.4; }
+float mRough(){ return 0.02+uRough*0.12; }
+float mMetal(){ return 0.0; }
+vec3 mAlbedo(vec3 p,vec3 n,float dd,float c){
+  /* what you see through it: the sweep behind, tinted and bent by the normal */
+  float thick=clamp(-dd*0.02,0.0,1.0);
+  vec3 tint=mix(vec3(1.0),uC1,0.35+thick*0.5);
+  float edge=pow(1.0-abs(n.z),2.0);
+  return mix(uBG*tint,mix(uC0,uC2,edge),0.25+edge*0.5); }`},
+ wax:{he:"שעווה",glsl:`
+float mHeight(vec3 p){ return 0.5+0.5*sin(p.y*(30.0+uScale*90.0)+fbm3(p*4.0)*2.0); }
+float mRough(){ return 0.30+uRough*0.45; }
+float mMetal(){ return 0.0; }
+vec3 mAlbedo(vec3 p,vec3 n,float dd,float c){
+  /* light creeping a little way in is what separates wax from plastic */
+  float depth=exp(-max(-dd,0.0)*0.03);
+  return mix(uC0,mix(uC1,uC2,0.4),0.25+depth*0.55)*(0.9+depth*0.35); }`},
+ stone:{he:"אבן",glsl:`
+float mHeight(vec3 p){ vec3 v=cell3(p*(14.0+uScale*50.0)); return 0.35+v.z*0.5+v.y*0.4; }
+float mRough(){ return 0.55+uRough*0.45; }
+float mMetal(){ return 0.0; }
+vec3 mAlbedo(vec3 p,vec3 n,float dd,float c){
+  vec3 v=cell3(p*(11.0+uScale*40.0));
+  float grit=v.z*0.5+fbm3(p*40.0)*0.5;
+  return mix(uC0,uC1,0.3+grit*0.55)*(0.75+grit*0.5); }`},
+ ice:{he:"קרח",glsl:`
+float mHeight(vec3 p){ vec3 v=cell3(p*(7.0+uScale*22.0)); return 1.0-smoothstep(0.0,0.14,v.y); }
+float mRough(){ return 0.05+uRough*0.25; }
+float mMetal(){ return 0.0; }
+vec3 mAlbedo(vec3 p,vec3 n,float dd,float c){
+  vec3 v=cell3(p*(7.0+uScale*22.0));
+  float frac=smoothstep(0.10,0.0,v.y);
+  float deep=exp(-max(-dd,0.0)*0.02);
+  return mix(mix(uC1,uC2,0.5)*(0.7+deep*0.6),vec3(1.0),frac*0.7); }`},
+ wood:{he:"עץ",glsl:`
+float mHeight(vec3 p){ return fract(length(p.xz*vec2(1.0,0.35))*(9.0+uScale*26.0)+fbm3(p*3.0)*2.0); }
+float mRough(){ return 0.42+uRough*0.5; }
+float mMetal(){ return 0.0; }
+vec3 mAlbedo(vec3 p,vec3 n,float dd,float c){
+  float ring=fract(length(p.xz*vec2(1.0,0.35))*(9.0+uScale*26.0)+fbm3(p*3.0)*2.0);
+  float grain=smoothstep(0.35,0.55,ring)*smoothstep(0.95,0.7,ring);
+  return mix(uC0,uC1,0.25+grain*0.6)*(0.8+grain*0.35); }`},
+ ceramic:{he:"קרמיקה",glsl:`
+float mHeight(vec3 p){ vec3 v=cell3(p*(9.0+uScale*26.0)); return 1.0-smoothstep(0.0,0.05,v.y); }
+float mRough(){ return 0.08+uRough*0.22; }
+float mMetal(){ return 0.0; }
+vec3 mAlbedo(vec3 p,vec3 n,float dd,float c){
+  vec3 v=cell3(p*(9.0+uScale*26.0));
+  float craze=smoothstep(0.045,0.0,v.y);          // the glaze's hairline crackle
+  return mix(mix(uC2,uC0,0.15),uC1*0.55,craze*0.7); }`},
+ rubber:{he:"גומי",glsl:`
+float mHeight(vec3 p){ return fbm3(p*(30.0+uScale*90.0)); }
+float mRough(){ return 0.62+uRough*0.38; }
+float mMetal(){ return 0.0; }
+vec3 mAlbedo(vec3 p,vec3 n,float dd,float c){
+  float tooth=fbm3(p*(30.0+uScale*90.0));
+  return mix(uC0,uC1,0.12+tooth*0.2)*(0.35+tooth*0.25); }`},
+ sand:{he:"חול",glsl:`
+float mHeight(vec3 p){ return fbm3(p*(60.0+uScale*160.0)); }
+float mRough(){ return 0.78+uRough*0.22; }
+float mMetal(){ return 0.0; }
+vec3 mAlbedo(vec3 p,vec3 n,float dd,float c){
+  float g=fbm3(p*(60.0+uScale*160.0));
+  float sparkle=step(0.86,g);
+  return mix(uC0,uC1,0.3+g*0.5)*(0.8+g*0.4)+vec3(sparkle*0.25); }`},
+ clay:{he:"חימר",glsl:`
+float mHeight(vec3 p){ return fbm3(p*(6.0+uScale*16.0))*0.7+fbm3(p*38.0)*0.3; }
+float mRough(){ return 0.55+uRough*0.4; }
+float mMetal(){ return 0.0; }
+vec3 mAlbedo(vec3 p,vec3 n,float dd,float c){
+  float thumb=fbm3(p*(6.0+uScale*16.0));
+  return mix(uC0,uC1,0.2+thumb*0.5)*(0.8+thumb*0.3); }`}
+};
 
-liquid:`
-vec3 surface(vec3 p,vec3 n,float dd,float c,vec3 rd){
-  vec3 q=p*(1.4+uScale*6.0)+orbit3(0.5+uSpeed*1.6);
-  float n1=fbm3(q*1.2), n2=fbm3(q*1.2+vec3(7.3,2.1,4.7));
-  vec3 base=mix(uBG,ink3(n1*1.4-0.2),0.05+uWarp*0.32);
-  vec3 ink=ink3(n2*1.5+n1*0.6+p.z*(1.0+uAmt*4.0));
-  float halo=exp(-max(dd,0.0)/(4.0+uThick*55.0));
-  return mix(base,ink,clamp(c+halo*0.35,0.0,1.0));
-}`,
+/* ═══ what is happening to it ═══════════════════════════════════════════════
+   A process reaches the geometry. It may bend the solid (pDeform), add matter
+   the letter never had (pExtra), put something in the air (pVolume), and tint
+   or light what is left (pTint). pLip tells the march how far the deformation
+   stretches space. Everything loops: nothing rides a bare clock. ══════════ */
+const PROCESS={
+ still:{he:"דומם",glsl:`
+float pLip(){ return 1.0; }
+vec3 pDeform(vec3 p){ return p; }
+float pExtra(vec3 p){ return 1e9; }
+vec4 pVolume(vec3 ro,vec3 rd,float tMax){ return vec4(0.0); }
+vec4 pTint(vec3 p,vec3 n,float dd,float c){ return vec4(0.0); }`},
 
-chroma:`
-vec3 surface(vec3 p,vec3 n,float dd,float c,vec3 rd){
-  vec3 q=p*(1.2+uScale*5.0)+orbit3(0.4+uSpeed*1.5);
-  vec3 sp=n*uAmt*0.35;
-  float r=fbm3(q+sp), g=fbm3(q), b=fbm3(q-sp);
-  float glow=exp(-max(dd,0.0)/(3.0+uThick*80.0))*uWarp;
-  return uBG+(uC0*r+uC1*g+uC2*b)*(0.35+c*0.9)+(uC1*0.55+uC2*0.45)*glow*0.5;
-}`,
+ melt:{he:"נמס",glsl:`
+float pLip(){ return 2.6; }
+vec3 pDeform(vec3 p){
+  float t=0.5-0.5*cos(TAU*uT);
+  float m=(0.04+uAmt*0.65)*t;
+  float below=smoothstep(0.95,-1.02,p.y);
+  float pool=smoothstep(-0.45,-1.02,p.y);
+  float spread=1.0/(1.0+pool*m*(1.4+uWarp*3.0));
+  return vec3(p.x*spread,p.y+m*below*below,p.z*spread); }
+float pExtra(vec3 p){ return 1e9; }
+vec4 pVolume(vec3 ro,vec3 rd,float tMax){ return vec4(0.0); }
+vec4 pTint(vec3 p,vec3 n,float dd,float c){
+  float wet=smoothstep(0.2,-1.0,p.y);
+  return vec4(vec3(0.0),wet*0.35); }`},
 
-ripple:`
-vec3 surface(vec3 p,vec3 n,float dd,float c,vec3 rd){
-  vec3 src=orbit3(0.30);
-  float r=length(p-src);
-  float w=sin(r*(10.0+uScale*80.0)-TAU*uT*floor(2.0+uSpeed*6.0))*exp(-r*(0.4+uDetail*3.0));
-  vec3 ink=ink3(0.5+w*0.55+p.z*(0.5+uAmt*3.0));
-  vec3 bg=mix(uBG,ink3(0.5+w*0.4),0.06+uThick*0.34);
-  return mix(bg,ink,clamp(c,0.0,1.0))+uC2*smoothstep(0.75,1.0,abs(w))*uWarp*0.22;
-}`,
+ drip:{he:"נוזל",glsl:`
+float pLip(){ return 2.4; }
+vec3 pDeform(vec3 p){
+  float k=5.0+uScale*24.0;
+  float n=vnoise3(vec3(p.x*k,3.7,0.0)+orbit3(0.30+uSpeed*0.9));
+  float amt=(0.02+uAmt*0.55)*smoothstep(0.30,1.0,n);
+  float below=smoothstep(0.95,-1.05,p.y);
+  float pull=amt*below*below;
+  return vec3(p.x,p.y+pull,p.z*(1.0+pull*(1.2+uWarp*2.6))); }
+float pExtra(vec3 p){ return 1e9; }
+vec4 pVolume(vec3 ro,vec3 rd,float tMax){ return vec4(0.0); }
+vec4 pTint(vec3 p,vec3 n,float dd,float c){ return vec4(0.0); }`},
 
-chrome:`
-vec3 surface(vec3 p,vec3 n,float dd,float c,vec3 rd){
-  float a=TAU*uT;
-  vec3 L=normalize(vec3(cos(a),sin(a),0.55));
-  float spec=pow(max(dot(reflect(-L,n),-rd),0.0),8.0+uDetail*120.0);
-  float ripple=sin(dd*(0.04+uScale*0.45)+a)*uAmt;
-  float band=atan(n.y,n.x)/TAU*(2.0+floor(uScale*9.0))+a*0.25+n.z*(0.4+uAmt*2.2)+ripple*0.3;
-  vec3 metal=mix(ink3(band),vec3(1.0),spec*0.85)*(0.28+max(dot(n,L),0.0)*0.95);
-  return mix(mix(uBG,ink3(band+0.3),0.12+uWarp*0.4),metal,clamp(c,0.0,1.0));
-}`,
-
-melt:`
-vec3 surface(vec3 p,vec3 n,float dd,float c,vec3 rd){
-  float col=h21(vec2(floor(p.x*(15.0+uScale*120.0)),3.0));
-  float drive=0.5-0.5*cos(TAU*(uT*floor(1.0+uSpeed*3.0)+col));
-  float pull=(0.05+uAmt*0.9)*(0.35+col*0.9)*drive;
-  vec3 q=vec3(p.x*(6.0+uDetail*30.0),p.y*(1.0+pull*4.0)-pull*3.0,p.z*4.0)+orbit3(1.2);
-  float v=fbm3(q);
-  vec3 ink=ink3(col*0.8+v*0.5+p.z*(0.5+uThick*3.0));
-  vec3 bg=mix(uBG,ink3(p.y*0.4+0.3),uWarp*0.22);
-  return mix(bg,ink,clamp(c,0.0,1.0));
-}`,
-
-moire:`
-vec3 surface(vec3 p,vec3 n,float dd,float c,vec3 rd){
-  vec3 q=p*(45.0+uScale*260.0);
-  float a1=TAU*uT, a2=a1+0.25+uDetail*1.3;
-  float m=dd*(0.01+uAmt*0.16);
-  float g1=sin(q.x*cos(a1)+q.y*sin(a1)+q.z*0.8+m*7.0);
-  float g2=sin(q.x*cos(a2)+q.y*sin(a2)-q.z*0.8-m*7.0);
-  float w=0.55-uThick*0.5;
-  float l1=smoothstep(w-0.2,w+0.2,g1), l2=smoothstep(w-0.2,w+0.2,g2);
-  vec3 out_=mix(uBG,mix(uBG,uC2,uWarp),max(l1,l2)*0.55);
-  vec3 in_=mix(uC0,uC1,l2)*(0.35+0.65*l1);
-  return mix(out_,in_,clamp(c,0.0,1.0));
-}`,
-
-plasma:`
-vec3 surface(vec3 p,vec3 n,float dd,float c,vec3 rd){
-  vec3 q=p*(1.6+uScale*8.0)+orbit3(0.7+uSpeed*2.2);
-  float f=fbm3(q)+0.5*fbm3(q*2.1+11.0);
-  float v=f+dd*(0.0015+uAmt*0.02)+p.z*(1.0+uAmt*5.0);
-  vec3 col=ink3(v*(1.0+uDetail*6.0));
-  float glow=exp(-max(dd,0.0)/(6.0+uThick*130.0));
-  return mix(mix(uBG,col*0.6,glow*uWarp),col,clamp(c,0.0,1.0));
-}`,
-
-scan:`
-vec3 surface(vec3 p,vec3 n,float dd,float c,vec3 rd){
-  float rows=12.0+uScale*140.0;
-  float row=floor(p.y*rows);
-  float r1=h21(vec2(row,1.0));
-  float sh=sin(TAU*(uT*floor(1.0+uSpeed*5.0)+r1))*uAmt*(0.2+r1);
-  sh+=step(1.0-uDetail*0.4,h21(vec2(row,floor(uT*16.0)+3.0)))*(r1-0.5)*uAmt*2.0;
-  float g=0.5+0.5*sin((p.x+sh)*(8.0+uScale*40.0)+p.z*6.0);
-  float rr=0.5+0.5*sin((p.x+sh+uWarp*0.08)*(8.0+uScale*40.0)+p.z*6.0);
-  float bb=0.5+0.5*sin((p.x+sh-uWarp*0.08)*(8.0+uScale*40.0)+p.z*6.0);
-  float band=0.82+0.18*sin(p.y*rows*TAU);
-  return uBG+(uC0*rr+uC1*g+uC2*bb)*band*(0.3+c*0.9)*(0.4+uThick*0.9);
-}`,
-
-contour:`
-vec3 surface(vec3 p,vec3 n,float dd,float c,vec3 rd){
-  float sp=3.0+uScale*80.0;
-  float ph=dd/sp+p.z*(2.0+uAmt*14.0)-uT*floor(1.0+uSpeed*4.0);
-  float f=fract(ph), w=0.04+uThick*0.42;
-  float line=smoothstep(w,0.0,min(f,1.0-f));
-  float fade=exp(-abs(dd)/(30.0+uAmt*430.0));
-  vec3 col=ink3(floor(ph)*0.13+uDetail);
-  vec3 base=mix(uBG,col,line*fade*(0.30+uWarp*0.70));
-  return mix(base,mix(col,ink3(0.12+0.3*sin(TAU*uT)),0.5),clamp(c,0.0,1.0));
-}`,
-
-shatter:`
-vec3 surface(vec3 p,vec3 n,float dd,float c,vec3 rd){
-  vec3 v=cell3(p*(3.0+uScale*30.0)+orbit3(0.4+uSpeed*1.4));
-  float edge=smoothstep(0.0,0.03+uThick*0.2,v.y);
-  vec3 ink=ink3(v.z*0.8+p.z*(0.5+uAmt*4.0)+uDetail*0.3);
-  vec3 seam=mix(uBG,uC2,uWarp);
-  return mix(seam,mix(uBG,ink,clamp(c,0.0,1.0)),edge);
-}`,
-
-halftone:`
-vec3 surface(vec3 p,vec3 n,float dd,float c,vec3 rd){
-  float tone=clamp(smoothstep(2.0,-(2.0+uThick*70.0),dd)*0.95
-                  +(fbm3(p*(1.0+uDetail*7.0)+orbit3(0.5+uSpeed*1.5))-0.35)*uAmt*1.3,0.0,1.0);
-  float cells=20.0+uScale*160.0;
-  float a=0.4+TAU*uT*floor(uWarp*3.0);
-  vec3 q=p*cells;
-  vec2 f=fract(vec2(q.x*cos(a)-q.y*sin(a),q.x*sin(a)+q.y*cos(a))+q.z*0.5)-0.5;
-  float r=sqrt(tone)*0.66;
-  return mix(uBG,ink3(tone*0.9),smoothstep(r,r-0.09,length(f)));
-}`,
-
-emboss:`
-vec3 surface(vec3 p,vec3 n,float dd,float c,vec3 rd){
-  float a=TAU*uT;
-  float lam=dot(n,normalize(vec3(cos(a),sin(a),0.35)));
-  float ridge=exp(-abs(dd)/(1.0+uAmt*22.0));
-  float h=smoothstep(2.0+uThick*45.0,-(2.0+uThick*45.0),dd);
-  vec3 lit=uBG*(1.0+lam*(ridge*(0.3+uAmt*1.3)+0.35*c));
-  vec3 col=mix(lit,ink3(0.2+h*0.5),h*uWarp*0.55*c);
-  return col+(vnoise3(p*(120.0+uScale*700.0))-0.5)*uDetail*0.13;
-}`,
-
-neon:`
-vec3 surface(vec3 p,vec3 n,float dd,float c,vec3 rd){
-  float d=abs(dd);
-  float w=1.0+uThick*16.0;
-  float tube=exp(-pow(d/w,2.0))*(0.4+0.6*c);
-  float out_=max(d-w,0.0);
-  float a=TAU*uT;
-  float dip=step(0.55,h21(vec2(floor(uT*18.0),7.0)))*max(0.0,sin(a*floor(3.0+uSpeed*9.0)))*uDetail*0.55;
-  vec3 core=mix(uC2,vec3(1.0),0.75);
-  vec3 halo=ink3(0.15+0.5*sin(a)+uWarp+p.z*2.0);
-  return uBG+(core*tube+halo*(exp(-out_/(5.0+uAmt*80.0))*0.75
-                             +exp(-out_/(28.0+uAmt*420.0))*0.4))*(1.0-dip);
-}`,
-
-flow:`
-vec3 surface(vec3 p,vec3 n,float dd,float c,vec3 rd){
-  float a=TAU*uT;
-  vec3 wind=vec3(cos(a),sin(a),0.3);
-  vec3 dir=normalize(mix(n,wind,0.35+uWarp*0.6));
-  vec3 q=p*(2.0+uScale*8.0);
-  float acc=0.0,wt=1.0;
-  for(int i=0;i<6;i++){
-    q+=dir*(0.06+uAmt*0.3)+orbit3(0.15)*0.2;
-    acc=max(acc,fbm3(q*(0.6+uDetail*2.5))*wt); wt*=0.86;
-  }
-  vec3 ink=ink3(0.15+acc*1.4);
-  vec3 bg=mix(uBG,ink3(0.6),0.03+uThick*0.22);
-  return mix(bg,ink,clamp(c*0.9+acc*0.5,0.0,1.0));
-}`,
-
-crystal:`
-vec3 surface(vec3 p,vec3 n,float dd,float c,vec3 rd){
-  vec3 q=p*(1.5+uScale*9.0)+orbit3(0.4+uSpeed*1.3);
-  float f=fbm3(q), k=2.0+uDetail*9.0;
-  float facet=floor(f*k);
-  vec3 fn=normalize(n+vec3(cos(facet*2.399963),sin(facet*2.399963),0.4)*uAmt*2.2);
-  float spec=pow(max(dot(reflect(-normalize(vec3(0.4,0.7,0.8)),fn),-rd),0.0),18.0);
-  float edge=smoothstep(0.0,0.03+uThick*0.14,abs(fract(f*k)-0.5));
-  vec3 col=ink3(facet*0.17+uWarp+dot(fn,vec3(0.0,0.0,1.0))*0.3);
-  return uBG+ (col*(0.45+edge*0.75)+vec3(spec))*(0.3+c*0.9);
-}`,
-
-extrude:`
-vec3 surface(vec3 p,vec3 n,float dd,float c,vec3 rd){
-  float z=(p.z+dep())/(2.0*dep()+1e-5);
-  vec3 face=ink3(0.55+uDetail*0.45);
-  vec3 side=ink3(0.1+(1.0-z)*(0.25+uScale*1.3)+uWarp*0.45);
-  float faceness=smoothstep(0.35,0.85,abs(n.z));
-  float ground=exp(-max(dd,0.0)/(10.0+uAmt*260.0))*(1.0-c);
-  return mix(mix(uBG,uBG*(1.0-uThick*0.6),ground),mix(side,face,faceness),clamp(c,0.0,1.0));
-}`,
-
-droplets:`
-vec3 surface(vec3 p,vec3 n,float dd,float c,vec3 rd){
-  vec3 v=cell3(p*(4.0+uScale*26.0)+orbit3(0.2+uSpeed*0.9));
-  float r=0.18+uThick*0.34;
-  float bead=smoothstep(r,r*0.55,v.x);
-  vec3 bn=normalize(n+ (vec3(h31(vec3(v.z)),h31(vec3(v.z+3.1)),1.0)-0.5)*bead*uAmt*3.0);
-  float spec=pow(max(dot(reflect(-normalize(vec3(-0.4,0.6,0.8)),bn),-rd),0.0),24.0)*bead;
-  float rim=smoothstep(r,r*0.9,v.x)-smoothstep(r*0.9,r*0.55,v.x);
-  vec3 base=mix(uBG,ink3(0.3+v.z*0.6),clamp(c,0.0,1.0));
-  return base*(1.0-rim*0.4*uWarp)+ink3(0.55)*rim*0.5*uWarp+vec3(1.0)*spec*0.9;
-}`,
-
-weave:`
-vec3 surface(vec3 p,vec3 n,float dd,float c,vec3 rd){
-  vec3 q=p*(16.0+uScale*140.0);
-  float b=dd*(0.003+uAmt*0.05);
-  float a=TAU*uT*floor(1.0+uSpeed*3.0);
-  float th=0.10+uThick*0.30;
-  float sx=abs(fract(q.x+sin(q.y*0.55+b+a)*0.2+q.z*0.3)-0.5);
-  float sy=abs(fract(q.y+sin(q.x*0.55-b+a)*0.2-q.z*0.3)-0.5);
-  float lx=smoothstep(th,th-0.07,sx), ly=smoothstep(th,th-0.07,sy);
-  float over=step(0.5,fract((floor(q.x)+floor(q.y))*0.5));
-  vec3 tx=mix(uC0,uC1,c), ty=mix(uC1,uC2,c);
-  vec3 col=over>0.5?mix(mix(uBG,ty,ly),tx,lx):mix(mix(uBG,tx,lx),ty,ly);
-  col=mix(vec3(dot(col,vec3(0.299,0.587,0.114))),col,0.3+uWarp*0.9);
-  float shd=1.0-uDetail*0.4*(over>0.5?ly*(1.0-lx):lx*(1.0-ly));
-  return mix(uBG,col*shd,clamp(max(lx,ly),0.0,1.0));
-}`,
-
-dunes:`
-vec3 surface(vec3 p,vec3 n,float dd,float c,vec3 rd){
-  vec3 q=p*(0.8+uScale*5.0)+orbit3(0.35+uSpeed*1.2);
-  float f=fbm3(q*1.5)*1.2+dd*(0.0015+uAmt*0.018)+p.z*(0.5+uAmt*3.0);
-  float band=fract(f*(4.0+uDetail*40.0));
-  float ridge=smoothstep(0.0,0.35,band)*smoothstep(1.0,0.62,band);
-  float sl=fbm3((q+vec3(0.05,0.0,0.0))*1.5)-fbm3((q-vec3(0.05,0.0,0.0))*1.5);
-  vec3 sand=ink3(0.15+f*0.5);
-  vec3 col=sand*(0.65+sl*(2.0+uWarp*9.0))*(0.5+ridge*0.8);
-  return mix(mix(uBG,col,0.92),col*(1.15+uThick*0.9),clamp(c,0.0,1.0));
-}`,
-
-/* Char and flame. The solid is what is left of the letter — blackened, with embers
-   showing in the cracks, hottest low down where the fire sits on it. The fire is not
-   on the surface at all: volume() marches the air in front of everything, gathering
-   emission from a noise field that rises and cools with height, so the flames stand
-   off the letter, lick past its silhouette, and light nothing — exactly like the
-   additive pass a compositor would put over a plate. */
-fire:`
-float lip(){ return 1.15; }
-vec3 deform(vec3 p){
-  float burn=(0.5-0.5*cos(TAU*uT))*(0.01+uAmt*0.05);
-  return vec3(p.x,p.y+burn*smoothstep(-0.4,1.0,p.y),p.z);
-}
-vec4 volume(vec3 ro,vec3 rd,float tMax){
+ burn:{he:"בוער",glsl:`
+float pLip(){ return 1.15; }
+vec3 pDeform(vec3 p){
+  float b=(0.5-0.5*cos(TAU*uT))*(0.01+uAmt*0.05);
+  return vec3(p.x,p.y+b*smoothstep(-0.4,1.0,p.y),p.z); }
+float pExtra(vec3 p){ return 1e9; }
+vec4 pVolume(vec3 ro,vec3 rd,float tMax){
   float rise=floor(2.0+uSpeed*6.0);
-  /* March the box the plume occupies, not a fixed span in front of the lens: the
-     camera sits at the focal length, up to 28 away, so a fixed march never reached
-     the letters at all. */
   vec3 bc=vec3(0.0,0.5,0.0), be=vec3(asp()+0.35,1.62,1.05);
   vec2 tb=slab(ro-bc,rd,be);
   float t0=max(tb.x,0.0), t1=min(tb.y,tMax);
@@ -802,307 +649,238 @@ vec4 volume(vec3 ro,vec3 rd,float tMax){
   float dt=(t1-t0)/30.0;
   vec3 acc=vec3(0.0); float trans=1.0, t=t0;
   for(int i=0;i<30;i++){
-    t+=dt;
-    if(t>t1) break;
+    t+=dt; if(t>t1) break;
     vec3 q=ro+rd*t;
-    /* Fuel comes off the letter and rises, so a point in the air is burning when the
-       letter is below it — sample the letter field inside its own band, not at this
-       height, or there is never any fuel above the letterform. */
     float dw=letterDist(vec2(q.x,clamp(q.y,-0.85,0.0)))/uRes.y*2.0;
     vec3 sp=q*vec3(2.2+uScale*5.0,1.3,2.2+uScale*5.0)-vec3(0.0,uT*rise,0.0);
     float n=fbm3(sp);
-    /* abs, not max: fire is held at the surface of what burns. Gating on "anywhere
-       over the letter" made a solid column out of every stroke. */
     float near=exp(-abs(dw)*(9.0-uAmt*4.0));
     near*=0.35+0.65*vnoise3(vec3(q.x*(9.0+uScale*12.0),q.y*1.4-uT*rise,4.1));
-    /* Sits on the letter and tapers off above it. Without the upper taper the plume
-       fills the frame and the thing that is supposed to be burning disappears. */
     float prof=smoothstep(-0.75,-0.35,q.y)*(1.0-smoothstep(-0.15,0.45+uAmt*1.3,q.y));
     float dens=clamp(near*n*n*3.4-0.55,0.0,1.0)*prof;
     if(dens<=0.002) continue;
     float heat=clamp(n*1.5-max(q.y,0.0)*0.6,0.0,1.0);
     vec3 em=mix(vec3(1.0,0.13,0.02),vec3(1.0,0.88,0.42),heat)*(0.4+heat*3.1);
-    vec3 smoke=vec3(0.05,0.045,0.04)*uDetail*2.0;
-    acc+=(em+smoke)*dens*trans*0.42;
+    acc+=(em+vec3(0.05,0.045,0.04)*uDetail*2.0)*dens*trans*0.42;
     trans*=1.0-dens*0.16;
-    if(trans<0.02) break;
-  }
-  return vec4(acc,1.0-trans);
-}
-vec3 surface(vec3 p,vec3 n,float dd,float c,vec3 rd){
+    if(trans<0.02) break; }
+  return vec4(acc,1.0-trans); }
+vec4 pTint(vec3 p,vec3 n,float dd,float c){
   float cr=fbm3(p*(6.0+uScale*20.0)+orbit3(0.25));
   float ember=smoothstep(0.62,0.9,cr)*(0.35+uWarp*1.2)*smoothstep(0.6,-0.9,p.y);
-  vec3 char_=mix(vec3(0.10,0.085,0.08),vec3(0.02,0.018,0.017),uThick);
-  vec3 lit=mix(char_,vec3(1.0,0.35,0.06),ember);
-  return mix(uBG,lit,clamp(c,0.0,1.0));
-}`,
+  return vec4(mix(vec3(1.0,0.3,0.05),vec3(0.05,0.04,0.04),1.0-ember),
+              c*(0.75+ember*0.25)); }`},
 
-echo:`
+ freeze:{he:"קופא",glsl:`
+float pLip(){ return 1.3; }
+vec3 pDeform(vec3 p){ return p; }
+float pExtra(vec3 p){
+  /* rime growing outward from the letter: cells that only exist near its surface */
+  float grow=0.5-0.5*cos(TAU*uT);
+  float dw=letterDist(p.xy)/uRes.y*2.0;
+  /* letterDist knows nothing about z, so a shell built from it alone is an infinite
+     slab down the depth axis — bound it to the letter's own thickness. */
+  float shell=max(abs(dw)-(0.008+uAmt*0.075)*grow, abs(p.z)-dep()*1.5);
+  float rime=0.55-vnoise3(p*(11.0+uScale*26.0)+orbit3(0.1))*(0.7+uThick*0.6);
+  return max(shell,rime); }
+vec4 pVolume(vec3 ro,vec3 rd,float tMax){ return vec4(0.0); }
+vec4 pTint(vec3 p,vec3 n,float dd,float c){
+  float frost=smoothstep(0.25,0.9,fbm3(p*(9.0+uScale*22.0)))*(0.5-0.5*cos(TAU*uT));
+  return vec4(vec3(0.86,0.94,1.0),frost*(0.4+uWarp*0.55)); }`},
+
+ shatter:{he:"מתנפץ",glsl:`
+float pLip(){ return 1.6; }
+vec3 pDeform(vec3 p){
+  /* cell3 is 27 lookups and this runs on every march step, every normal tap and
+     every shadow step. A chunk only needs a direction, so one hash of the cell
+     index does the same job — the burst is identical and it is 27x cheaper. */
+  vec3 id=h33(floor(p*(3.0+uScale*16.0)));
+  float burst=(0.5-0.5*cos(TAU*uT))*(0.01+uAmt*0.22);
+  return p-normalize(id-vec3(0.5,0.45,0.5)+1e-5)*burst; }
+float pExtra(vec3 p){ return 1e9; }
+vec4 pVolume(vec3 ro,vec3 rd,float tMax){ return vec4(0.0); }
+vec4 pTint(vec3 p,vec3 n,float dd,float c){
+  vec3 v=cell3(p*(3.0+uScale*16.0));      // once per pixel here, so the real thing
+  return vec4(vec3(0.0),smoothstep(0.05,0.0,v.y)*0.6); }`},
+
+ erode:{he:"נשחק",glsl:`
+float pLip(){ return 1.1; }
+vec3 pDeform(vec3 p){ return p; }
+float pExtra(vec3 p){ return 1e9; }
+vec4 pVolume(vec3 ro,vec3 rd,float tMax){
+  /* what the wind takes off it, drifting downwind and settling */
+  float dr=floor(1.0+uSpeed*4.0);
+  vec3 bc=vec3(0.4,0.2,0.0), be=vec3(asp()+0.9,1.4,1.0);
+  vec2 tb=slab(ro-bc,rd,be);
+  float t0=max(tb.x,0.0), t1=min(tb.y,tMax);
+  if(t1<=t0) return vec4(0.0);
+  float dt=(t1-t0)/22.0;
+  vec3 acc=vec3(0.0); float trans=1.0, t=t0;
+  for(int i=0;i<22;i++){
+    t+=dt; if(t>t1) break;
+    vec3 q=ro+rd*t;
+    float dw=letterDist(vec2(q.x-0.25,q.y))/uRes.y*2.0;
+    float n=fbm3(q*vec3(2.4,3.0,2.4)-vec3(uT*dr,uT*dr*0.35,0.0));
+    float dens=clamp(exp(-max(dw,0.0)*2.2)*n*2.0-0.85,0.0,1.0)*(0.25+uAmt*0.8);
+    if(dens<=0.002) continue;
+    acc+=mix(uC0,uC1,n)*dens*trans*0.35;
+    trans*=1.0-dens*0.22;
+    if(trans<0.03) break; }
+  return vec4(acc,1.0-trans); }
+vec4 pTint(vec3 p,vec3 n,float dd,float c){
+  float bite=smoothstep(0.4,0.85,fbm3(p*(12.0+uScale*30.0)+orbit3(0.15)));
+  return vec4(vec3(0.0),bite*0.5*c); }`},
+
+ inflate:{he:"מתנפח",glsl:`
+float pLip(){ return 1.5; }
+vec3 pDeform(vec3 p){
+  float t=0.5-0.5*cos(TAU*uT*floor(1.0+uSpeed*3.0));
+  float s=1.0/(1.0+(0.02+uAmt*0.30)*t);
+  return vec3(p.x*s,p.y*s,p.z*(s*0.7+0.3)); }
+float pExtra(vec3 p){ return 1e9; }
+vec4 pVolume(vec3 ro,vec3 rd,float tMax){ return vec4(0.0); }
+vec4 pTint(vec3 p,vec3 n,float dd,float c){
+  float taut=pow(1.0-abs(n.z),2.0);
+  return vec4(vec3(1.0),taut*0.20*c); }`},
+
+ dissolve:{he:"מתפוגג",glsl:`
+float pLip(){ return 1.0; }
+vec3 pDeform(vec3 p){ return p; }
+float pExtra(vec3 p){ return 1e9; }
+vec4 pVolume(vec3 ro,vec3 rd,float tMax){
+  float dr=floor(1.0+uSpeed*3.0);
+  vec3 bc=vec3(0.0,0.6,0.0), be=vec3(asp()+0.4,1.7,1.0);
+  vec2 tb=slab(ro-bc,rd,be);
+  float t0=max(tb.x,0.0), t1=min(tb.y,tMax);
+  if(t1<=t0) return vec4(0.0);
+  float dt=(t1-t0)/24.0;
+  vec3 acc=vec3(0.0); float trans=1.0, t=t0;
+  for(int i=0;i<24;i++){
+    t+=dt; if(t>t1) break;
+    vec3 q=ro+rd*t;
+    float dw=letterDist(vec2(q.x,clamp(q.y,-0.9,0.2)))/uRes.y*2.0;
+    vec3 g=cell3(q*(9.0+uScale*20.0)-vec3(0.0,uT*dr,0.0));
+    float mote=smoothstep(0.22,0.02,g.x);
+    float dens=mote*exp(-abs(dw)*(3.0-uAmt*1.6))*smoothstep(1.5,-0.4,q.y)*(0.3+uAmt);
+    if(dens<=0.002) continue;
+    acc+=mix(uC1,uC2,g.z)*dens*trans*0.5;
+    trans*=1.0-dens*0.28;
+    if(trans<0.03) break; }
+  return vec4(acc,1.0-trans); }
+vec4 pTint(vec3 p,vec3 n,float dd,float c){
+  float gone=smoothstep(-0.4,0.9,p.y)*(0.5-0.5*cos(TAU*uT))*uAmt;
+  return vec4(uBG,gone*0.85*c); }`},
+
+ soak:{he:"רטוב",glsl:`
+float pLip(){ return 1.0; }
+vec3 pDeform(vec3 p){ return p; }
+float pExtra(vec3 p){
+  /* beads standing on the surface, and only on the surface */
+  float k=10.0+uScale*30.0;
+  vec3 g=p*k+orbit3(0.12+uSpeed*0.5);
+  vec3 id=h33(floor(g));
+  float bead=length(fract(g)-0.35-id*0.3)/k;      // one sphere per lattice cell
+  float dw=letterDist(p.xy)/uRes.y*2.0;
+  float r=(0.004+uThick*0.02);
+  return max(max(bead-r,abs(dw)-r*1.6),abs(p.z)-dep()*1.4); }
+vec4 pVolume(vec3 ro,vec3 rd,float tMax){ return vec4(0.0); }
+vec4 pTint(vec3 p,vec3 n,float dd,float c){
+  float sheen=smoothstep(0.35,-0.9,p.y);
+  return vec4(vec3(0.02,0.03,0.05),sheen*0.55*c); }`}
+};
+
+/* Matter and process meet here. The matter decides what light does; the process
+   decides what is happening and gets the last word on colour. */
+const ASSEMBLY=`
+float height(vec3 p){ return clamp(mHeight(p),0.0,1.0); }
+float lip(){ return pLip(); }
+vec3 deform(vec3 p){ return pDeform(p); }
+float extra(vec3 p){ return pExtra(p); }
+vec4 volume(vec3 ro,vec3 rd,float tMax){ return pVolume(ro,rd,tMax); }
 vec3 surface(vec3 p,vec3 n,float dd,float c,vec3 rd){
-  float a=TAU*uT;
-  vec3 col=vec3(0.0);
-  for(int i=0;i<8;i++){
-    float f=float(i)/8.0;
-    float sc=1.0+f*(0.05+uAmt*1.5);
-    float rot=(f*(0.02+uWarp*0.55)+float(i)*uDetail*0.06)*sin(a);
-    float s=sin(rot),cs=cos(rot);
-    vec2 e=mat2(cs,-s,s,cs)*(p.xy/sc);
-    col+=ink3(f*(0.35+uScale)+a/TAU)*covAt(e)*(1.0-f)*(0.35+uThick*1.1);
-  }
-  return mix(uBG+col*0.55,ink3(0.85),clamp(c,0.0,1.0));
-}`
-
-};
-/* ---- relief -------------------------------------------------------------
-   Each shader also declares a height: the same pattern, read as material.
-   map() subtracts it from the letter solid, so the field is carved into the
-   geometry and shows up in the silhouette — bumps, ridges, cells and dots that
-   are actually there, not painted on. Cheap variants on purpose: this runs per
-   march step, while the colour runs once per pixel. */
-const HEIGHT={
-liquid:`float height(vec3 p){ vec3 q=p*(1.4+uScale*6.0)+orbit3(0.5+uSpeed*1.6);
-  return fbm3(q*1.2); }
-/* Sampling the letter from higher up drags its shape downward; thinning z at the
-   same time tapers what gets dragged, which is what makes a run read as a drip
-   rather than as a smear. Where a drip hangs is a smooth field along x, so there
-   are no seams between columns, and it swells and retreats over the loop. */
-float lip(){ return 2.4; }
-vec3 deform(vec3 p){
-  float k=5.0+uScale*24.0;
-  float n=vnoise3(vec3(p.x*k,3.7,0.0)+orbit3(0.30+uSpeed*0.9));
-  float amt=(0.02+uAmt*0.55)*smoothstep(0.30,1.0,n);
-  float below=smoothstep(0.95,-1.05,p.y);
-  float pull=amt*below*below;
-  return vec3(p.x,p.y+pull,p.z*(1.0+pull*(1.2+uWarp*2.6)));
-}`,
-chroma:`float height(vec3 p){ return fbm3(p*(1.2+uScale*5.0)+orbit3(0.4+uSpeed*1.5)); }`,
-ripple:`float height(vec3 p){ vec3 s=orbit3(0.30); float r=length(p-s);
-  return 0.5+0.5*sin(r*(10.0+uScale*80.0)-TAU*uT*floor(2.0+uSpeed*6.0))*exp(-r*(0.4+uDetail*3.0)); }`,
-chrome:`float height(vec3 p){ float dd=letterDist(p.xy);
-  return 0.5+0.5*sin(dd*(0.04+uScale*0.45)+TAU*uT); }`,
-melt:`float height(vec3 p){ float col=h21(vec2(floor(p.x*(15.0+uScale*120.0)),3.0));
-  float drive=0.5-0.5*cos(TAU*(uT*floor(1.0+uSpeed*3.0)+col));
-  return fbm3(vec3(p.x*(6.0+uDetail*30.0),p.y*2.0-drive*3.0,p.z*4.0)); }
-/* Slump, then pool: the whole form sinks, and near the floor it is sampled closer
-   to its own axis, which makes it spread outward the way something molten does
-   when it reaches a surface it cannot sink through. */
-float lip(){ return 2.6; }
-vec3 deform(vec3 p){
-  float t=0.5-0.5*cos(TAU*uT);
-  float m=(0.04+uAmt*0.65)*t;
-  float below=smoothstep(0.95,-1.02,p.y);
-  float pool=smoothstep(-0.45,-1.02,p.y);
-  float spread=1.0/(1.0+pool*m*(1.4+uWarp*3.0));
-  return vec3(p.x*spread,p.y+m*below*below,p.z*spread);
-}`,
-moire:`float height(vec3 p){ vec3 q=p*(45.0+uScale*260.0); float a1=TAU*uT;
-  return 0.5+0.5*sin(q.x*cos(a1)+q.y*sin(a1)+q.z*0.8)*sin(q.x*cos(a1+0.3)+q.y*sin(a1+0.3)); }`,
-plasma:`float height(vec3 p){ return fbm3(p*(1.6+uScale*8.0)+orbit3(0.7+uSpeed*2.2)); }`,
-scan:`float height(vec3 p){ float rows=12.0+uScale*140.0; float row=floor(p.y*rows);
-  return fract(h21(vec2(row,1.0))+uT*floor(1.0+uSpeed*5.0)); }`,
-contour:`float height(vec3 p){ float sp=3.0+uScale*80.0;
-  float f=fract(letterDist(p.xy)/sp-uT*floor(1.0+uSpeed*4.0));
-  return 1.0-min(f,1.0-f)*2.0; }`,
-shatter:`float height(vec3 p){ vec3 v=cell3(p*(3.0+uScale*30.0)+orbit3(0.4+uSpeed*1.4));
-  return smoothstep(0.0,0.05+uThick*0.25,v.y); }`,
-halftone:`float height(vec3 p){ float t=clamp(smoothstep(2.0,-(2.0+uThick*70.0),letterDist(p.xy)),0.0,1.0);
-  vec3 f=fract(p*(20.0+uScale*160.0))-0.5;
-  return smoothstep(sqrt(t)*0.7,sqrt(t)*0.7-0.15,length(f)); }`,
-emboss:`float height(vec3 p){ return exp(-abs(letterDist(p.xy))/(1.0+uAmt*22.0)); }`,
-neon:`float height(vec3 p){ float w=1.0+uThick*16.0;
-  return exp(-pow(abs(letterDist(p.xy))/w,2.0)); }`,
-flow:`float height(vec3 p){ float a=TAU*uT;
-  return fbm3(p*(2.0+uScale*8.0)+vec3(cos(a),sin(a),0.3)*(0.3+uAmt*1.2)); }`,
-crystal:`float height(vec3 p){ float k=2.0+uDetail*9.0;
-  return floor(fbm3(p*(1.5+uScale*9.0)+orbit3(0.4+uSpeed*1.3))*k)/k; }`,
-extrude:`float height(vec3 p){ float a=TAU*uT;
-  return covAt(p.xy-vec2(cos(a),sin(a))*(0.02+uAmt*0.16)); }`,
-droplets:`float height(vec3 p){ vec3 v=cell3(p*(4.0+uScale*26.0)+orbit3(0.2+uSpeed*0.9));
-  float r=0.18+uThick*0.34;
-  return sqrt(max(0.0,1.0-pow(min(v.x/r,1.0),2.0))); }`,
-weave:`float height(vec3 p){ vec3 q=p*(16.0+uScale*140.0); float a=TAU*uT*floor(1.0+uSpeed*3.0);
-  float sx=abs(fract(q.x+sin(q.y*0.55+a)*0.2)-0.5), sy=abs(fract(q.y+sin(q.x*0.55+a)*0.2)-0.5);
-  float th=0.10+uThick*0.30;
-  return max(smoothstep(th,th-0.09,sx),smoothstep(th,th-0.09,sy)); }`,
-dunes:`float height(vec3 p){ vec3 q=p*(0.8+uScale*5.0)+orbit3(0.35+uSpeed*1.2);
-  float f=fbm3(q*1.5)*1.2;
-  float b=fract(f*(4.0+uDetail*40.0));
-  return smoothstep(0.0,0.35,b)*smoothstep(1.0,0.62,b); }`,
-fire:`float height(vec3 p){
-  return 1.0-clamp(fbm3(p*(5.0+uScale*18.0)+orbit3(0.4))*1.6,0.0,1.0); }`,
-echo:`float height(vec3 p){ float a=TAU*uT,acc=0.0;
-  for(int i=0;i<4;i++){ float f=float(i)/4.0;
-    acc=max(acc,covAt(p.xy/(1.0+f*(0.05+uAmt*1.5)))*(1.0-f)); }
-  return acc; }`
-};
-/* the composed shaders carve exactly what they colour: the same field, same warp */
-const GEN_HEIGHT=`
-float height(vec3 p){
-  return clamp(FIELD(WARP(p,vec3(0.0,0.0,1.0))*(0.4+uScale*7.0),letterDist(p.xy)),0.0,1.0);
+  vec3 alb=mAlbedo(p,n,dd,c);
+  vec3 base=mix(uBG,alb,clamp(c,0.0,1.0));
+  vec4 t=pTint(p,n,dd,c);
+  return mix(base,t.rgb,clamp(t.a,0.0,1.0));
 }`;
+/* mRough/mMetal feed the two material sliders rather than replacing them: the
+   panel still shifts a substance, it just starts where the substance lives. */
 
-/* ═══ the composed shaders ══════════════════════════════════════════════════
-   The twenty above are written out by hand. A hundred and five more are
-   assembled from three interchangeable stages, all of them working in space:
+/* key, Hebrew, English, matter, process — fifty pairings that describe something
+   that could actually happen to a thing made of that. */
+const PAIRS=[
+["metal_still","מתכת","METAL","metal","still"],
+["metal_molten","מתכת מותכת","MOLTEN METAL","metal","melt"],
+["metal_forge","מתכת בכבשן","FORGED","metal","burn"],
+["metal_rust","חלודה","RUST","metal","erode"],
+["metal_shatter","מתכת נשברת","METAL BREAK","metal","shatter"],
+["metal_frost","מתכת קפואה","FROSTED METAL","metal","freeze"],
+["metal_wet","מתכת רטובה","WET METAL","metal","soak"],
 
-     FIELD(q,dd)          the pattern, sampled at a point in the volume
-     WARP(p,n)            where in the volume that point is taken from
-     INK(v,c,dd,p,n)      how field, solidity and outline distance become colour
+["glass_still","זכוכית","GLASS","glass","still"],
+["glass_shatter","זכוכית מנופצת","SHATTERED GLASS","glass","shatter"],
+["glass_melt","זכוכית מותכת","MOLTEN GLASS","glass","melt"],
+["glass_frost","זכוכית מוקפאת","FROSTED GLASS","glass","freeze"],
+["glass_wet","זכוכית רטובה","WET GLASS","glass","soak"],
+["glass_shard","רסיסים","SHARDS","glass","dissolve"],
 
-   Nothing here reads a screen coordinate, so a pattern is a solid the letters
-   are carved out of rather than a picture pasted on their front. ═══════════ */
-const FIELDS={
- fbmflow:{he:"ערפל",glsl:`
-float FIELD(vec3 q,float d){ return fbm3(q*1.3+orbit3(0.5+uSpeed*1.6))+d*(0.0008+uAmt*0.012); }`},
- rings:{he:"טבעות",glsl:`
-float FIELD(vec3 q,float d){
-  float r=length(q-orbit3(0.25));
-  return sin(r*(6.0+uDetail*50.0)-TAU*uT*floor(1.0+uSpeed*5.0)+d*(0.01+uAmt*0.13))*0.5+0.5; }`},
- bands:{he:"פסים",glsl:`
-float FIELD(vec3 q,float d){
-  float a=TAU*uT*floor(uSpeed*4.0)+0.6;
-  vec3 ax=normalize(vec3(cos(a),sin(a),0.45));
-  return sin(dot(q,ax)*(4.0+uDetail*40.0)+d*(0.01+uAmt*0.16))*0.5+0.5; }`},
- checks:{he:"משבצות",glsl:`
-float FIELD(vec3 q,float d){
-  vec3 g=floor(q*(1.0+uDetail*8.0)+orbit3(0.35+uSpeed));
-  return step(0.5,fract((g.x+g.y+g.z)*0.5+d*(0.0004+uAmt*0.006))); }`},
- voronoi:{he:"תאים",glsl:`
-float FIELD(vec3 q,float d){
-  return cell3(q*(0.8+uDetail*5.0)+orbit3(0.3+uSpeed)).z+d*(0.0006+uAmt*0.008); }`},
- vorEdge:{he:"קווי תאים",glsl:`
-float FIELD(vec3 q,float d){
-  vec3 v=cell3(q*(0.8+uDetail*5.0)+orbit3(0.3+uSpeed));
-  return smoothstep(0.0,0.06+uThick*0.3,v.y)+d*(0.0004+uAmt*0.006); }`},
- spiral:{he:"ספירלה",glsl:`
-float FIELD(vec3 q,float d){
-  float a=atan(q.y,q.x),r=length(q.xy);
-  return sin(a*floor(1.0+uDetail*8.0)+r*(2.0+uDetail*20.0)+q.z*(2.0+uAmt*10.0)
-            -TAU*uT*floor(1.0+uSpeed*4.0)+d*(0.01+uAmt*0.11))*0.5+0.5; }`},
- dots:{he:"נקודות",glsl:`
-float FIELD(vec3 q,float d){
-  vec3 f=fract(q*(2.0+uDetail*14.0)+orbit3(0.2+uSpeed*0.8))-0.5;
-  float t=clamp(smoothstep(2.0,-(2.0+uThick*70.0),d),0.0,1.0);
-  float r=sqrt(t)*0.7;
-  return smoothstep(r,r-0.12,length(f)); }`},
- stripesN:{he:"פסי רעש",glsl:`
-float FIELD(vec3 q,float d){
-  float n=fbm3(q*0.7+orbit3(0.4+uSpeed));
-  return sin((q.x+q.z*0.6+n*(1.0+uWarp*4.0))*(4.0+uDetail*40.0)+d*(0.01+uAmt*0.13))*0.5+0.5; }`},
- ridge:{he:"רכסים",glsl:`
-float FIELD(vec3 q,float d){
-  vec3 w=q+orbit3(0.4+uSpeed);
-  float s=0.0,a=0.5;
-  for(int i=0;i<4;i++){ s+=a*(1.0-abs(vnoise3(w)*2.0-1.0)); w*=2.03; a*=0.5; }
-  return s+d*(0.0008+uAmt*0.011); }`},
- turb:{he:"סערה",glsl:`
-float FIELD(vec3 q,float d){
-  return abs(fbm3(q*1.4+orbit3(0.5+uSpeed*1.4))*2.0-1.0)+d*(0.0008+uAmt*0.013); }`},
- grid:{he:"רשת קווים",glsl:`
-float FIELD(vec3 q,float d){
-  vec3 g=abs(fract(q*(2.0+uDetail*20.0)+vec3(d*(0.002+uAmt*0.03))+orbit3(0.25+uSpeed*0.9))-0.5);
-  return 1.0-smoothstep(0.0,0.06+uThick*0.3,min(min(g.x,g.y),g.z)); }`},
- tri:{he:"משולשים",glsl:`
-float FIELD(vec3 q,float d){
-  vec3 w=q*(1.2+uDetail*10.0)+orbit3(0.3+uSpeed*0.9);
-  w.x+=w.y*0.5; w.z+=w.y*0.25;
-  vec2 f=fract(w.xz);
-  return fract(h31(floor(w)+step(f.x+f.y,1.0)*0.37)+d*(0.0006+uAmt*0.008)); }`},
- rowhash:{he:"שורות",glsl:`
-float FIELD(vec3 q,float d){
-  float rows=8.0+uDetail*90.0;
-  float r=floor((q.y+q.z*0.4+d*(0.002+uAmt*0.022))*rows);
-  return fract(h21(vec2(r,3.0))+uT*floor(1.0+uSpeed*4.0)); }`},
- polarzig:{he:"זיגזג",glsl:`
-float FIELD(vec3 q,float d){
-  float a=atan(q.y,q.x)/TAU, r=length(q);
-  float k=floor(3.0+uDetail*20.0);
-  return abs(fract(a*k-r*(0.5+uAmt*6.0)+d*(0.002+uAmt*0.02)
-            +uT*floor(1.0+uSpeed*4.0))*2.0-1.0); }`},
- worley2:{he:"סדקים",glsl:`
-float FIELD(vec3 q,float d){
-  return cell3(q*(0.8+uDetail*5.0)+orbit3(0.3+uSpeed)).y+d*(0.0006+uAmt*0.008); }`}
-};
+["wax_still","שעווה","WAX","wax","still"],
+["wax_melt","שעווה נמסה","MELTING WAX","wax","melt"],
+["wax_drip","שעווה נוזלת","DRIPPING WAX","wax","drip"],
+["wax_burn","נר","CANDLE","wax","burn"],
+["wax_soft","שעווה רכה","SOFT WAX","wax","inflate"],
 
-/* Warps move the sample point through the volume; several lean on the surface
-   normal, which only exists because the letters are solid. */
-const WARPS={
- none:`vec3 WARP(vec3 p,vec3 n){ return p; }`,
- noise:`vec3 WARP(vec3 p,vec3 n){
-  vec3 o=orbit3(0.5+uSpeed);
-  return p+(vec3(vnoise3(p*4.0+o),vnoise3(p*4.0+o.yzx+13.0),vnoise3(p*4.0+o.zxy+31.0))-0.5)*uAmt*0.5; }`,
- push:`vec3 WARP(vec3 p,vec3 n){ return p-n*(uAmt*0.35)*(0.35+0.65*sin(TAU*uT)); }`,
- swirl:`vec3 WARP(vec3 p,vec3 n){
-  float a=(uAmt*2.4)*exp(-length(p.xy)*(1.0+uDetail*6.0))*sin(TAU*uT);
-  float s=sin(a),c=cos(a);
-  return vec3(mat2(c,-s,s,c)*p.xy,p.z); }`,
- rows:`vec3 WARP(vec3 p,vec3 n){
-  float rows=10.0+uScale*100.0, r=floor(p.y*rows);
-  return vec3(p.x+sin(TAU*(uT*floor(1.0+uSpeed*4.0)+h21(vec2(r,2.0))))*uAmt*0.3,(r+0.5)/rows,p.z); }`,
- cols:`vec3 WARP(vec3 p,vec3 n){
-  float k=10.0+uScale*100.0, c=floor(p.x*k);
-  return vec3((c+0.5)/k,p.y+sin(TAU*(uT*floor(1.0+uSpeed*4.0)+h21(vec2(c,9.0))))*uAmt*0.3,p.z); }`,
- lens:`vec3 WARP(vec3 p,vec3 n){
-  vec3 q=p-orbit3(0.35);
-  return p+q*(uAmt*1.3)*(0.25-dot(q,q)*0.25); }`,
- cells:`vec3 WARP(vec3 p,vec3 n){
-  vec3 ip=floor(p*(3.0+uScale*20.0));
-  float a=TAU*(h31(ip)+uT*floor(1.0+uSpeed*3.0));
-  return p+vec3(cos(a),sin(a),h31(ip+5.5)-0.5)*uAmt*0.2*(0.3+h31(ip+5.5)); }`,
- zoom:`vec3 WARP(vec3 p,vec3 n){ return p/(1.0+uAmt*0.8*sin(TAU*uT)); }`,
- wave:`vec3 WARP(vec3 p,vec3 n){
-  float a=TAU*uT; vec3 ax=normalize(vec3(cos(a),sin(a),0.4));
-  return p+ax*sin(dot(p,vec3(-ax.y,ax.x,0.3))*(5.0+uScale*45.0))*uAmt*0.25; }`
-};
+["stone_still","אבן","STONE","stone","still"],
+["stone_erode","אבן נשחקת","ERODED STONE","stone","erode"],
+["stone_shatter","אבן נשברת","BROKEN STONE","stone","shatter"],
+["stone_burn","אבן לוהטת","SCORCHED STONE","stone","burn"],
+["stone_wet","אבן רטובה","WET STONE","stone","soak"],
+["stone_frost","אבן קפואה","FROZEN STONE","stone","freeze"],
 
-/* c is 1 on the solid and 0 on the wall behind it; dd is the distance from the
-   letter outline on the sheet plane, which still means something on the wall. */
-const INKS={
- fill:`vec3 INK(float v,float c,float dd,vec3 p,vec3 n){ return mix(uBG,ink3(v),clamp(c,0.0,1.0)); }`,
- knock:`vec3 INK(float v,float c,float dd,vec3 p,vec3 n){ return mix(ink3(v),uBG,clamp(c,0.0,1.0)); }`,
- duo:`vec3 INK(float v,float c,float dd,vec3 p,vec3 n){
-  vec3 g=mix(uBG,uC0,clamp(v,0.0,1.0)*(0.3+uWarp*0.7));
-  return mix(g,mix(uC1,uC2,clamp(v,0.0,1.0)),clamp(c,0.0,1.0)); }`,
- screen:`vec3 INK(float v,float c,float dd,vec3 p,vec3 n){
-  float k=smoothstep(0.44,0.56,fract(v));
-  return mix(uBG,mix(uC0,uC2,k),clamp(c,0.0,1.0)); }`,
- halo:`vec3 INK(float v,float c,float dd,vec3 p,vec3 n){
-  float h=exp(-max(dd,0.0)/(4.0+uThick*90.0));
-  return mix(uBG,ink3(v),clamp(c+h*(0.2+uWarp*0.6),0.0,1.0)); }`,
- outline:`vec3 INK(float v,float c,float dd,vec3 p,vec3 n){
-  float w=1.0+uThick*16.0;
-  return uBG+ink3(v)*exp(-pow(abs(dd)/w,2.0))
-            +ink3(v+0.4)*exp(-max(abs(dd)-w,0.0)/(20.0+uAmt*300.0))*0.35; }`,
- poster:`vec3 INK(float v,float c,float dd,vec3 p,vec3 n){
-  float q=2.0+floor(uDetail*7.0);
-  float b=floor(clamp(v,0.0,1.0)*q)/q;
-  return mix(mix(uBG,ink3(b),0.85),ink3(b+0.45),clamp(c,0.0,1.0)); }`,
- add:`vec3 INK(float v,float c,float dd,vec3 p,vec3 n){
-  return uBG+uC0*clamp(c,0.0,1.0)+uC1*clamp(v,0.0,1.0)*(0.25+uWarp*0.65); }`,
- shadowed:`vec3 INK(float v,float c,float dd,vec3 p,vec3 n){
-  float a=TAU*uT;
-  float sh=covAt(p.xy-vec2(cos(a),sin(a))*(0.02+uAmt*0.16));
-  vec3 ground=mix(uBG,ink3(v),0.2+uWarp*0.6);
-  return mix(mix(ground,ground*0.32,clamp(sh,0.0,1.0)*(1.0-c)),ink3(v+0.5),clamp(c,0.0,1.0)); }`,
- relief:`vec3 INK(float v,float c,float dd,vec3 p,vec3 n){
-  float a=TAU*uT;
-  float ridge=exp(-abs(dd)/(1.0+uThick*22.0));
-  vec3 base=mix(uBG,ink3(v),0.15+uWarp*0.5);
-  return base*(1.0+dot(n,normalize(vec3(cos(a),sin(a),0.4)))*(ridge+0.5*c)*(0.4+uAmt*1.2)); }`
-};
+["ice_still","קרח","ICE","ice","still"],
+["ice_freeze","קרח גדל","GROWING ICE","ice","freeze"],
+["ice_melt","קרח נמס","MELTING ICE","ice","melt"],
+["ice_drip","קרח נוטף","DRIPPING ICE","ice","drip"],
+["ice_shatter","קרח מתנפץ","SHATTERED ICE","ice","shatter"],
 
-const GEN_MAIN=`
-vec3 surface(vec3 p,vec3 n,float dd,float c,vec3 rd){
-  vec3 q=WARP(p,n)*(0.4+uScale*7.0);
-  return INK(FIELD(q,dd),c,dd,p,n);
-}`;
-/* ---- the march ----------------------------------------------------------
-   Shared by all 125. The letters are marched as solids; whatever the ray
-   misses lands on a wall behind them, shaded by the same surface function, so
-   the pattern is continuous through the scene rather than stopping at the
-   silhouette. The march starts at the slab's entry face, not at the camera:
-   the stored field saturates at 512px, so crossing the empty space in front of
-   the sheet would otherwise eat the whole step budget. */
+["wood_still","עץ","WOOD","wood","still"],
+["wood_burn","עץ בוער","BURNING WOOD","wood","burn"],
+["wood_erode","עץ בלוי","WEATHERED WOOD","wood","erode"],
+["wood_wet","עץ רטוב","WET WOOD","wood","soak"],
+
+["ceramic_still","קרמיקה","CERAMIC","ceramic","still"],
+["ceramic_shatter","קרמיקה שבורה","BROKEN CERAMIC","ceramic","shatter"],
+["ceramic_kiln","קרמיקה בשריפה","KILN","ceramic","burn"],
+["ceramic_wet","זיגוג רטוב","WET GLAZE","ceramic","soak"],
+
+["rubber_still","גומי","RUBBER","rubber","still"],
+["rubber_inflate","גומי מתנפח","INFLATING RUBBER","rubber","inflate"],
+["rubber_melt","גומי נמס","MELTING RUBBER","rubber","melt"],
+["rubber_burn","גומי בוער","BURNING RUBBER","rubber","burn"],
+
+["sand_still","חול","SAND","sand","still"],
+["sand_erode","חול נסחף","BLOWN SAND","sand","erode"],
+["sand_dissolve","חול מתפוגג","SCATTERING SAND","sand","dissolve"],
+["sand_wet","חול רטוב","WET SAND","sand","soak"],
+["sand_shatter","חול מתפורר","CRUMBLING SAND","sand","shatter"],
+
+["clay_still","חימר","CLAY","clay","still"],
+["clay_melt","חימר צונח","SLUMPING CLAY","clay","melt"],
+["clay_drip","חימר נוזל","RUNNING CLAY","clay","drip"],
+["clay_inflate","חימר תופח","RISING CLAY","clay","inflate"],
+["clay_erode","חימר מתפורר","CRUMBLING CLAY","clay","erode"],
+["clay_burn","חימר נשרף","FIRED CLAY","clay","burn"]
+];
+const SHADERS=PAIRS.map(x=>[x[0],x[1],x[2],MATTER[x[3]].he]);
+const FAMILIES=["הכל"].concat([...new Set(SHADERS.map(x=>x[3]))]);
+const PAIR={}; PAIRS.forEach(x=>{ PAIR[x[0]]={m:x[3],p:x[4]}; });
+
+/* the six shader knobs mean the same thing everywhere now, because every shader
+   is a substance under a process rather than an arbitrary pattern */
+const KNOBS_DEF={amt:"עוצמת התהליך",scale:"גודל מרקם",speed:"קצב",
+                 detail:"פירוט",warp:"עוצמת אפקט",thick:"עובי"};
+const KNOBS={};
+
 const POST=`
 /* The displaced solid. Subtracting a height field costs the field its exact
    distance property, so the march damps its steps near the surface — and it only
@@ -1310,118 +1088,6 @@ void main(){
   O=vec4(clamp(col+g,0.0,1.0),1.0);
 }`;
 
-const GEN_LIST=[
-["smoke","עשן","SMOKE","fbmflow","none","fill"],
-["vapour","אדים","VAPOUR","fbmflow","noise","halo"],
-["marble","שיש","MARBLE","fbmflow","none","poster"],
-["river","נהר","RIVER","fbmflow","push","duo"],
-["whirlpool","מערבולת","WHIRLPOOL","fbmflow","swirl","fill"],
-["inkcloud","ענן דיו","INK CLOUD","fbmflow","none","knock"],
-["magnet","מגנט","MAGNET","fbmflow","push","outline"],
-["ripples","אדוות","RIPPLES","rings","none","fill"],
-["radar","רדאר","RADAR","rings","none","outline"],
-["stonepool","אבן בבריכה","STONE POOL","rings","lens","halo"],
-["frequency","תדר","FREQUENCY","rings","rows","add"],
-["circles","עיגולים","CIRCLES","rings","none","poster"],
-["stillwater","מים עומדים","STILL WATER","rings","wave","relief"],
-["shelf","מדף","SHELF","bands","none","fill"],
-["blind","תריס","BLIND","bands","none","knock"],
-["heatlines","גלי חום","HEAT LINES","bands","noise","halo"],
-["barcode","ברקוד","BARCODE","bands","none","poster"],
-["diagonal","אלכסון","DIAGONAL","bands","swirl","duo"],
-["lightbars","פסי אור","LIGHT BARS","bands","none","add"],
-["chess","לוח שחמט","CHESS","checks","none","fill"],
-["tile","אריח","TILE","checks","none","knock"],
-["pixels","פיקסלים","PIXELS","checks","none","poster"],
-["pavement","מרצפות","PAVEMENT","checks","swirl","relief"],
-["mosaic","פסיפס","MOSAIC","checks","noise","duo"],
-["errorscreen","מסך שגיאה","ERROR SCREEN","checks","rows","add"],
-["cells","תאים","CELLS","voronoi","none","fill"],
-["leather","עור","LEATHER","voronoi","none","relief"],
-["stones","אבנים","STONES","voronoi","none","poster"],
-["bubbles","בועות","BUBBLES","voronoi","lens","halo"],
-["ice","קרח","ICE","voronoi","cells","duo"],
-["fracture","שבר","FRACTURE","voronoi","cells","knock"],
-["cracknet","רשת סדקים","CRACK NET","vorEdge","none","fill"],
-["stainedglass","ויטראז׳","STAINED GLASS","vorEdge","none","duo"],
-["continents","יבשות","CONTINENTS","vorEdge","none","outline"],
-["leaf","עלה","LEAF","vorEdge","push","relief"],
-["cobweb","קורי עכביש","COBWEB","vorEdge","none","add"],
-["borders","גבולות","BORDERS","vorEdge","swirl","knock"],
-["spiral2","ספירלה","SPIRAL","spiral","none","fill"],
-["vortex","מערבולת קוטבית","VORTEX","spiral","swirl","halo"],
-["galaxy","גלקסיה","GALAXY","spiral","none","add"],
-["fan","מניפה","FAN","spiral","none","poster"],
-["record","תקליט","RECORD","spiral","none","outline"],
-["dizzy","סחרחורת","DIZZY","spiral","lens","duo"],
-["finescreen","רשת עדינה","FINE SCREEN","dots","none","fill"],
-["shading","הצללה","SHADING","dots","none","knock"],
-["pop","פופ","POP","dots","none","duo"],
-["lightdots","נקודות אור","LIGHT DOTS","dots","none","add"],
-["coarseprint","הדפס גס","COARSE PRINT","dots","noise","poster"],
-["dotrelief","תבליט נקודות","DOT RELIEF","dots","none","relief"],
-["phosphor","זרחן","PHOSPHOR","dots","rows","add"],
-["wood","עץ","WOOD","stripesN","none","fill"],
-["rosemarble","שיש ורוד","ROSE MARBLE","stripesN","none","poster"],
-["lineflow","זרם קווים","LINE FLOW","stripesN","push","duo"],
-["water","מים","WATER","stripesN","wave","halo"],
-["fingerprint","טביעת אצבע","FINGERPRINT","stripesN","none","outline"],
-["rope","חבל","ROPE","stripesN","swirl","relief"],
-["ridges","רכסים","RIDGES","ridge","none","fill"],
-["mountains","הרים","MOUNTAINS","ridge","none","relief"],
-["chalk","גיר","CHALK","ridge","none","knock"],
-["torncloud","ענן קרוע","TORN CLOUD","ridge","noise","halo"],
-["heightmap","מפת גובה","HEIGHT MAP","ridge","none","poster"],
-["rock","סלע","ROCK","ridge","push","duo"],
-["crumpled","נייר מקומט","CRUMPLED","ridge","noise","relief"],
-["storm","סערה","STORM","turb","none","fill"],
-["flame","להבה","FLAME","turb","none","add"],
-["tempest","סופה","TEMPEST","turb","swirl","halo"],
-["blacksmoke","עשן שחור","BLACK SMOKE","turb","none","knock"],
-["darkmarble","שיש כהה","DARK MARBLE","turb","none","poster"],
-["heatwave","גל חום","HEAT WAVE","turb","wave","duo"],
-["foil","רדיד","FOIL","turb","swirl","relief"],
-["graphpaper","נייר משבצות","GRAPH PAPER","grid","none","fill"],
-["blueprint","שרטוט","BLUEPRINT","grid","none","knock"],
-["scaffold","פיגום","SCAFFOLD","grid","none","outline"],
-["wire","תיל","WIRE","grid","swirl","add"],
-["map","מפה","MAP","grid","push","duo"],
-["mesh","מסך רשת","MESH","grid","rows","relief"],
-["triangles","משולשים","TRIANGLES","tri","none","fill"],
-["origami","אוריגמי","ORIGAMI","tri","none","relief"],
-["tricrystal","גביש משולש","TRI CRYSTAL","tri","none","poster"],
-["arrow","חץ","ARROW","tri","none","knock"],
-["folded","קיפול","FOLDED","tri","swirl","duo"],
-["diamond","יהלום","DIAMOND","tri","lens","halo"],
-["lines","שורות","LINES","rowhash","none","fill"],
-["glitch","גליץ׳","GLITCH","rowhash","rows","knock"],
-["tape","קלטת","TAPE","rowhash","rows","add"],
-["hbarcode","ברקוד אופקי","H BARCODE","rowhash","none","poster"],
-["fault","תקלה","FAULT","rowhash","cols","duo"],
-["tvbars","פסי טלוויזיה","TV BARS","rowhash","none","outline"],
-["zigzag","זיגזג","ZIGZAG","polarzig","none","fill"],
-["sun","שמש","SUN","polarzig","none","add"],
-["paperfan","מניפת נייר","PAPER FAN","polarzig","none","poster"],
-["star","כוכב","STAR","polarzig","none","outline"],
-["cog","גלגל שיניים","COG","polarzig","swirl","knock"],
-["flower","פרח","FLOWER","polarzig","lens","duo"],
-["cracks","סדקים","CRACKS","worley2","none","fill"],
-["parched","יובש","PARCHED","worley2","none","relief"],
-["glassbreak","שבר זכוכית","GLASS BREAK","worley2","cells","knock"],
-["veins","עורקים","VEINS","worley2","none","add"],
-["honeycomb","תאי דבש","HONEYCOMB","worley2","none","poster"],
-["enamel","אמייל","ENAMEL","worley2","noise","halo"],
-["longshadow","צל ארוך","LONG SHADOW","fbmflow","none","shadowed"],
-["cutpaper","נייר גזור","CUT PAPER","checks","none","shadowed"],
-["reliefmap","תבליט","RELIEF MAP","vorEdge","none","shadowed"],
-["screenprint","הדפס רשת","SCREEN PRINT","dots","none","screen"],
-["duotone","דואוטון","DUOTONE","fbmflow","none","screen"]
-];
-const GEN={}; GEN_LIST.forEach(g=>{ GEN[g[0]]={f:g[3],w:g[4],i:g[5]}; });
-/* the picker treats hand-written and composed alike; the family is what the field is */
-GEN_LIST.forEach(g=>SHADERS.push([g[0],g[1],g[2],FIELDS[g[3]].he]));
-const FAMILIES=["הכל"].concat([...new Set(SHADERS.map(x=>x[3]))]);
-
 /* ============================ resources ============================ */
 let W=0,H=0;
 let texType=null, texSDF=null, fbA=null, fbB=null, texA0=null,texA1=null,texB0=null,texB1=null, fbSDF=null;
@@ -1565,24 +1231,12 @@ const hex=h=>{ const n=parseInt(h.slice(1),16);
    would be a long stall, and most of them will never be looked at in one sitting. */
 function shaderProg(name){
   if(pCache[name]) return pCache[name];
-  let mid;
-  if(BODY[name]) mid=HEIGHT[name]+"\n"+BODY[name];
-  else if(GEN[name]){
-    const g=GEN[name];
-    mid=FIELDS[g.f].glsl+"\n"+WARPS[g.w]+"\n"+INKS[g.i]+"\n"+GEN_HEIGHT+"\n"+GEN_MAIN;
-  } else mid=HEIGHT.liquid+"\n"+BODY.liquid;
-  /* GLSL has no weak symbols, so anything the shader did not declare is filled in
-     here — an identity deform, no extra geometry, nothing in the air. */
-  const DEFAULTS=[
-    ["vec3 deform(","vec3 deform(vec3 p){ return p; }"],
-    ["float lip(","float lip(){ return 1.0; }"],
-    ["float extra(","float extra(vec3 p){ return 1e9; }"],
-    ["vec4 volume(","vec4 volume(vec3 ro,vec3 rd,float tMax){ return vec4(0.0); }"]
-  ];
-  DEFAULTS.forEach(([sig,def])=>{ if(!mid.includes(sig)) mid+="\n"+def; });
-  const p=prog(PRE+mid+"\n"+POST);
+  const q=PAIR[name]||PAIR[PAIRS[0][0]];
+  const src=PRE+MATTER[q.m].glsl+"\n"+PROCESS[q.p].glsl+"\n"+ASSEMBLY+"\n"+POST;
+  const p=prog(src);
   pCache[name]=p; return p;
 }
+
 let seed=Math.random()*100;
 
 function draw(phase){
