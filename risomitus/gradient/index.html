@@ -178,6 +178,8 @@ body:not(.unlocked) #stage,body:not(.unlocked) #panel{visibility:hidden}
 .tabs a small{display:block;font-size:8.5px;opacity:.55;margin-top:2px}
 .tabs a[aria-current=page]{background:var(--txt,#ececed);color:var(--bg,#0b0b0e);border-color:var(--txt,#ececed)}
 .tabs a:not([aria-current=page]):hover{box-shadow:2px 2px 0 #FF3D9A}
+.build{margin-top:5px;text-align:center;font:8.5px/1 ui-monospace,Menlo,monospace;
+  letter-spacing:.1em;color:var(--txt,#ececed);opacity:.4;direction:ltr}
 </style>
 </head>
 <body>
@@ -208,7 +210,7 @@ body:not(.unlocked) #stage,body:not(.unlocked) #panel{visibility:hidden}
   <div class="head">
     <h1>גרדיאנט</h1>
     <p>מערכת טיפוגרפיה מונפשת — הגרדיאנט עשוי מהמילה</p>
-    <nav class="tabs" aria-label="מערכות"><a href="../">ריזו<small>מכבש הדפסה</small></a><a href="./" aria-current="page">גרדיאנט<small>טיפוגרפיה</small></a><a href="../compose/">קומפוזיציה<small>פטרנים על גיליון</small></a><a href="../shader/">שיידר<small>GLSL</small></a></nav>
+    <nav class="tabs" aria-label="מערכות"><a href="../?v=a17ce21">ריזו<small>מכבש הדפסה</small></a><a href="./" aria-current="page">גרדיאנט<small>טיפוגרפיה</small></a><a href="../compose/?v=a17ce21">קומפוזיציה<small>פטרנים על גיליון</small></a><a href="../shader/?v=a17ce21">שיידר<small>GLSL</small></a></nav><div class="build" title="גרסת בנייה">20.08 19:21 · a17ce21</div>
     <div class="seg" role="group" aria-label="פורמט">
       <button id="f_post" aria-pressed="true">פוסט<small>1080 × 1350</small></button>
       <button id="f_story" aria-pressed="false">סטורי<small>1080 × 1920</small></button>

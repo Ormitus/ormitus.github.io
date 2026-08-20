@@ -47,6 +47,8 @@ body:not(.unlocked) #app{visibility:hidden}
 .tabs a small{display:block;font-size:8.5px;opacity:.55;margin-top:2px}
 .tabs a[aria-current=page]{background:var(--ink,#1E1A17);color:var(--paper,#F2EDE1);border-color:var(--ink,#1E1A17)}
 .tabs a:not([aria-current=page]):hover{box-shadow:2px 2px 0 #FF3D9A}
+.build{margin-top:5px;text-align:center;font:8.5px/1 ui-monospace,Menlo,monospace;
+  letter-spacing:.1em;color:var(--ink,#1E1A17);opacity:.4;direction:ltr}
 </style>
 
 <div id="gate">
@@ -258,7 +260,7 @@ body.onlychanged label.f:not(.changed){display:none}
   <div id="ticket">
     <div id="masthead">
       <h1>RISOMITUS</h1>
-      <nav class="tabs" aria-label="מערכות"><a href="./" aria-current="page">ריזו<small>מכבש הדפסה</small></a><a href="./gradient/">גרדיאנט<small>טיפוגרפיה</small></a><a href="./compose/">קומפוזיציה<small>פטרנים על גיליון</small></a><a href="./shader/">שיידר<small>GLSL</small></a></nav>
+      <nav class="tabs" aria-label="מערכות"><a href="./" aria-current="page">ריזו<small>מכבש הדפסה</small></a><a href="./gradient/?v=a17ce21">גרדיאנט<small>טיפוגרפיה</small></a><a href="./compose/?v=a17ce21">קומפוזיציה<small>פטרנים על גיליון</small></a><a href="./shader/?v=a17ce21">שיידר<small>GLSL</small></a></nav><div class="build" title="גרסת בנייה">20.08 19:21 · a17ce21</div>
       <div id="sub"><span>הפרדות · מסך · נייר</span><span id="stat">—</span></div>
     </div>
 
