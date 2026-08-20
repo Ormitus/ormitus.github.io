@@ -287,7 +287,8 @@ const SHADERS=[
   ["neon","ניאון","NEON"],       ["flow","זרם","FLOW"],
   ["crystal","גביש","CRYSTAL"],  ["extrude","הטלה","EXTRUDE"],
   ["droplets","טיפות","DROPLETS"],["weave","אריג","WEAVE"],
-  ["dunes","דיונות","DUNES"],    ["echo","הד","ECHO"]
+  ["dunes","דיונות","DUNES"],    ["echo","הד","ECHO"],
+  ["fire","אש","FIRE"]
 ].map(x=>x.concat(["כתובים ביד"]));
 /* Each shader reads the six knobs its own way; the labels change with it so the
    panel says what the slider actually does here. */
@@ -311,7 +312,8 @@ const KNOBS={
   droplets:{amt:"הגדלה",scale:"צפיפות טיפות",speed:"קצב ריצוד",detail:"חדות שפה",warp:"כהות שפה",thick:"גודל טיפה"},
   weave:{amt:"עיוות חוט",scale:"צפיפות אריגה",speed:"קצב",detail:"הצללת שתי",warp:"רוויה",thick:"עובי חוט"},
   dunes:{amt:"משיכת אות",scale:"קנה מידה",speed:"קצב",detail:"מספר רכסים",warp:"ניגודיות מדרון",thick:"בהירות פנים"},
-  echo:{amt:"פרישה",scale:"מדרג צבע",speed:"קצב",detail:"סחרור",warp:"סיבוב",thick:"עוצמת הד"}
+  echo:{amt:"פרישה",scale:"מדרג צבע",speed:"קצב",detail:"סחרור",warp:"סיבוב",thick:"עוצמת הד"},
+  fire:{amt:"גובה להבה",scale:"גודל להבות",speed:"קצב עלייה",detail:"עובי עשן",warp:"זוהר גחלים",thick:"פחם"}
 };
 const KEYS=["amt","scale","speed","detail","warp","thick"];
 /* the composed shaders share one meaning for the six knobs, so they share one label set */
@@ -525,8 +527,22 @@ vec3 cell3(vec3 p){
   }
   return vec3(d1,d2-d1,id);
 }
+/* Four things a shader may declare. height and surface are the surface treatment;
+   the other three are what let an effect act on the letter instead of on its skin:
+
+     deform(p)   bend the letter solid itself — sag, slump, stretch, burst
+     lip()       how much deform stretches space, so the march can stay safe
+     extra(p)    geometry the effect adds that the letter never had
+     volume(...) what the effect puts in the air — flame, smoke, spray
+
+   Any a shader does not define gets an identity default, so the 121 that are
+   surface treatments cost nothing for the ones that are not. */
 float height(vec3 p);
 vec3 surface(vec3 p,vec3 n,float dd,float c,vec3 rd);
+vec3 deform(vec3 p);
+float lip();
+float extra(vec3 p);
+vec4 volume(vec3 ro,vec3 rd,float tMax);
 `;
 
 /* Each of these is now a surface in space: it is handed the hit point p, the real
@@ -762,6 +778,65 @@ vec3 surface(vec3 p,vec3 n,float dd,float c,vec3 rd){
   return mix(mix(uBG,col,0.92),col*(1.15+uThick*0.9),clamp(c,0.0,1.0));
 }`,
 
+/* Char and flame. The solid is what is left of the letter — blackened, with embers
+   showing in the cracks, hottest low down where the fire sits on it. The fire is not
+   on the surface at all: volume() marches the air in front of everything, gathering
+   emission from a noise field that rises and cools with height, so the flames stand
+   off the letter, lick past its silhouette, and light nothing — exactly like the
+   additive pass a compositor would put over a plate. */
+fire:`
+float lip(){ return 1.15; }
+vec3 deform(vec3 p){
+  float burn=(0.5-0.5*cos(TAU*uT))*(0.01+uAmt*0.05);
+  return vec3(p.x,p.y+burn*smoothstep(-0.4,1.0,p.y),p.z);
+}
+vec4 volume(vec3 ro,vec3 rd,float tMax){
+  float rise=floor(2.0+uSpeed*6.0);
+  /* March the box the plume occupies, not a fixed span in front of the lens: the
+     camera sits at the focal length, up to 28 away, so a fixed march never reached
+     the letters at all. */
+  vec3 bc=vec3(0.0,0.5,0.0), be=vec3(asp()+0.35,1.62,1.05);
+  vec2 tb=slab(ro-bc,rd,be);
+  float t0=max(tb.x,0.0), t1=min(tb.y,tMax);
+  if(t1<=t0) return vec4(0.0);
+  float dt=(t1-t0)/30.0;
+  vec3 acc=vec3(0.0); float trans=1.0, t=t0;
+  for(int i=0;i<30;i++){
+    t+=dt;
+    if(t>t1) break;
+    vec3 q=ro+rd*t;
+    /* Fuel comes off the letter and rises, so a point in the air is burning when the
+       letter is below it — sample the letter field inside its own band, not at this
+       height, or there is never any fuel above the letterform. */
+    float dw=letterDist(vec2(q.x,clamp(q.y,-0.85,0.0)))/uRes.y*2.0;
+    vec3 sp=q*vec3(2.2+uScale*5.0,1.3,2.2+uScale*5.0)-vec3(0.0,uT*rise,0.0);
+    float n=fbm3(sp);
+    /* abs, not max: fire is held at the surface of what burns. Gating on "anywhere
+       over the letter" made a solid column out of every stroke. */
+    float near=exp(-abs(dw)*(9.0-uAmt*4.0));
+    near*=0.35+0.65*vnoise3(vec3(q.x*(9.0+uScale*12.0),q.y*1.4-uT*rise,4.1));
+    /* Sits on the letter and tapers off above it. Without the upper taper the plume
+       fills the frame and the thing that is supposed to be burning disappears. */
+    float prof=smoothstep(-0.75,-0.35,q.y)*(1.0-smoothstep(-0.15,0.45+uAmt*1.3,q.y));
+    float dens=clamp(near*n*n*3.4-0.55,0.0,1.0)*prof;
+    if(dens<=0.002) continue;
+    float heat=clamp(n*1.5-max(q.y,0.0)*0.6,0.0,1.0);
+    vec3 em=mix(vec3(1.0,0.13,0.02),vec3(1.0,0.88,0.42),heat)*(0.4+heat*3.1);
+    vec3 smoke=vec3(0.05,0.045,0.04)*uDetail*2.0;
+    acc+=(em+smoke)*dens*trans*0.42;
+    trans*=1.0-dens*0.16;
+    if(trans<0.02) break;
+  }
+  return vec4(acc,1.0-trans);
+}
+vec3 surface(vec3 p,vec3 n,float dd,float c,vec3 rd){
+  float cr=fbm3(p*(6.0+uScale*20.0)+orbit3(0.25));
+  float ember=smoothstep(0.62,0.9,cr)*(0.35+uWarp*1.2)*smoothstep(0.6,-0.9,p.y);
+  vec3 char_=mix(vec3(0.10,0.085,0.08),vec3(0.02,0.018,0.017),uThick);
+  vec3 lit=mix(char_,vec3(1.0,0.35,0.06),ember);
+  return mix(uBG,lit,clamp(c,0.0,1.0));
+}`,
+
 echo:`
 vec3 surface(vec3 p,vec3 n,float dd,float c,vec3 rd){
   float a=TAU*uT;
@@ -786,7 +861,20 @@ vec3 surface(vec3 p,vec3 n,float dd,float c,vec3 rd){
    march step, while the colour runs once per pixel. */
 const HEIGHT={
 liquid:`float height(vec3 p){ vec3 q=p*(1.4+uScale*6.0)+orbit3(0.5+uSpeed*1.6);
-  return fbm3(q*1.2); }`,
+  return fbm3(q*1.2); }
+/* Sampling the letter from higher up drags its shape downward; thinning z at the
+   same time tapers what gets dragged, which is what makes a run read as a drip
+   rather than as a smear. Where a drip hangs is a smooth field along x, so there
+   are no seams between columns, and it swells and retreats over the loop. */
+float lip(){ return 2.4; }
+vec3 deform(vec3 p){
+  float k=5.0+uScale*24.0;
+  float n=vnoise3(vec3(p.x*k,3.7,0.0)+orbit3(0.30+uSpeed*0.9));
+  float amt=(0.02+uAmt*0.55)*smoothstep(0.30,1.0,n);
+  float below=smoothstep(0.95,-1.05,p.y);
+  float pull=amt*below*below;
+  return vec3(p.x,p.y+pull,p.z*(1.0+pull*(1.2+uWarp*2.6)));
+}`,
 chroma:`float height(vec3 p){ return fbm3(p*(1.2+uScale*5.0)+orbit3(0.4+uSpeed*1.5)); }`,
 ripple:`float height(vec3 p){ vec3 s=orbit3(0.30); float r=length(p-s);
   return 0.5+0.5*sin(r*(10.0+uScale*80.0)-TAU*uT*floor(2.0+uSpeed*6.0))*exp(-r*(0.4+uDetail*3.0)); }`,
@@ -794,7 +882,19 @@ chrome:`float height(vec3 p){ float dd=letterDist(p.xy);
   return 0.5+0.5*sin(dd*(0.04+uScale*0.45)+TAU*uT); }`,
 melt:`float height(vec3 p){ float col=h21(vec2(floor(p.x*(15.0+uScale*120.0)),3.0));
   float drive=0.5-0.5*cos(TAU*(uT*floor(1.0+uSpeed*3.0)+col));
-  return fbm3(vec3(p.x*(6.0+uDetail*30.0),p.y*2.0-drive*3.0,p.z*4.0)); }`,
+  return fbm3(vec3(p.x*(6.0+uDetail*30.0),p.y*2.0-drive*3.0,p.z*4.0)); }
+/* Slump, then pool: the whole form sinks, and near the floor it is sampled closer
+   to its own axis, which makes it spread outward the way something molten does
+   when it reaches a surface it cannot sink through. */
+float lip(){ return 2.6; }
+vec3 deform(vec3 p){
+  float t=0.5-0.5*cos(TAU*uT);
+  float m=(0.04+uAmt*0.65)*t;
+  float below=smoothstep(0.95,-1.02,p.y);
+  float pool=smoothstep(-0.45,-1.02,p.y);
+  float spread=1.0/(1.0+pool*m*(1.4+uWarp*3.0));
+  return vec3(p.x*spread,p.y+m*below*below,p.z*spread);
+}`,
 moire:`float height(vec3 p){ vec3 q=p*(45.0+uScale*260.0); float a1=TAU*uT;
   return 0.5+0.5*sin(q.x*cos(a1)+q.y*sin(a1)+q.z*0.8)*sin(q.x*cos(a1+0.3)+q.y*sin(a1+0.3)); }`,
 plasma:`float height(vec3 p){ return fbm3(p*(1.6+uScale*8.0)+orbit3(0.7+uSpeed*2.2)); }`,
@@ -828,6 +928,8 @@ dunes:`float height(vec3 p){ vec3 q=p*(0.8+uScale*5.0)+orbit3(0.35+uSpeed*1.2);
   float f=fbm3(q*1.5)*1.2;
   float b=fract(f*(4.0+uDetail*40.0));
   return smoothstep(0.0,0.35,b)*smoothstep(1.0,0.62,b); }`,
+fire:`float height(vec3 p){
+  return 1.0-clamp(fbm3(p*(5.0+uScale*18.0)+orbit3(0.4))*1.6,0.0,1.0); }`,
 echo:`float height(vec3 p){ float a=TAU*uT,acc=0.0;
   for(int i=0;i<4;i++){ float f=float(i)/4.0;
     acc=max(acc,covAt(p.xy/(1.0+f*(0.05+uAmt*1.5)))*(1.0-f)); }
@@ -1007,9 +1109,11 @@ const POST=`
    evaluates the field when it is already within reach of it, which is what keeps
    a per-step cellular lookup affordable. */
 float map(vec3 p){
+  vec3 q=deform(p);
   float a=relief();
-  if(a<=0.0) return baseMap(p);
-  return baseMap(p)-clamp(height(p),0.0,1.0)*a;
+  float d=baseMap(q);
+  if(a>0.0) d-=clamp(height(q),0.0,1.0)*a;
+  return min(d/lip(),extra(p));
 }
 vec3 nrm(vec3 p){
   vec2 e=vec2(1.0,-1.0)*(0.0014+relief()*0.06);
@@ -1025,7 +1129,8 @@ vec3 nrmAll(vec3 p){
 float shadow(vec3 ro,vec3 L){
   float t=0.012,r=1.0;
   for(int i=0;i<24;i++){
-    float h=min(baseMap(ro+L*t)-relief()*0.5,cove(ro+L*t));  // relief casts nothing readable
+    vec3 sp=ro+L*t;
+    float h=min(min(baseMap(deform(sp))/lip()-relief()*0.5,extra(sp)),cove(sp));
     if(h<0.0009) return 0.0;
     r=min(r,9.0*h/t);
     t+=clamp(h,0.012,0.18);
@@ -1116,17 +1221,21 @@ vec3 render(vec2 px){
   float t=0.0, amp=relief();
   for(int i=0;i<96;i++){
     vec3 w=ro+rd*t;
-    float b=baseMap(w);
+    vec3 dw=deform(w);
+    float b=baseMap(dw)/lip();
     float dl,k;
-    if(b<amp*1.6){ dl=b-clamp(height(w),0.0,1.0)*amp; k=0.55; }  // in the relief band
-    else         { dl=b-amp;                          k=0.92; }  // still outside it
+    if(b<amp*1.6){ dl=min(b-clamp(height(dw),0.0,1.0)*amp/lip(),extra(w)); k=0.55; }
+    else         { dl=min(b-amp,extra(w));                                 k=0.92; }
     float dc=cove(w);
     float h=min(dl,dc);
     if(h<0.0012){ p=w; c=dl<dc?1.0:0.0; n=c>0.5?nrm(w):nrmAll(w); got=true; break; }
     t+=max(h*(dc<dl?0.95:k),0.0006);
     if(t>f+7.0) break;
   }
-  if(!got) return uBG;
+  if(!got){
+    vec4 v0=volume(ro,rd,f+7.0);
+    return uBG*(1.0-v0.a)+v0.rgb;
+  }
   vec3 alb=surface(p,n,letterDist(p.xy),c,rd);
   if(uLight<=0.001) return alb;
 
@@ -1182,7 +1291,9 @@ vec3 render(vec2 px){
 
   vec3 disp=toSRGB(aces(direct+ambient));
   float vig=1.0-0.30*pow(clamp(length(sc/vec2(asp(),1.0))*0.72,0.0,1.0),2.4);
-  return mix(alb,disp*vig,uLight);
+  vec3 outc=mix(alb,disp*vig,uLight);
+  vec4 vol=volume(ro,rd,t);                 // flame, smoke, spray — in front of it all
+  return outc*(1.0-vol.a)+vol.rgb;
 }
 void main(){
   /* Hard silhouettes at one sample a pixel are the loudest tell that something
@@ -1460,6 +1571,15 @@ function shaderProg(name){
     const g=GEN[name];
     mid=FIELDS[g.f].glsl+"\n"+WARPS[g.w]+"\n"+INKS[g.i]+"\n"+GEN_HEIGHT+"\n"+GEN_MAIN;
   } else mid=HEIGHT.liquid+"\n"+BODY.liquid;
+  /* GLSL has no weak symbols, so anything the shader did not declare is filled in
+     here — an identity deform, no extra geometry, nothing in the air. */
+  const DEFAULTS=[
+    ["vec3 deform(","vec3 deform(vec3 p){ return p; }"],
+    ["float lip(","float lip(){ return 1.0; }"],
+    ["float extra(","float extra(vec3 p){ return 1e9; }"],
+    ["vec4 volume(","vec4 volume(vec3 ro,vec3 rd,float tMax){ return vec4(0.0); }"]
+  ];
+  DEFAULTS.forEach(([sig,def])=>{ if(!mid.includes(sig)) mid+="\n"+def; });
   const p=prog(PRE+mid+"\n"+POST);
   pCache[name]=p; return p;
 }
