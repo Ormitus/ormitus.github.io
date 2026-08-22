@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RISOMITUS · נמס</title>
-  <meta name="description" content="Type a word in Haim and watch it flow away until nothing is left.">
+  <title>RISOMITUS · מוזאיקה</title>
+  <meta name="description" content="Rebuild an image or video out of Haim glyphs.">
   <meta name="color-scheme" content="dark">
   <meta name="robots" content="noindex, nofollow">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23F2EDE1'/%3E%3Ccircle cx='12' cy='16' r='8' fill='%23FF3D9A'/%3E%3Ccircle cx='20' cy='16' r='8' fill='%230B5FA5' opacity='.75'/%3E%3C/svg%3E">
@@ -55,8 +55,8 @@ body:not(.unlocked) #wrap{visibility:hidden}
   <div id="gatemarks"><i></i><i></i><i></i><i></i></div>
   <div id="gatecard">
     <h1>RISOMITUS</h1>
-    <p class="k">אותיות נוזלות · פונט חיים</p>
-    <p class="d">כותבים מילה, והיא נוזלת עד שלא נשאר ממנה כלום. הלולאה נסגרת. דרוש קוד כניסה.</p>
+    <p class="k">תמונה מאותיות · פונט חיים</p>
+    <p class="d">מכניסים תמונה או וידאו, והם נבנים מחדש מגליפים של חיים — לפי בהירות, או מהמילים שלך. דרוש קוד כניסה.</p>
     <input id="code" inputmode="numeric" autocomplete="off" maxlength="8"
            aria-label="קוד כניסה" placeholder="····">
     <button id="enter">כניסה</button>
@@ -95,12 +95,13 @@ body:not(.unlocked) #wrap{visibility:hidden}
   input[type=range]{width:100%;height:16px;accent-color:var(--pink);background:transparent}
   input[type=text],select{width:100%;background:var(--surf2);color:var(--txt);
     border:1px solid var(--line2);border-radius:0;padding:6px 7px;font:inherit;font-size:11.5px}
-  input[type=text]{font-size:15px;text-align:center}
+  input[type=text]{font-size:14px}
   input[type=text]:focus,select:focus{outline:1.5px solid var(--pink);outline-offset:-1px}
   input[type=color]{width:100%;height:26px;padding:0;border:1px solid var(--line2);
     background:var(--surf2);cursor:pointer}
   .seg{display:grid;gap:4px}
   .seg.c2{grid-template-columns:1fr 1fr} .seg.c3{grid-template-columns:repeat(3,1fr)}
+  .seg.c4{grid-template-columns:repeat(4,1fr)}
   .seg button{font:10px/1.25 ui-monospace,Menlo,monospace;padding:7px 2px;cursor:pointer;
     background:var(--surf2);color:var(--txt);border:1px solid var(--line2);border-radius:0}
   .seg button small{display:block;font-size:8px;opacity:.5;margin-top:2px}
@@ -114,6 +115,8 @@ body:not(.unlocked) #wrap{visibility:hidden}
   .acts button:hover:not(:disabled){border-color:var(--pink);box-shadow:2px 2px 0 var(--pink)}
   .acts button:disabled{opacity:.4;cursor:default}
   .acts .two{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+  .acts button.hero{background:var(--pink);border-color:var(--pink);color:#fff;font-weight:700}
+  .note{font-size:9.5px;color:var(--dim2);line-height:1.6;margin:6px 0 0}
 
   #stage{position:relative;display:flex;align-items:center;justify-content:center;
     padding:22px;overflow:hidden;
@@ -128,42 +131,58 @@ body:not(.unlocked) #wrap{visibility:hidden}
     color:#ff8fbe;background:#000c;padding:6px 9px;border:1px solid #ff3d9a55;display:none;
     white-space:pre-wrap;direction:ltr;text-align:left;max-height:40%;overflow:auto}
   #err.on{display:block}
-  /* the scrub bar doubles as the loop's own timeline */
-  #scrub{position:absolute;bottom:0;left:0;right:0;height:3px;background:#ffffff14}
-  #scrub i{position:absolute;top:0;bottom:0;left:0;background:var(--pink)}
+  /* the whole stage is the drop target, so there is nothing small to aim at */
+  #drop{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    pointer-events:none;opacity:0;transition:opacity .12s;background:#FF3D9A22;
+    border:2px dashed var(--pink);font-size:14px;color:#fff;letter-spacing:.1em}
+  #drop.on{opacity:1}
+  #empty{position:absolute;inset:0;display:flex;flex-direction:column;gap:10px;
+    align-items:center;justify-content:center;color:var(--dim);font-size:12.5px;text-align:center}
+  #empty b{font-size:15px;color:var(--txt);font-weight:400}
+  #empty.gone{display:none}
 </style>
 <div id="wrap">
   <aside id="panel">
     <div class="head">
-      <h1>נמס</h1>
-      <nav class="tabs" aria-label="מערכות"><a href="../?v=28e86f2">ריזו<small>מכבש הדפסה</small></a><a href="../gradient/?v=28e86f2">גרדיאנט<small>טיפוגרפיה</small></a><a href="../compose/?v=28e86f2">קומפוזיציה<small>פטרנים על גיליון</small></a><a href="./" aria-current="page">נמס<small>אותיות נוזלות</small></a></nav><div class="build" title="גרסת בנייה">20.08 19:33 · 28e86f2</div>
-      <p>כותבים מילה, והיא נוזלת עד שלא נשאר ממנה כלום. בפונט חיים.</p>
+      <h1>מוזאיקה</h1>
+      <nav class="tabs" aria-label="מערכות"><a href="../?v=c472ecb">ריזו<small>מכבש הדפסה</small></a><a href="../gradient/?v=c472ecb">גרדיאנט<small>טיפוגרפיה</small></a><a href="../compose/?v=c472ecb">קומפוזיציה<small>פטרנים על גיליון</small></a><a href="./" aria-current="page">מוזאיקה<small>תמונה מאותיות</small></a></nav><div class="build" title="גרסת בנייה">22.08 15:06 · c472ecb</div>
+      <p>תמונה או וידאו נכנסים, ויוצאים בנויים מאותיות של הפונט חיים.</p>
     </div>
 
     <div class="grp">
-      <h2>המילה</h2>
-      <div class="row"><label for="c_text">טקסט</label><input id="c_text" type="text" value="חיים" spellcheck="false"></div>
-      <div class="row"><label for="k_size">גודל</label>
-        <div class="rr"><input id="k_size" type="range" min="0.2" max="1" step="0.01"><span class="val" id="v_size"></span></div>
+      <h2>המקור</h2>
+      <div class="acts" style="margin-top:0">
+        <button id="b_open" class="hero">בחר תמונה או וידאו</button>
       </div>
-      <div class="row"><label for="k_top">מיקום</label>
-        <div class="rr"><input id="k_top" type="range" min="0" max="1" step="0.01"><span class="val" id="v_top"></span></div>
-      </div>
+      <p class="note" id="srcinfo">אפשר גם פשוט לגרור קובץ לתוך החלון.</p>
     </div>
 
     <div class="grp">
-      <h2>הנזילה</h2>
-      <div id="knobs"></div>
-      <div class="row"><label>לולאה</label>
+      <h2>האותיות</h2>
+      <div class="row"><label>מצב</label>
         <div class="seg c2" id="c_mode">
-          <button data-v="pingpong">הלוך ושוב<small>נסגרת</small></button>
-          <button data-v="once">נמס בלבד<small>חד־כיווני</small></button>
+          <button data-v="ramp">לפי בהירות<small>אות לכל גוון</small></button>
+          <button data-v="words">מילים<small>הטקסט שלך</small></button>
         </div>
       </div>
+      <div class="row"><label for="c_text" id="lbl_text">תווים</label>
+        <input id="c_text" type="text" spellcheck="false"></div>
+      <div id="knobsType"></div>
     </div>
 
     <div class="grp">
-      <h2>הצבע</h2>
+      <h2>התמונה</h2>
+      <div id="knobsImg"></div>
+      <div class="row"><label>היפוך</label>
+        <div class="seg c2" id="c_invert">
+          <button data-v="off">רגיל</button><button data-v="on">הפוך</button>
+        </div>
+      </div>
+      <div class="row"><label>צבע</label>
+        <div class="seg c2" id="c_colour">
+          <button data-v="mono">דיו אחד</button><button data-v="src">צבעי המקור</button>
+        </div>
+      </div>
       <div class="cols">
         <div><label>דיו</label><input id="c_ink" type="color"></div>
         <div><label>נייר</label><input id="c_paper" type="color"></div>
@@ -173,14 +192,10 @@ body:not(.unlocked) #wrap{visibility:hidden}
     <div class="grp">
       <h2>הגיליון</h2>
       <div class="row"><label>פורמט</label>
-        <div class="seg c3" id="c_fmt">
-          <button data-v="post">פוסט<small>1080×1350</small></button>
-          <button data-v="story">סטורי<small>1080×1920</small></button>
-          <button data-v="sq">ריבוע<small>1080×1080</small></button>
+        <div class="seg c4" id="c_fmt">
+          <button data-v="src">מקור</button><button data-v="post">פוסט</button>
+          <button data-v="story">סטורי</button><button data-v="sq">ריבוע</button>
         </div>
-      </div>
-      <div class="row"><label>אורך</label>
-        <div class="rr"><input id="k_loop" type="range" min="2" max="14" step="0.5"><span class="val" id="v_loop"></span></div>
       </div>
       <div class="row"><label>קובץ</label>
         <div class="seg c2" id="c_vfmt"><button data-v="mp4">MP4</button><button data-v="webm">WebM</button></div>
@@ -199,12 +214,14 @@ body:not(.unlocked) #wrap{visibility:hidden}
 
   <main id="stage">
     <canvas id="cv"></canvas>
+    <div id="empty"><b>גרור לכאן תמונה או וידאו</b><span>או לחץ על הכפתור בפאנל</span></div>
     <div id="hud"></div>
     <div id="busy">מכין…</div>
     <div id="err"></div>
-    <div id="scrub"><i></i></div>
+    <div id="drop">שחרר כדי לטעון</div>
   </main>
 </div>
+<input id="file" type="file" accept="image/*,video/*" style="display:none">
 
 <script>
 "use strict";
@@ -212,103 +229,87 @@ const $=id=>document.getElementById(id);
 const clamp=(v,a,b)=>v<a?a:v>b?b:v;
 
 const FMT={post:[1080,1350],story:[1080,1920],sq:[1080,1080]};
+const HEB="אבגדהוזחטיכךלמםנןסעפףצץקרשת";
 const DEF=()=>({
-  text:"חיים", size:.62, top:.42,
-  grav:.5, visc:.45, drip:.45, noise:.5, gloss:.4, grain:.03,
-  mode:"pingpong", loop:6, fmt:"post", vfmt:"mp4",
+  mode:"ramp", text:HEB, words:"חיים",
+  cell:.34, ratio:.55, weight:.5,
+  bright:.5, contrast:.5, gamma:.5,
+  invert:"off", colour:"mono", fmt:"src", vfmt:"mp4",
   ink:"#1E1A17", paper:"#F2EDE1"
 });
 let ST=DEF();
-const KNOBS=[["grav","כובד"],["visc","צמיגות"],["drip","טפטוף"],
-             ["noise","אקראיות"],["gloss","ברק"],["grain","גרעין"]];
+const KTYPE=[["cell","גודל תא"],["ratio","יחס תא"],["weight","עובי"]];
+const KIMG=[["bright","בהירות"],["contrast","ניגודיות"],["gamma","גאמה"]];
 
 /* ============================ GL ============================ */
 const cv=$("cv");
 const gl=cv.getContext("webgl2",{antialias:false,preserveDrawingBuffer:true,alpha:false});
 function fail(m){ $("err").textContent=m; $("err").classList.add("on"); }
+function ok(){ $("err").classList.remove("on"); }
 if(!gl) fail("הדפדפן הזה לא תומך ב־WebGL2.");
 
 const VS=`#version 300 es
 void main(){ vec2 p=vec2((gl_VertexID<<1)&2, gl_VertexID&2); gl_Position=vec4(p*2.0-1.0,0.0,1.0); }`;
 
-/* The melt is analytic, not simulated. A simulation would be easier to write and
-   impossible to loop or to seek: the exporter needs frame 300 without having run
-   frames 0..299, and the last frame has to meet the first exactly.
-
-   Each column is stretched vertically about the top of the letter it holds. A point
-   that started at ys sits at y = tp + (ys-tp)(1+a), so the inverse is one divide,
-   and the Jacobian 1+a is exactly how much thinner the ink has become — mass is
-   conserved on the way down, which is why it reads as flowing rather than fading.
-   a runs to infinity as the column finishes, so nothing is left rather than
-   something faint. */
+/* One glyph per cell, chosen per cell, sampled from an atlas. Doing this by calling
+   fillText once per cell would be ten thousand draw calls a frame and would not hold
+   video; here it is one pass and the cell lookup is two texture reads. */
 const FS=`#version 300 es
 precision highp float;
-uniform sampler2D uTex,uTop;
-uniform vec2 uRes;
-uniform float uT,uGrav,uVisc,uDrip,uNoise,uGloss,uGrain,uSeed;
+uniform sampler2D uSrc,uAtlas,uOrder;
+uniform vec2 uRes,uSrcSize;
+uniform vec2 uGrid;            // cells across, cells down
+uniform float uGlyphs;         // how many glyphs the atlas holds
+uniform float uOrderLen;       // 0 = pick by brightness, >0 = walk the text
+uniform float uBright,uContrast,uGamma,uWeight,uInvert,uColour;
 uniform vec3 uInk,uPaper;
 out vec4 O;
 
-float h21(vec2 p){ p=fract(p*vec2(123.34,456.21)+uSeed); p+=dot(p,p+45.32); return fract(p.x*p.y); }
-float vn(vec2 p){
-  vec2 i=floor(p),f=fract(p); f=f*f*(3.0-2.0*f);
-  return mix(mix(h21(i),h21(i+vec2(1,0)),f.x),mix(h21(i+vec2(0,1)),h21(i+vec2(1,1)),f.x),f.y);
-}
-float topAt(float x){
-  vec2 rg=texture(uTop,vec2(x,0.5)).rg;
-  return (rg.x*255.0+rg.y*255.0*256.0)/65535.0;
-}
-/* ink coverage at a pixel, after the column it sits in has melted by uT */
-float inkAt(vec2 px){
-  float x=px.x/uRes.x;
-  float y=1.0-px.y/uRes.y;                       // 0 at the top, like the type canvas
-  float tp=topAt(x);
-  if(y<tp-0.002) return 0.0;                     // nothing rises above where it began
+float lum(vec3 c){ return dot(c,vec3(0.299,0.587,0.114)); }
 
-  /* every column leaves at its own moment and at its own pace, or the whole word
-     would sag as one slab */
-  float lane=floor(x*(40.0+uDrip*300.0));
-  float j1=h21(vec2(lane,1.0));
-  float j2=vn(vec2(x*(5.0+uDrip*26.0),3.0));
-  float start=(j1*0.55+j2*0.45)*0.5*uNoise;
-  float local=clamp((uT-start)/max(1e-3,1.0-start),0.0,1.0);
-  if(local<=0.0) return texture(uTex,vec2(x,y)).r;
-
-  float ease=pow(local,0.6+uGrav*1.4);
-  float a=(1.2+uVisc*5.0)*(0.55+j2*0.9)*ease/max(1.0-local,1e-3);
-
-  float ys=tp+(y-tp)/(1.0+a);
-  float cov=texture(uTex,vec2(x,ys)).r;
-
-  /* Ink that has been drawn out does not fade — it necks and snaps. Fading is what
-     made the first version look like the word dissolving in place instead of running
-     off it. How far a bit has been drawn is its distance below the anchor times the
-     stretch, and noise decides where each strand parts, so they break at their own
-     moments rather than all at one height. */
-  float drawn=(y-tp)*a;
-  /* The noise varies quickly across strands and slowly along one, so a strand parts
-     at a single place. Varying it quickly along y instead broke every strand
-     everywhere at once, which reads as the word turning to dust, not to liquid. */
-  float nk=vn(vec2(x*(20.0+uDrip*90.0),ys*5.0+j1*23.0));
-  float pinch=smoothstep(0.55+nk*0.9,1.9+nk*0.9,drawn*(0.5+uVisc*1.2));
-  return cov*(1.0-pinch);
-}
 void main(){
-  vec2 px=gl_FragCoord.xy;
-  float ink=inkAt(px);
-  vec3 c=mix(uPaper,uInk,clamp(ink,0.0,1.0));
+  vec2 uv=gl_FragCoord.xy/uRes;
+  uv.y=1.0-uv.y;                                   // top-down, like the source
 
-  /* wet ink catches a light: the highlight comes off the slope of the ink itself */
-  if(uGloss>0.001){
-    float l=inkAt(px+vec2(-1.5,0.0)), r=inkAt(px+vec2(1.5,0.0));
-    float d=inkAt(px+vec2(0.0,-1.5)), u=inkAt(px+vec2(0.0,1.5));
-    vec3 n=normalize(vec3((l-r)*3.0,(d-u)*3.0,1.0));
-    vec3 L=normalize(vec3(-0.45,0.6,0.65));
-    float spec=pow(max(dot(reflect(-L,n),vec3(0.0,0.0,1.0)),0.0),22.0);
-    c+=vec3(spec)*uGloss*0.9*smoothstep(0.05,0.35,ink);
+  vec2 cell=floor(uv*uGrid);
+  vec2 local=fract(uv*uGrid);
+
+  /* the source is read once at the centre of the cell — sampling per pixel would
+     put a smear of the image inside every glyph instead of one tone per glyph */
+  vec2 c01=(cell+0.5)/uGrid;
+  vec3 src=texture(uSrc,c01).rgb;
+  float v=lum(src);
+  v=clamp((v-0.5)*(0.35+uContrast*3.0)+0.5+(uBright-0.5)*1.2,0.0,1.0);
+  v=pow(v,0.25+uGamma*3.0);
+  if(uInvert>0.5) v=1.0-v;
+
+  float gi;
+  if(uOrderLen>0.5){
+    /* words: the phrase runs across the row right to left, because Hebrew does */
+    float col=uGrid.x-1.0-cell.x;
+    float n=cell.y*uGrid.x+col;
+    float k=mod(n,uOrderLen);
+    gi=floor(texture(uOrder,vec2((k+0.5)/uOrderLen,0.5)).r*255.0+0.5);
+  } else {
+    /* brightness: dark cells get the heaviest glyph the font has */
+    gi=floor(clamp(1.0-v,0.0,0.999)*uGlyphs);
   }
-  float g=(h21(px*0.731+uT*37.0)-0.5)*uGrain;
-  O=vec4(clamp(c+g,0.0,1.0),1.0);
+
+  vec2 g=vec2((gi+clamp(local.x,0.001,0.999))/uGlyphs, clamp(local.y,0.001,0.999));
+  float a=texture(uAtlas,g).r;
+
+  /* in words mode every glyph is drawn, so the picture has to come from how much of
+     each glyph is inked rather than from which glyph was picked */
+  if(uOrderLen>0.5){
+    float t=1.0-v;
+    a*=smoothstep(0.0,0.55,t);
+    a=smoothstep(0.5-uWeight*0.45-t*0.25,0.5+0.35-uWeight*0.3,a);
+  } else {
+    a=smoothstep(0.5-uWeight*0.48,0.5+0.42-uWeight*0.4,a);
+  }
+
+  vec3 ink=(uColour>0.5)?src:uInk;
+  O=vec4(mix(uPaper,ink,clamp(a,0.0,1.0)),1.0);
 }`;
 
 function sh(t,src){
@@ -317,126 +318,178 @@ function sh(t,src){
   return s;
 }
 let prog=null;
-function build(){
-  const p=gl.createProgram();
-  gl.attachShader(p,sh(gl.VERTEX_SHADER,VS));
-  gl.attachShader(p,sh(gl.FRAGMENT_SHADER,FS));
-  gl.linkProgram(p);
-  if(!gl.getProgramParameter(p,gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p));
-  return p;
-}
 gl.bindVertexArray(gl.createVertexArray());
-const U={};
-const loc=n=>{ if(!(n in U)) U[n]=gl.getUniformLocation(prog,n); return U[n]; };
-
-let W=0,H=0,texType=null,texTop=null;
-function tex(){ const t=gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D,t);
-  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+const U={}; const loc=n=>{ if(!(n in U)) U[n]=gl.getUniformLocation(prog,n); return U[n]; };
+function mkTex(filter){
+  const t=gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D,t);
+  const f=filter||gl.LINEAR;
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,f);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,f);
   gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
-  return t; }
+  return t;
+}
+let texSrc=null,texAtlas=null,texOrder=null;
 
-/* ============================ the type ============================ */
-const tc=document.createElement("canvas");
-const t2=tc.getContext("2d",{willReadFrequently:true});
+/* ============================ the glyph atlas ============================ */
+const CELL=64;
+const ac=document.createElement("canvas");
+const a2=ac.getContext("2d",{willReadFrequently:true});
+let glyphs=[], glyphIndex={};      // glyphs: chars ordered light -> heavy
 
-function buildType(){
-  tc.width=W; tc.height=H;
-  t2.setTransform(1,0,0,1,0,0);
-  t2.fillStyle="#000"; t2.fillRect(0,0,W,H);
-  t2.fillStyle="#fff"; t2.textAlign="center"; t2.textBaseline="middle";
-  try{ t2.direction="rtl"; }catch(e){}
-  const txt=(ST.text||"חיים").trim()||"חיים";
-  const boxW=W*0.86;
-  let lo=4,hi=H*1.6;
-  for(let i=0;i<26;i++){
-    const m=(lo+hi)/2;
-    t2.font=m+'px "Haim", sans-serif';
-    if(t2.measureText(txt).width>boxW||m>H*0.72) hi=m; else lo=m;
-  }
-  const px=lo*clamp(ST.size/0.62,0.25,1.5);
-  t2.font=px+'px "Haim", sans-serif';
-  t2.fillText(txt,W/2,H*clamp(ST.top,0.08,0.75));
+function buildAtlas(){
+  /* Which glyph is heaviest is a property of the font, not of my guess about Hebrew,
+     so every character is drawn once and its ink measured. */
+  const pool=[...new Set((ST.mode==="ramp"?ST.text:HEB).split(""))].filter(c=>c.trim()!=="");
+  const set=[" "].concat(pool);
+  ac.width=CELL; ac.height=CELL;
+  const measured=set.map(ch=>{
+    a2.fillStyle="#000"; a2.fillRect(0,0,CELL,CELL);
+    a2.fillStyle="#fff"; a2.textAlign="center"; a2.textBaseline="middle";
+    a2.font=Math.round(CELL*0.82)+'px "Haim", sans-serif';
+    a2.fillText(ch,CELL/2,CELL*0.54);
+    const d=a2.getImageData(0,0,CELL,CELL).data;
+    let s=0; for(let i=0;i<d.length;i+=4) s+=d[i];
+    return {ch,ink:s/(CELL*CELL*255)};
+  });
+  measured.sort((a,b)=>a.ink-b.ink);
+  glyphs=measured.map(m=>m.ch);
+  glyphIndex={}; glyphs.forEach((c,i)=>{ glyphIndex[c]=i; });
 
-  gl.bindTexture(gl.TEXTURE_2D,texType);
-  gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA8,gl.RGBA,gl.UNSIGNED_BYTE,tc);
-
-  /* Where each column's ink begins. The stretch is anchored there, so the top of a
-     letter stays put while everything under it draws out — anchoring at the top of
-     the frame instead would slide the whole word down like a curtain. */
-  const img=t2.getImageData(0,0,W,H).data;
-  const top=new Uint8Array(W*4);
-  for(let x=0;x<W;x++){
-    let ty=H;                                     // no ink in this column
-    for(let y=0;y<H;y++){ if(img[(y*W+x)*4]>110){ ty=y; break; } }
-    const v=Math.round(ty/H*65535);
-    top[x*4]=v&255; top[x*4+1]=(v>>8)&255; top[x*4+3]=255;
-  }
-  gl.bindTexture(gl.TEXTURE_2D,texTop);
-  gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA8,W,1,0,gl.RGBA,gl.UNSIGNED_BYTE,top);
-  gl.bindTexture(gl.TEXTURE_2D,texTop);
+  ac.width=CELL*glyphs.length; ac.height=CELL;
+  a2.fillStyle="#000"; a2.fillRect(0,0,ac.width,ac.height);
+  a2.fillStyle="#fff"; a2.textAlign="center"; a2.textBaseline="middle";
+  a2.font=Math.round(CELL*0.82)+'px "Haim", sans-serif';
+  glyphs.forEach((ch,i)=>a2.fillText(ch,i*CELL+CELL/2,CELL*0.54));
+  gl.bindTexture(gl.TEXTURE_2D,texAtlas);
+  gl.texImage2D(gl.TEXTURE_2D,0,gl.R8,gl.RED,gl.UNSIGNED_BYTE,ac);
+  buildOrder();
+}
+function buildOrder(){
+  if(ST.mode!=="words"){ orderLen=0; return; }
+  const chars=[...(ST.words||"חיים")].filter(c=>c!=="\n");
+  if(!chars.length){ orderLen=0; return; }
+  const buf=new Uint8Array(chars.length);
+  chars.forEach((c,i)=>{ buf[i]=glyphIndex[c]!==undefined?glyphIndex[c]:0; });
+  gl.bindTexture(gl.TEXTURE_2D,texOrder);
+  gl.pixelStorei(gl.UNPACK_ALIGNMENT,1);
+  gl.texImage2D(gl.TEXTURE_2D,0,gl.R8,chars.length,1,0,gl.RED,gl.UNSIGNED_BYTE,buf);
   gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.NEAREST);
   gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.NEAREST);
+  orderLen=chars.length;
 }
+let orderLen=0;
+
+/* ============================ the source ============================ */
+let media=null, isVideo=false, srcW=0, srcH=0, W=0, H=0;
+
+function setSize(){
+  let w,h;
+  if(ST.fmt==="src" && srcW){
+    const long=1280;
+    const s=long/Math.max(srcW,srcH);
+    w=Math.max(2,Math.round(srcW*s/2)*2); h=Math.max(2,Math.round(srcH*s/2)*2);
+  } else { const f=FMT[ST.fmt]||FMT.post; w=f[0]; h=f[1]; }
+  if(w!==W||h!==H){ W=w; H=h; cv.width=W; cv.height=H; }
+  hud();
+}
+function loadFile(f){
+  if(!f) return;
+  const url=URL.createObjectURL(f);
+  if(media&&isVideo&&media.parentNode) media.parentNode.removeChild(media);
+  if(/^video\//.test(f.type)){
+    const v=document.createElement("video");
+    v.src=url; v.loop=true; v.muted=true; v.playsInline=true; v.crossOrigin="anonymous";
+    /* Detached video elements are not reliably decoded across browsers, and a
+       texture upload from one that never advanced is a frozen first frame. Keep it
+       in the document, just out of the way. */
+    v.style.cssText="position:fixed;width:2px;height:2px;opacity:0;pointer-events:none;left:-10px";
+    document.body.appendChild(v);
+    v.onloadedmetadata=()=>{
+      media=v; isVideo=true; srcW=v.videoWidth; srcH=v.videoHeight;
+      /* Autoplay is blocked without a user gesture, and swallowing that leaves a
+         frozen first frame with no explanation. Say so, and let the play button —
+         which is a gesture — be the fix. */
+      v.play().then(()=>{ playing=true; sync(); })
+              .catch(()=>{ playing=false; sync();
+                $("srcinfo").textContent+=" · לחץ נגן כדי להריץ"; });
+      $("empty").classList.add("gone"); ok();
+      $("srcinfo").textContent=f.name+" · "+srcW+"×"+srcH+" · "+v.duration.toFixed(1)+"s";
+      setSize();
+    };
+    v.onerror=()=>fail("לא הצלחתי לפתוח את הווידאו הזה.");
+  } else {
+    const im=new Image();
+    im.onload=()=>{
+      media=im; isVideo=false; srcW=im.naturalWidth; srcH=im.naturalHeight;
+      $("empty").classList.add("gone"); ok();
+      $("srcinfo").textContent=f.name+" · "+srcW+"×"+srcH;
+      setSize();
+    };
+    im.onerror=()=>fail("לא הצלחתי לפתוח את התמונה הזאת.");
+    im.src=url;
+  }
+}
+$("b_open").onclick=()=>$("file").click();
+$("file").onchange=e=>loadFile(e.target.files[0]);
+const stage=$("stage");
+["dragenter","dragover"].forEach(ev=>stage.addEventListener(ev,e=>{
+  e.preventDefault(); $("drop").classList.add("on"); }));
+["dragleave","drop"].forEach(ev=>stage.addEventListener(ev,e=>{
+  e.preventDefault(); $("drop").classList.remove("on"); }));
+stage.addEventListener("drop",e=>{ if(e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]); });
 
 /* ============================ draw ============================ */
 const hex=h=>{ const n=parseInt(h.slice(1),16);
   return [(n>>16&255)/255,(n>>8&255)/255,(n&255)/255]; };
-let seed=Math.random()*100;
-
-/* phase 0..1 around the loop -> how far the melt has run.
-   There and back is what makes it close: t is continuous at both ends, so nothing
-   inside has to be periodic on its own. */
-function meltAt(phase){
-  const p=phase-Math.floor(phase);
-  return ST.mode==="once" ? p : (p<0.5 ? p*2 : (1-p)*2);
+function gridOf(){
+  const cw=Math.max(4,Math.round(6+(1-ST.cell)*54));       // cell width in output px
+  const ch=Math.max(4,Math.round(cw*(0.7+ST.ratio*1.1)));
+  return [Math.max(2,Math.round(W/cw)), Math.max(2,Math.round(H/ch))];
 }
-function draw(phase){
-  const t=meltAt(phase);
+function draw(){
+  if(!media||!prog) return;
+  if(isVideo && media.readyState<2) return;
+  gl.bindTexture(gl.TEXTURE_2D,texSrc);
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,false);
+  gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA8,gl.RGBA,gl.UNSIGNED_BYTE,media);
   gl.useProgram(prog);
   gl.viewport(0,0,W,H);
-  gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D,texType);
-  gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D,texTop);
-  gl.uniform1i(loc("uTex"),0); gl.uniform1i(loc("uTop"),1);
+  gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D,texSrc);
+  gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D,texAtlas);
+  gl.activeTexture(gl.TEXTURE2); gl.bindTexture(gl.TEXTURE_2D,texOrder);
+  gl.uniform1i(loc("uSrc"),0); gl.uniform1i(loc("uAtlas"),1); gl.uniform1i(loc("uOrder"),2);
   gl.uniform2f(loc("uRes"),W,H);
-  gl.uniform1f(loc("uT"),t);
-  gl.uniform1f(loc("uGrav"),ST.grav);
-  gl.uniform1f(loc("uVisc"),ST.visc);
-  gl.uniform1f(loc("uDrip"),ST.drip);
-  gl.uniform1f(loc("uNoise"),ST.noise);
-  gl.uniform1f(loc("uGloss"),ST.gloss);
-  gl.uniform1f(loc("uGrain"),ST.grain);
-  gl.uniform1f(loc("uSeed"),seed);
+  gl.uniform2f(loc("uSrcSize"),srcW,srcH);
+  const g=gridOf();
+  gl.uniform2f(loc("uGrid"),g[0],g[1]);
+  gl.uniform1f(loc("uGlyphs"),Math.max(1,glyphs.length));
+  gl.uniform1f(loc("uOrderLen"),ST.mode==="words"?orderLen:0);
+  gl.uniform1f(loc("uBright"),ST.bright);
+  gl.uniform1f(loc("uContrast"),ST.contrast);
+  gl.uniform1f(loc("uGamma"),ST.gamma);
+  gl.uniform1f(loc("uWeight"),ST.weight);
+  gl.uniform1f(loc("uInvert"),ST.invert==="on"?1:0);
+  gl.uniform1f(loc("uColour"),ST.colour==="src"?1:0);
   gl.uniform3fv(loc("uInk"),hex(ST.ink));
   gl.uniform3fv(loc("uPaper"),hex(ST.paper));
   gl.drawArrays(gl.TRIANGLES,0,3);
-  $("scrub").firstElementChild.style.width=((phase-Math.floor(phase))*100).toFixed(1)+"%";
 }
-
-let playing=true, clock=0, last=0, raf=0, recording=false;
-function tick(now){
-  raf=requestAnimationFrame(tick);
+let playing=true, raf=0, recording=false;
+function tick(){ raf=requestAnimationFrame(tick);
   if(recording) return;
-  if(!last) last=now;
-  const dt=Math.min(0.1,(now-last)/1000); last=now;
-  if(playing) clock+=dt/ST.loop;
-  try{ draw(clock); }catch(e){ playing=false; fail("שגיאה: "+e.message); }
-}
+  if(playing||!isVideo){ try{ draw(); }catch(e){ playing=false; fail("שגיאה: "+e.message); } } }
 
 /* ============================ panel ============================ */
-function knobs(){
-  const box=$("knobs"); box.innerHTML="";
-  KNOBS.forEach(([k,l])=>{
-    const r=document.createElement("div"); r.className="row";
-    r.innerHTML='<label for="k_'+k+'">'+l+'</label>'+
-      '<div class="rr"><input id="k_'+k+'" type="range" min="0" max="1" step="0.01">'+
-      '<span class="val"></span></div>';
-    box.appendChild(r);
-    const inp=r.querySelector("input"), val=r.querySelector(".val");
-    inp.value=ST[k]; val.textContent=ST[k].toFixed(2);
-    inp.oninput=()=>{ ST[k]=parseFloat(inp.value); val.textContent=ST[k].toFixed(2); };
-  });
+function knobRow(box,k,l){
+  const r=document.createElement("div"); r.className="row";
+  r.innerHTML='<label for="k_'+k+'">'+l+'</label>'+
+    '<div class="rr"><input id="k_'+k+'" type="range" min="0" max="1" step="0.01">'+
+    '<span class="val"></span></div>';
+  box.appendChild(r);
+  const inp=r.querySelector("input"), val=r.querySelector(".val");
+  inp.value=ST[k]; val.textContent=ST[k].toFixed(2);
+  inp.oninput=()=>{ ST[k]=parseFloat(inp.value); val.textContent=ST[k].toFixed(2); hud(); };
 }
 function seg(id,key,after){
   [...$(id).children].forEach(b=>{
@@ -444,39 +497,29 @@ function seg(id,key,after){
     b.onclick=()=>{ ST[key]=b.dataset.v; sync(); if(after) after(); };
   });
 }
-function simple(id,key,fmt,after){
-  const inp=$(id), val=$("v_"+key);
-  inp.value=ST[key]; if(val) val.textContent=fmt(ST[key]);
-  inp.oninput=()=>{ ST[key]=parseFloat(inp.value); if(val) val.textContent=fmt(ST[key]);
-    if(after) after(); hud(); };
+function hud(){
+  const g=gridOf();
+  $("hud").textContent=W+"×"+H+" · "+g[0]+"×"+g[1]+" תאים · "+glyphs.length+" גליפים";
 }
-function hud(){ $("hud").textContent=W+"×"+H+" · לולאה "+ST.loop+"s · "+
-  (ST.mode==="once"?"נמס בלבד":"הלוך ושוב"); }
 function sync(){
-  knobs();
-  seg("c_mode","mode",null); seg("c_fmt","fmt",resize); seg("c_vfmt","vfmt",null);
-  simple("k_size","size",v=>v.toFixed(2),retype);
-  simple("k_top","top",v=>v.toFixed(2),retype);
-  simple("k_loop","loop",v=>v+"s",null);
+  const bt=$("knobsType"); bt.innerHTML=""; KTYPE.forEach(([k,l])=>knobRow(bt,k,l));
+  const bi=$("knobsImg"); bi.innerHTML=""; KIMG.forEach(([k,l])=>knobRow(bi,k,l));
+  seg("c_mode","mode",()=>{ buildAtlas(); sync(); });
+  seg("c_invert","invert",null); seg("c_colour","colour",null);
+  seg("c_fmt","fmt",setSize); seg("c_vfmt","vfmt",null);
   ["ink","paper"].forEach(k=>{ const e=$("c_"+k); e.value=ST[k]; e.oninput=()=>{ ST[k]=e.value; }; });
-  $("c_text").value=ST.text;
+  const words=ST.mode==="words";
+  $("lbl_text").textContent=words?"המילים":"תווים";
+  const ti=$("c_text");
+  ti.value=words?ST.words:ST.text;
+  ti.oninput=()=>{ if(words){ ST.words=ti.value; buildOrder(); }
+                   else { ST.text=ti.value; buildAtlas(); } hud(); };
   $("b_play").textContent=playing?"עצור":"נגן";
   hud();
 }
-let typeTimer=0;
-function retype(){ clearTimeout(typeTimer); typeTimer=setTimeout(buildType,150); }
-function resize(){
-  const f=FMT[ST.fmt]||FMT.post;
-  if(f[0]!==W||f[1]!==H){
-    W=f[0]; H=f[1]; cv.width=W; cv.height=H;
-    if(texType) gl.deleteTexture(texType);
-    if(texTop) gl.deleteTexture(texTop);
-    texType=tex(); texTop=tex();
-  }
-  buildType(); hud();
-}
-$("c_text").oninput=()=>{ ST.text=$("c_text").value; retype(); };
-$("b_play").onclick=()=>{ playing=!playing; last=0; sync(); };
+$("b_play").onclick=()=>{ playing=!playing;
+  if(isVideo){ if(playing) media.play().catch(()=>{}); else media.pause(); }
+  sync(); };
 
 /* ============================ output ============================ */
 const stamp=()=>{ const d=new Date(),p=x=>String(x).padStart(2,"0");
@@ -489,8 +532,8 @@ async function saveFile(name,blob){
 }
 function busy(t){ const b=$("busy"); if(t===null) b.classList.remove("on");
   else { b.textContent=t; b.classList.add("on"); } }
-$("b_png").onclick=()=>{ draw(clock);
-  cv.toBlob(b=>{ if(b) saveFile("melt-"+stamp()+".png",b); },"image/png"); };
+$("b_png").onclick=()=>{ if(!media){ fail("קודם טען תמונה או וידאו."); return; }
+  draw(); cv.toBlob(b=>{ if(b) saveFile("mosaic-"+stamp()+".png",b); },"image/png"); };
 
 function pickMime(){
   const mp4=["video/mp4;codecs=avc1.42E01E","video/mp4;codecs=avc1","video/mp4"];
@@ -498,37 +541,47 @@ function pickMime(){
   const order=ST.vfmt==="webm"?webm.concat(mp4):mp4.concat(webm);
   return order.find(m=>window.MediaRecorder&&MediaRecorder.isTypeSupported(m))||null;
 }
-/* captureStream(0) hands the encoder nothing on its own: a frame lands only after we
-   draw it and ask for it. Paced against the wall clock so the duration comes out right. */
+const seekTo=(v,t)=>new Promise(res=>{
+  const done=()=>{ v.removeEventListener("seeked",done); res(); };
+  v.addEventListener("seeked",done); v.currentTime=t;
+});
+/* The source video is stepped frame by frame rather than played: seeking to each
+   time and pushing that exact frame is what keeps the output in step with the input,
+   where recording a playing video drops frames whenever a draw runs long. */
 async function record(label){
+  if(!media){ fail("קודם טען תמונה או וידאו."); return null; }
   const mime=pickMime();
   if(!mime){ fail("הדפדפן לא תומך בהקלטת וידאו."); return null; }
   const ext=mime.startsWith("video/mp4")?"mp4":"webm";
-  const fps=25, dur=ST.loop, total=Math.max(2,Math.round(dur*fps));
+  const fps=25;
+  const dur=isVideo?Math.min(media.duration||4,30):4;
+  const total=Math.max(2,Math.round(dur*fps));
   const stream=cv.captureStream(0), track=stream.getVideoTracks()[0];
   if(!track||!track.requestFrame){ fail("הדפדפן לא תומך בדחיפת פריימים לקנבס."); return null; }
   recording=true;
+  const wasPlaying=isVideo&&!media.paused;
+  if(isVideo) media.pause();
   const chunks=[];
   const rec=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:14e6});
   rec.ondataavailable=e=>e.data.size&&chunks.push(e.data);
   const done=new Promise(r=>{ rec.onstop=r; });
   rec.start();
-  const t0=performance.now();
   for(let i=0;i<total;i++){
-    draw(i/total);
+    if(isVideo) await seekTo(media,i/fps);
+    draw();
     track.requestFrame();
     busy(label+" "+(i+1)+"/"+total);
-    const due=t0+(i+1)*1000/fps, wait=due-performance.now();
-    if(wait>0) await new Promise(r=>setTimeout(r,wait));
+    if(i%5===0) await new Promise(r=>setTimeout(r,0));
   }
   rec.stop(); await done;
-  recording=false; last=0;
+  recording=false;
+  if(wasPlaying) media.play().catch(()=>{});
   return {blob:new Blob(chunks,{type:mime}),ext,seconds:dur};
 }
 $("b_vid").onclick=async()=>{
   if(recording) return;
   $("b_vid").disabled=true; busy("מקליט");
-  try{ const o=await record("מקליט"); if(o) await saveFile("melt-"+stamp()+"."+o.ext,o.blob); }
+  try{ const o=await record("מקליט"); if(o) await saveFile("mosaic-"+stamp()+"."+o.ext,o.blob); }
   catch(e){ fail("ההקלטה נכשלה: "+e.message); recording=false; }
   finally{ busy(null); $("b_vid").disabled=false; }
 };
@@ -551,21 +604,31 @@ $("b_press").onclick=async()=>{
       st.put({kind:"video",ext:o.ext,seconds:o.seconds,w:W,h:H},"meta");
       tx.oncomplete=res; tx.onerror=()=>rej(tx.error);
     });
-    location.href="../?from=melt";
+    location.href="../?from=mosaic";
   }catch(e){ fail("ההעברה נכשלה: "+e.message); recording=false; }
   finally{ busy(null); $("b_press").disabled=false; }
 };
 
 /* ============================ boot ============================ */
 (async function boot(){
-  try{ await document.fonts.load('400 120px "Haim"'); await document.fonts.ready; }catch(e){}
+  try{ await document.fonts.load('400 64px "Haim"'); await document.fonts.ready; }catch(e){}
   try{
-    prog=build();
-    resize(); sync();
+    const p=gl.createProgram();
+    gl.attachShader(p,sh(gl.VERTEX_SHADER,VS));
+    gl.attachShader(p,sh(gl.FRAGMENT_SHADER,FS));
+    gl.linkProgram(p);
+    if(!gl.getProgramParameter(p,gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p));
+    prog=p;
+    texSrc=mkTex(); texAtlas=mkTex(); texOrder=mkTex(gl.NEAREST);
+    W=1080; H=1350; cv.width=W; cv.height=H;
+    buildAtlas(); sync();
     raf=requestAnimationFrame(tick);
   }catch(e){ fail("שגיאה באתחול: "+e.message); }
 })();
-window.MELTPAGE={ get ST(){return ST;}, draw, buildType, resize, meltAt, size:()=>[W,H] };
+window.MOSAIC={ get ST(){return ST;}, get media(){return media;},
+                get isVideo(){return isVideo;}, get playing(){return playing;},
+                draw, buildAtlas, buildOrder, setSize,
+                loadFile, gridOf, glyphs:()=>glyphs, size:()=>[W,H] };
 </script>
 
 <script>
