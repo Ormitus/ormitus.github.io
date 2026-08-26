@@ -8,6 +8,404 @@
   <meta name="color-scheme" content="dark">
   <meta name="robots" content="noindex, nofollow">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23F2EDE1'/%3E%3Ccircle cx='12' cy='16' r='8' fill='%23FF3D9A'/%3E%3Ccircle cx='20' cy='16' r='8' fill='%230B5FA5' opacity='.75'/%3E%3C/svg%3E">
+<script>
+/* ===========================================================================
+   RISOKIT — the vocabulary every page on this site shares.
+
+   Before this existed each page invented its own idea of what a colour was:
+   the press held a real catalogue of 62 named Riso inks and 9 paper stocks,
+   the gradient page held gradient stops, the poster page held flat arrays,
+   and the compose and mosaic pages held nothing at all. The result was that
+   14 of the poster page's 33 colours could not be printed by any Riso — the
+   blue it used sat a distance of 90 from Lake, the nearest real ink.
+
+   So: one catalogue, lifted out of the press at build time, and every page
+   picks inks and paper from it rather than naming RGB.
+
+   It also carries the two things that only become possible once every page
+   speaks in inks — overprint prediction, and a recipe string that describes
+   a design as data instead of pixels.
+
+   build_site.py substitutes the catalogue in and puts this in every page head.
+   =========================================================================== */
+(function(global){
+"use strict";
+
+const RISO_INKS=[
+ ["Black","#000000"],["Burgundy","#914E72"],["Blue","#0078BF"],["Green","#00A95C"],
+ ["Medium Blue","#3255A4"],["Bright Red","#F15060"],["Federal Blue","#3D5588"],
+ ["Purple","#765BA7"],["Teal","#00838A"],["Flat Gold","#BB8B41"],["Hunter Green","#407060"],
+ ["Red","#FF665E"],["Brown","#925F52"],["Yellow","#FFE800"],["Marine Red","#D2515E"],
+ ["Orange","#FF6C2F"],["Fluorescent Pink","#FF48B0"],["Light Gray","#88898A"],
+ ["Metallic Gold","#AC936E"],["Crimson","#E45D50"],["Fluorescent Orange","#FF7477"],
+ ["Cornflower","#62A8E5"],["Sky Blue","#0097DE"],["Sea Blue","#0074A2"],["Lake","#235BA8"],
+ ["Indigo","#484D7A"],["Midnight","#435060"],["Mist","#D5E4C0"],["Granite","#A5AAA8"],
+ ["Charcoal","#70747C"],["Smoky Teal","#5F8289"],["Steel","#375E77"],["Slate","#5E695E"],
+ ["Turquoise","#00AAA0"],["Emerald","#19975D"],["Grass","#397E58"],["Spruce","#4A6941"],
+ ["Moss","#68724D"],["Sea Foam","#62C2B1"],["Kelly Green","#67B346"],["Light Teal","#009DA5"],
+ ["Ivy","#169B62"],["Pine","#237E74"],["Lagoon","#2F6165"],["Violet","#9D7AD2"],
+ ["Orchid","#AE4A84"],["Raisin","#775D7A"],["Grape","#6C5D80"],["Scarlet","#F2484B"],
+ ["Melon","#FFAE3B"],["Apricot","#F6A04D"],["Paprika","#EE7F4B"],["Pumpkin","#FF6F4C"],
+ ["Bright Olive","#B49F29"],["Coral","#FF8D8F"],["Bubble Gum","#F984CA"],
+ ["Light Lime","#E3ED55"],["Sunflower","#FFB511"],["Aqua","#5EC8E5"],
+ ["Fluorescent Yellow","#FFE900"],["Fluorescent Red","#FF4C65"],["Fluorescent Green","#44D62C"]
+];
+const RISO_PAPERS=[
+ ["Natural","#F2EDE1"],["Bright White","#F8F8F4"],["Ivory","#F5EFE0"],["Pale Yellow","#F4E9C4"],
+ ["Pale Blue","#DCE6EE"],["Pale Pink","#F4DCE0"],["Grey","#CFCEC8"],["Kraft","#C9AC85"],
+ ["Black","#1A1A1A"]
+];
+
+const INKS   = RISO_INKS.map(function(p){ return {name:p[0], hex:p[1].toUpperCase()}; });
+const PAPERS = RISO_PAPERS.map(function(p){ return {name:p[0], hex:p[1].toUpperCase()}; });
+
+const byHex = {};
+INKS.forEach(function(k){ byHex[k.hex] = k; });
+
+/* ------------------------------- colour ---------------------------------- */
+
+function rgb(h){
+  h = String(h).trim();
+  if(h[0] === "#") h = h.slice(1);
+  if(h.length === 3) h = h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+  return [parseInt(h.slice(0,2),16), parseInt(h.slice(2,4),16), parseInt(h.slice(4,6),16)];
+}
+function hex(c){
+  return "#" + c.map(function(v){
+    v = Math.max(0, Math.min(255, Math.round(v)));
+    return (v < 16 ? "0" : "") + v.toString(16);
+  }).join("").toUpperCase();
+}
+
+/* sRGB <-> linear. Ink sits on paper in linear light; doing it in sRGB is what
+   made the press's midtones muddy before it was fixed, and the same is true of
+   every overprint prediction below. */
+function toLin(v){ v /= 255; return v <= 0.04045 ? v/12.92 : Math.pow((v+0.055)/1.055, 2.4); }
+function toSrgb(v){ v = v <= 0.0031308 ? v*12.92 : 1.055*Math.pow(v, 1/2.4) - 0.055; return v*255; }
+
+/* Perceptual-ish distance. Not CIEDE2000 — a weighted Euclidean in sRGB, which
+   is enough to rank "which real ink is this" and costs nothing. */
+function dist(a, b){
+  const x = rgb(a), y = rgb(b);
+  const rm = (x[0] + y[0]) / 2;
+  const dr = x[0]-y[0], dg = x[1]-y[1], db = x[2]-y[2];
+  return Math.sqrt((2 + rm/256)*dr*dr + 4*dg*dg + (2 + (255-rm)/256)*db*db);
+}
+
+/* --------------------------- snapping to stock --------------------------- */
+
+/** Nearest real ink to an arbitrary colour. */
+function snapInk(h){
+  let best = INKS[0], bd = Infinity;
+  for(let i = 0; i < INKS.length; i++){
+    let d = dist(h, INKS[i].hex);
+    if(d < bd){ bd = d; best = INKS[i]; }
+  }
+  return {name:best.name, hex:best.hex, drift:bd, exact:bd < 1};
+}
+
+/** Nearest real paper stock. */
+function snapPaper(h){
+  let best = PAPERS[0], bd = Infinity;
+  for(let i = 0; i < PAPERS.length; i++){
+    let d = dist(h, PAPERS[i].hex);
+    if(d < bd){ bd = d; best = PAPERS[i]; }
+  }
+  return {name:best.name, hex:best.hex, drift:bd, exact:bd < 1};
+}
+
+/** Snap a whole palette. Index 0 is treated as paper, the rest as inks —
+    that is the convention every page here already follows. */
+function snapPalette(pal){
+  return pal.map(function(c, i){
+    return i === 0 ? snapPaper(c) : snapInk(c);
+  });
+}
+
+/* ------------------------------ overprint -------------------------------- */
+
+/** What two inks actually make when one prints over the other.
+
+    Riso ink is transparent and stacks multiplicatively — this is why the
+    result of yellow over blue is a real green and not a blend of the two.
+    `op` is the top drum's ink coverage, 0..1. */
+function overprint(under, over, op){
+  if(op == null) op = 0.92;
+  let u = rgb(under).map(toLin), o = rgb(over).map(toLin);
+  return hex(u.map(function(v, i){
+    return toSrgb(v * (1 - op + op * o[i]));
+  }));
+}
+
+/** Overprint the whole stack onto paper, in print order. */
+function stack(paper, inks, op){
+  return inks.reduce(function(acc, ink){ return overprint(acc, ink, op); }, paper);
+}
+
+function chroma(h){
+  const c = rgb(h), mx = Math.max.apply(null, c), mn = Math.min.apply(null, c);
+  return mx === 0 ? 0 : (mx - mn) / mx;
+}
+function hue(h){
+  const [r, g, b] = rgb(h);
+  const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn;
+  if(d === 0) return 0;
+  const t = mx === r ? (g - b)/d + (g < b ? 6 : 0)
+          : mx === g ? (b - r)/d + 2
+          :            (r - g)/d + 4;
+  return t * 60;
+}
+/** Shortest angular gap between two hues, 0..180. */
+function hueGap(a, b){
+  const d = Math.abs(hue(a) - hue(b)) % 360;
+  return d > 180 ? 360 - d : d;
+}
+function lum(h){
+  const c = rgb(h).map(toLin);
+  return 0.2126*c[0] + 0.7152*c[1] + 0.0722*c[2];
+}
+
+/** How well two inks overprint, 0..1.
+
+    Two failure modes, and they are different. A pair is muddy when the product
+    is dark AND desaturated — that is the brown-grey nobody wants. A pair is
+    wasted when the product is so close to the darker ink that the second pass
+    bought nothing. Everything else is a real third colour, which is the whole
+    reason to overprint at all.
+
+    Black is exempt. A key plate is not a mixing partner: black over anything is
+    black, by design and on purpose, and scoring it as "dark and grey" flagged
+    every sane palette on the site as mud. Anything near-black is judged the
+    same way — the question for a key is whether it prints clean, and it does. */
+const KEY_LUM = 0.02;
+
+function pairScore(a, b){
+  if(lum(a) < KEY_LUM || lum(b) < KEY_LUM) return 1;
+
+  const mix  = overprint(a, b, 0.92);
+  const mud  = (1 - chroma(mix)) * (1 - lum(mix));       /* dark and grey */
+  const gain = Math.min(1, dist(mix, lum(a) < lum(b) ? a : b) / 60);
+  const sep  = Math.min(1, dist(a, b) / 120);
+  const s    = (1 - mud) * (0.45 + 0.35*gain + 0.20*sep);
+  return Math.max(0, Math.min(1, s));
+}
+
+/** Rank every catalogue ink as a partner for the inks already chosen.
+
+    Scored on compatibility AND chroma together. Compatibility alone makes the
+    ranking degenerate: black is exempt from the mud test, so it scores a
+    perfect 1.00 against everything and wins every slot. Black is a fine ink and
+    a bad suggestion — you reach for it deliberately, you do not need it
+    proposed. Weighting by chroma keeps it available without letting it lead. */
+function partners(chosen, n){
+  const have = (chosen || []).map(c => snapInk(c).hex);
+  const out  = INKS
+    .filter(k => have.indexOf(k.hex) < 0)
+    .map(k => {
+      const fit = have.length
+        ? have.reduce((m, h) => Math.min(m, pairScore(h, k.hex)), 1)
+        : 1;
+      /* Compatibility alone ties dozens of inks at 1.00 and chroma then breaks
+         every tie the same way, so a suggested palette came out Blue, Green,
+         Teal — one hue family wearing three names. Rewarding distance from the
+         hues already picked is what makes the set span the wheel. */
+      const spread = have.length
+        ? have.reduce((m, h) => Math.min(m, hueGap(h, k.hex)), 180) / 180
+        : 1;
+      const interest = 0.25 + 0.75*chroma(k.hex);
+      return {name:k.name, hex:k.hex, fit,
+              score:fit * interest * (0.35 + 0.65*spread)};
+    });
+  out.sort((x, y) => y.score - x.score);
+  return out.slice(0, n || 8);
+}
+
+/** Build a palette of n inks that all overprint well with one another. */
+function suggest(n, paper){
+  n = Math.max(1, n || 3);
+  const pal = [snapPaper(paper || "#F2EDE1").hex];
+  const picked = [];
+  for(let i = 0; i < n; i++){
+    const p = partners(picked, 1)[0];
+    if(!p) break;
+    picked.push(p.hex);
+    pal.push(p.hex);
+  }
+  return pal;
+}
+
+/* ------------------------------- warnings -------------------------------- */
+
+/** Things worth saying before the sheet is committed, not after.
+
+    Every one of these is a condition that costs paper or ink on a real
+    machine, so they are stated as facts about the press, never as taste. */
+function review(pal, opts){
+  opts = opts || {};
+  let out = [];
+  const snapped = snapPalette(pal);
+
+  snapped.forEach(function(s, i){
+    if(s.drift >= 20)
+      out.push({level:"warn", where:i,
+        msg:"הצבע " + pal[i].toUpperCase() + " לא קיים בקטלוג — הכי קרוב הוא "
+            + s.name + " " + s.hex + " (מרחק " + Math.round(s.drift) + ")"});
+  });
+
+  const inks = snapped.slice(1).map(function(s){ return s.hex; });
+  for(let a = 0; a < inks.length; a++){
+    for(let b = a + 1; b < inks.length; b++){
+      const sc = pairScore(inks[a], inks[b]);
+      if(sc < 0.28)
+        out.push({level:"warn", where:[a+1, b+1],
+          msg:"הדפסת־על של " + byHex[inks[a]].name + " ו" + byHex[inks[b]].name
+              + " נותנת " + overprint(inks[a], inks[b], .92) + " — בוץ. שקול זוג אחר."});
+    }
+  }
+
+  if(inks.length > 4)
+    out.push({level:"note", msg:inks.length + " דיו = " + inks.length
+      + " מעברים במכונה. מעל 4, שגיאת הרג'יסטר מצטברת."});
+
+  if(opts.opacity != null && opts.opacity > 0.9 && inks.length >= 3)
+    out.push({level:"note",
+      msg:"אטימות " + Math.round(opts.opacity*100) + "% על " + inks.length
+          + " שכבות תרווה את הנייר — הדיו יימרח."});
+
+  return out;
+}
+
+/* -------------------------------- recipe --------------------------------- */
+
+/* A design as data. The alternative — and what the site did until now — is to
+   ship the design as an encoded video, which is 100MB, lossy, and impossible
+   to vary or reproduce. A recipe is a few dozen bytes and is exact. */
+
+const B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+
+function encodeRecipe(o){
+  let payload = {
+    v:1, p:o.page, s:o.seed|0, st:o.style || "",
+    pal:(o.palette || []).map(function(c){
+      const i = INKS.findIndex(function(k){ return k.hex === String(c).toUpperCase(); });
+      return i >= 0 ? i : String(c).toUpperCase();
+    }),
+    pa:o.paper || "", t:o.text || "", k:o.params || {}
+  };
+  const json = JSON.stringify(payload);
+  const bytes = new TextEncoder().encode(json);
+  let bin = ""; bytes.forEach(function(b){ bin += String.fromCharCode(b); });
+  return btoa(bin).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+}
+
+function decodeRecipe(str){
+  let b = String(str).replace(/-/g,"+").replace(/_/g,"/");
+  while(b.length % 4) b += "=";
+  let bin = atob(b), bytes = new Uint8Array(bin.length);
+  for(let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  let o = JSON.parse(new TextDecoder().decode(bytes));
+  return {
+    version:o.v, page:o.p, seed:o.s, style:o.st,
+    palette:(o.pal || []).map(function(c){
+      return typeof c === "number" ? (INKS[c] ? INKS[c].hex : "#000000") : c;
+    }),
+    paper:o.pa, text:o.t, params:o.k || {}
+  };
+}
+
+/* ------------------------------- handoff --------------------------------- */
+
+/* The old handoff wrote one flat H.264 blob plus {kind, ext, seconds, w, h}.
+   The press then ran colour separation to work out which pixels belonged to
+   which drum — reconstructing, through compression artefacts, information the
+   sending page had held exactly one navigation earlier.
+
+   Now the sender may attach `separations`: one mask per ink, in print order,
+   as blobs. When they are present the press skips separation entirely. When
+   they are absent — an imported photo, say — it falls back to the old path,
+   so nothing that worked before stops working. */
+
+const DB = "risomitus", STORE = "handoff";
+
+const open = () => new Promise((res, rej) => {
+  const r = indexedDB.open(DB, 1);
+  r.onupgradeneeded = () => {
+    if(!r.result.objectStoreNames.contains(STORE)) r.result.createObjectStore(STORE);
+  };
+  r.onsuccess = () => res(r.result);
+  r.onerror   = () => rej(r.error);
+});
+
+const put = (db, key, val) => new Promise((res, rej) => {
+  const tx = db.transaction(STORE, "readwrite");
+  tx.objectStore(STORE).put(val, key);
+  tx.oncomplete = () => res();
+  tx.onerror    = () => rej(tx.error);
+});
+
+const get = (db, key) => new Promise((res, rej) => {
+  const tx = db.transaction(STORE, "readonly");
+  const q  = tx.objectStore(STORE).get(key);
+  q.onsuccess = () => res(q.result);
+  q.onerror   = () => rej(q.error);
+});
+
+/** Send a sheet to the press.
+    o = {blob, ext, seconds, w, h, page, palette, paper, seed, style, text,
+         params, separations?} */
+async function send(o){
+  const db = await open();
+  const seps = o.separations || [];
+  const meta = {
+    kind:o.kind || "video", ext:o.ext, seconds:o.seconds, w:o.w, h:o.h,
+    /* everything below is new, and everything below is what the press
+       previously had to guess at */
+    page:o.page || "", palette:o.palette || [], paper:o.paper || "",
+    seed:o.seed|0, style:o.style || "", text:o.text || "",
+    params:o.params || {},
+    layered:seps.length > 0,
+    layers:seps.map(s => ({
+      ink:s.ink, name:s.name || (byHex[s.ink] && byHex[s.ink].name) || "", op:s.op
+    })),
+    recipe:encodeRecipe(o)
+  };
+  await Promise.all([
+    put(db, "sheet", o.blob),
+    put(db, "meta", meta),
+    ...seps.map((s, i) => put(db, "sep" + i, s.blob))
+  ]);
+}
+
+/** Read a sheet on the press side. Returns {blob, meta, separations[]}. */
+async function receive(){
+  const db = await open();
+  const [blob, raw] = await Promise.all([get(db, "sheet"), get(db, "meta")]);
+  const meta = raw || {};
+  if(!meta.layered) return {blob, meta, separations:[]};
+
+  const layers = meta.layers || [];
+  const blobs  = await Promise.all(layers.map((_, i) => get(db, "sep" + i)));
+  const separations = layers
+    .map((l, i) => ({ink:l.ink, name:l.name, op:l.op, blob:blobs[i]}))
+    .filter(s => !!s.blob);
+  return {blob, meta, separations};
+}
+
+/* --------------------------------- out ----------------------------------- */
+
+global.RISOKIT = {
+  INKS:INKS, PAPERS:PAPERS,
+  rgb:rgb, hex:hex, dist:dist, chroma:chroma, lum:lum, hue:hue, hueGap:hueGap,
+  snapInk:snapInk, snapPaper:snapPaper, snapPalette:snapPalette,
+  overprint:overprint, stack:stack, pairScore:pairScore,
+  partners:partners, suggest:suggest, review:review,
+  encodeRecipe:encodeRecipe, decodeRecipe:decodeRecipe,
+  send:send, receive:receive,
+  nameOf:function(h){ const k = byHex[String(h).toUpperCase()]; return k ? k.name : null; }
+};
+
+})(window);
+</script>
 </head>
 <body>
 <style>
@@ -145,7 +543,7 @@ body:not(.unlocked) #wrap{visibility:hidden}
   <aside id="panel">
     <div class="head">
       <h1>מוזאיקה</h1>
-      <nav class="tabs" aria-label="מערכות"><a href="../?v=05bbe11">ריזו<small>מכבש הדפסה</small></a><a href="../gradient/?v=05bbe11">גרדיאנט<small>טיפוגרפיה</small></a><a href="../compose/?v=05bbe11">קומפוזיציה<small>פטרנים על גיליון</small></a><a href="./" aria-current="page">מוזאיקה<small>תמונה מאותיות</small></a><a href="../poster/?v=05bbe11">כרזה<small>אות או מספר</small></a></nav><div class="build" title="גרסת בנייה">23.08 16:59 · 05bbe11</div>
+      <nav class="tabs" aria-label="מערכות"><a href="../?v=d0c6572">ריזו<small>מכבש הדפסה</small></a><a href="../gradient/?v=d0c6572">גרדיאנט<small>טיפוגרפיה</small></a><a href="../compose/?v=d0c6572">קומפוזיציה<small>פטרנים על גיליון</small></a><a href="./" aria-current="page">מוזאיקה<small>תמונה מאותיות</small></a><a href="../poster/?v=d0c6572">כרזה<small>אות או מספר</small></a></nav><div class="build" title="גרסת בנייה">26.08 09:54 · d0c6572</div>
       <p>תמונה או וידאו נכנסים, ויוצאים בנויים מאותיות של הפונט חיים.</p>
     </div>
 
