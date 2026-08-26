@@ -608,7 +608,7 @@ global.RISOKIT = {
   <div class="head">
     <h1>גרדיאנט</h1>
     <p>מערכת טיפוגרפיה מונפשת — הגרדיאנט עשוי מהמילה</p>
-    <nav class="tabs" aria-label="מערכות"><a href="../?v=7bfbb1e">ריזו<small>מכבש הדפסה</small></a><a href="./" aria-current="page">גרדיאנט<small>טיפוגרפיה</small></a></nav><div class="build" title="גרסת בנייה">26.08 10:25 · 7bfbb1e</div>
+    <nav class="tabs" aria-label="מערכות"><a href="../?v=12ef8df">ריזו<small>מכבש הדפסה</small></a><a href="./" aria-current="page">גרדיאנט<small>טיפוגרפיה</small></a></nav><div class="build" title="גרסת בנייה">26.08 10:34 · 12ef8df</div>
     <div class="seg" role="group" aria-label="פורמט">
       <button id="f_post" aria-pressed="true">פוסט<small>1080 × 1350</small></button>
       <button id="f_story" aria-pressed="false">סטורי<small>1080 × 1920</small></button>
@@ -1127,8 +1127,11 @@ const ICON = {
 const svg = k => `<svg class="i" viewBox="0 0 14 14">${ICON[k]}</svg>`;
 const num = (v,d=2) => Math.abs(v)>=100 ? String(Math.round(v)) : String(+(+v).toFixed(d)).replace(/^0\./,".").replace(/^-0\./,"-.");
 
-const FONTS=[['"Haim"',"חיים"],['"Assistant"',"Assistant"],['"Heebo"',"Heebo"],['"Rubik"',"Rubik"],
-             ['"Arial Hebrew"',"Arial Hebrew"],['ui-monospace,Menlo,monospace',"Mono"]];
+/* One face. The page is a Haim instrument, and a face picker turned it into a
+   generic type toy — the same word set in Rubik is a different page with the
+   same controls. Uploads are gone with it: a dropped font would reintroduce
+   exactly what the list did. */
+const FONTS=[['"Haim"',"חיים"]];
 
 /* ---- user-supplied fonts: file picker or drag onto the artboard ---- */
 let userFontN=0, fontMsg=null;
@@ -1156,7 +1159,7 @@ const SEC = [
     sum:()=>`${T().word} · ${T().size}px`,
     macro:[ {p:"type.word",l:"מילה",t:"text"}, {p:"type.size",l:"גודל",t:"r",min:8,max:150,step:1},
             {p:"type.weight",l:"עובי",t:"r",min:100,max:900,step:100} ],
-    det:[ {p:"type.font",l:"גופן",t:"s",o:FONTS}, {p:"type.font",l:"גופן משלך",t:"upload"},
+    det:[ {p:"type.font",l:"גופן",t:"s",o:FONTS},
           {p:"type.spacing",l:"מרווח כללי",t:"r",min:.4,max:2.5,step:.02},
           {p:"type.tracking",l:"מרווח אות",t:"r",min:-8,max:40,step:.5},
           {p:"type.lineGap",l:"גובה שורה",t:"r",min:.7,max:2.8,step:.02},
