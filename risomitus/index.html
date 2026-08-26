@@ -415,7 +415,9 @@ global.RISOKIT = {
 #gate.open{display:none}
 #gatecard{width:min(420px,100%);text-align:center}
 #gatecard h1{margin:0 0 6px;font:700 30px/1 ui-monospace,SFMono-Regular,Menlo,monospace;
-  letter-spacing:.14em;text-shadow:2px -1.5px 0 #FF3D9A,-2px 1.5px 0 #0B5FA5}
+  letter-spacing:.14em;
+  /* engraved into the shell rather than printed on it */
+  text-shadow:0 1px 0 #fffdf6,0 -1px 0 #00000029}
 #gatecard p.k{margin:0 0 26px;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;opacity:.6}
 #gatecard p.d{margin:0 0 22px;font-size:12.5px;line-height:1.7;opacity:.65}
 #code{width:100%;text-align:center;font:700 26px/1 ui-monospace,Menlo,monospace;letter-spacing:.5em;
@@ -437,16 +439,32 @@ global.RISOKIT = {
 @media (prefers-reduced-motion:reduce){.shake{animation:none}}
 body:not(.unlocked) #app{visibility:hidden}
 
-/* switcher, shared by every tool */
-.tabs{display:grid;grid-template-columns:repeat(2,1fr);gap:4px;margin:10px 0 0}
+/* switcher, shared by every tool — two keys in a moulded trough, so the machine
+   skin does not have to fight a differently-styled nav bolted above it */
+.tabs{display:grid;grid-template-columns:repeat(2,1fr);gap:3px;margin:10px 0 0;
+  padding:3px;border-radius:7px;
+  background:linear-gradient(180deg,#9a9280 0,#b4ac9a 100%);
+  border:1px solid #8f8879;
+  box-shadow:inset 0 2px 4px #00000038,0 1px 0 #fffdf6}
 .tabs a{display:block;text-align:center;text-decoration:none;padding:7px 3px;
-  font:11px/1.2 ui-monospace,Menlo,monospace;letter-spacing:.04em;
-  border:1.5px solid var(--ink,#1E1A17);color:var(--ink,#1E1A17);background:var(--field,#DED6C2)}
-.tabs a small{display:block;font-size:8.5px;opacity:.55;margin-top:2px}
-.tabs a[aria-current=page]{background:var(--ink,#1E1A17);color:var(--paper,#F2EDE1);border-color:var(--ink,#1E1A17)}
-.tabs a:not([aria-current=page]):hover{box-shadow:2px 2px 0 #FF3D9A}
-.build{margin-top:5px;text-align:center;font:8.5px/1 ui-monospace,Menlo,monospace;
-  letter-spacing:.1em;color:var(--ink,#1E1A17);opacity:.4;direction:ltr}
+  font:11px/1.2 -apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
+  letter-spacing:.01em;border:1px solid #8f8879;border-radius:5px;color:#2b2721;
+  background-image:linear-gradient(180deg,#ebe6da 0,#cdc6b6 100%);
+  text-shadow:0 1px 0 #ffffff8c;
+  box-shadow:inset 0 1px 0 #fffdf6,0 1px 0 #ffffff40,0 2px 3px #0000002e;
+  transition:box-shadow .09s ease,transform .09s ease}
+.tabs a small{display:block;font-size:9px;opacity:.62;margin-top:2px}
+.tabs a[aria-current=page]{
+  background-image:linear-gradient(180deg,#b9b1a0 0,#cec7b7 100%);
+  color:#2b2721;transform:translateY(1px);
+  box-shadow:inset 0 2px 5px #00000052,inset 0 -1px 0 #ffffff33}
+.tabs a:not([aria-current=page]):active{transform:translateY(1px);
+  box-shadow:inset 0 2px 4px #00000047}
+/* the moulded serial plate every machine carries */
+.build{margin-top:7px;text-align:center;
+  font:8.5px/1 ui-monospace,SFMono-Regular,Menlo,monospace;
+  letter-spacing:.14em;color:#6d6558;direction:ltr;
+  text-shadow:0 1px 0 #fffdf6}
 </style>
 
 <div id="gate">
@@ -658,7 +676,7 @@ body.onlychanged label.f:not(.changed){display:none}
   <div id="ticket">
     <div id="masthead">
       <h1>RISOMITUS</h1>
-      <nav class="tabs" aria-label="מערכות"><a href="./" aria-current="page">ריזו<small>מכבש הדפסה</small></a><a href="./gradient/?v=38340e4">גרדיאנט<small>טיפוגרפיה</small></a></nav><div class="build" title="גרסת בנייה">26.08 16:28 · 38340e4</div>
+      <nav class="tabs" aria-label="מערכות"><a href="./" aria-current="page">ריזו<small>מכבש הדפסה</small></a><a href="./gradient/?v=07d7841">גרדיאנט<small>טיפוגרפיה</small></a></nav><div class="build" title="גרסת בנייה">26.08 16:34 · 07d7841</div>
       <div id="sub"><span>הפרדות · מסך · נייר</span><span id="stat">—</span></div>
     </div>
 
@@ -2981,5 +2999,284 @@ markChanged(); applyFind();
 })();
 </script>
 
+<style>
+/* ===========================================================================
+   THE MACHINE — a skeuomorphic skin for both pages.
+
+   Skeuomorphism is usually a costume. Here it is the subject: this site
+   simulates a Risograph, so the interface is dressed as the machine it is
+   pretending to be. Warm machine plastic, a brushed aluminium rail, keys that
+   are actually raised and actually go down, sliders in a milled channel, and a
+   backlit LCD for the numbers.
+
+   Two rules keep it from becoming a novelty:
+
+     The work is never inside the costume. Stages stay dark and neutral, because
+     a beige panel behind a print fights it. The machine surrounds the sheet; it
+     does not tint it.
+
+     Every raised thing is lit from one direction — above. A bevel is a 1px
+     light line on top and a 1px dark line underneath, and the drop shadow falls
+     down. Mixed lighting is what makes skeuomorphism read as plastic tat rather
+     than as an object.
+
+   Injected after each page's own CSS, so equal-specificity rules land on top.
+   =========================================================================== */
+
+:root{
+  /* machine plastic, warm grey-beige, the colour a Riso actually is */
+  --m-shell:      #d7d1c4;
+  --m-shell-hi:   #e6e1d6;
+  --m-shell-lo:   #bdb6a6;
+  --m-edge-hi:    #fffdf6;
+  --m-edge-lo:    #8f8879;
+
+  /* a recessed well: where controls are sunk into the shell */
+  --m-well:       #b4ac9a;
+  --m-well-lo:    #9a9280;
+
+  /* a key: raised, lit from above */
+  --m-key:        #ebe6da;
+  --m-key-lo:     #cdc6b6;
+  --m-key-press:  #c6bfae;
+
+  --m-ink:        #2b2721;
+  --m-ink-dim:    #6d6558;
+  --m-ink-faint:  #8d8574;
+
+  /* the one red button every machine has */
+  --m-red:        #b8402f;
+  --m-red-hi:     #d4553f;
+
+  /* backlit LCD */
+  --m-lcd:        #1b2418;
+  --m-lcd-lit:    #a9f286;
+
+  --m-r:          7px;
+  --m-r-sm:       5px;
+
+  /* plastic grain: an SVG turbulence, so it costs nothing and never tiles */
+  --m-grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.055'/%3E%3C/svg%3E");
+
+  /* brushed aluminium, drawn as very fine stripes rather than a photo */
+  --m-brushed:repeating-linear-gradient(90deg,
+      #cfcbc4 0 1px,#c2beb6 1px 2px,#d6d2cb 2px 3px,#c8c4bc 3px 4px);
+}
+
+/* ---------------------------------------------------------------- shell --- */
+
+#panel,#ticket,#inkpanel,#toolbar,#masthead,#dock,.head{
+  background-color:var(--m-shell);
+  background-image:var(--m-grain),
+    linear-gradient(180deg,var(--m-shell-hi) 0,var(--m-shell) 46%,var(--m-shell-lo) 100%);
+  color:var(--m-ink);
+  border-color:var(--m-edge-lo);
+}
+/* the seam where a panel meets the rest of the machine: a moulded edge, which
+   is one light line and one dark line, never a single flat border */
+#panel,#ticket{
+  box-shadow:inset 1px 0 0 var(--m-edge-hi), inset -1px 0 0 #0000001f;
+}
+#panelscroll{background:transparent}
+
+/* The masthead is a moulded nameplate, not a logo printed on the panel. The
+   press page had it in offset pink and blue, which is a lovely misregistration
+   joke and belongs on a sheet, not on the machine's own bodywork. */
+#masthead h1,.head h1,#inkpanel h3{
+  color:var(--m-ink);
+  /* engraved: light below, dark above — the inverse of a raised key */
+  text-shadow:0 1px 0 var(--m-edge-hi),0 -1px 0 #00000026;
+}
+.head p,#sub,.note,.lab,#stat,#inkline,.sec .sm,.row>label,.r label{color:var(--m-ink-dim)}
+.head p{max-width:32ch}
+
+/* ------------------------------------------------------------------ keys --- */
+
+.chip,.b,button.b,.seg button,#dock button,.rbtns button,.acts button,
+#vidbar button,.lk{
+  background-image:linear-gradient(180deg,var(--m-key) 0,var(--m-key-lo) 100%);
+  background-color:var(--m-key);
+  color:var(--m-ink);
+  border:1px solid var(--m-edge-lo);
+  border-radius:var(--m-r-sm);
+  box-shadow:
+    inset 0 1px 0 var(--m-edge-hi),      /* the lit top facet */
+    inset 0 -1px 0 #00000014,            /* the shaded underside */
+    0 1px 0 #ffffff40,                   /* the sliver of light it sits on */
+    0 2px 3px #0000002e;                 /* and the shadow it casts */
+  text-shadow:0 1px 0 #ffffff8c;
+  transition:box-shadow .09s ease,transform .09s ease,background-image .12s ease;
+}
+.chip:hover,.b:hover,button.b:hover,.seg button:hover,#dock button:hover,
+.rbtns button:hover,.acts button:hover:not(:disabled),.lk:hover{
+  background-image:linear-gradient(180deg,#f2eee4 0,var(--m-key-lo) 100%);
+}
+/* pressed: the key goes INTO the shell. The bevel inverts, the drop shadow
+   disappears because there is no longer a gap under it, and it moves down 1px */
+.chip:active,.b:active,button.b:active,.seg button:active,#dock button:active,
+.rbtns button:active,.acts button:active:not(:disabled),.lk:active{
+  background-image:linear-gradient(180deg,var(--m-key-press) 0,#d5cfc0 100%);
+  box-shadow:inset 0 2px 4px #00000047,inset 0 -1px 0 #ffffff2e;
+  transform:translateY(1px);
+}
+/* latched down: a key that stays in, the way a real toggle does */
+.chip.sel,.chip[aria-pressed=true],.seg button[aria-pressed=true],
+.lk[aria-pressed=true],.acts button.hero,#dock button.solid{
+  background-image:linear-gradient(180deg,#b9b1a0 0,#cec7b7 100%);
+  color:var(--m-ink);
+  box-shadow:inset 0 2px 5px #00000052,inset 0 -1px 0 #ffffff33;
+  text-shadow:0 1px 0 #ffffff4d;
+  border-color:var(--m-edge-lo);
+  transform:translateY(1px);
+}
+.seg button small,.seg button[aria-pressed=true] small{color:var(--m-ink-dim)}
+
+/* the red one */
+.rec,button.rec,#dock button.rec,.acts button.hero{
+  background-image:linear-gradient(180deg,var(--m-red-hi) 0,var(--m-red) 100%);
+  color:#fff5f1;border-color:#7d2b20;
+  text-shadow:0 -1px 0 #00000059;
+  box-shadow:inset 0 1px 0 #ffffff4d,inset 0 -1px 0 #0000002e,0 2px 3px #0000003d;
+}
+
+/* the segmented control is a moulded trough with keys sitting in it */
+.seg,.segs{
+  background:linear-gradient(180deg,var(--m-well-lo) 0,var(--m-well) 100%);
+  border:1px solid var(--m-edge-lo);
+  border-radius:var(--m-r);
+  box-shadow:inset 0 2px 4px #00000038,0 1px 0 var(--m-edge-hi);
+  padding:3px;gap:3px;
+}
+
+/* -------------------------------------------------------------- sliders --- */
+
+/* a milled channel with a knurled knob in it */
+input[type=range]{background:transparent}
+input[type=range]::-webkit-slider-runnable-track{
+  height:7px;border-radius:4px;
+  background:linear-gradient(180deg,var(--m-well-lo) 0,#c4bcaa 100%);
+  box-shadow:inset 0 2px 3px #00000052,inset 0 -1px 0 #ffffff3d,0 1px 0 var(--m-edge-hi);
+}
+input[type=range]::-moz-range-track{
+  height:7px;border-radius:4px;background:var(--m-well-lo);
+  box-shadow:inset 0 2px 3px #00000052;
+}
+input[type=range]::-moz-range-progress{
+  height:7px;border-radius:4px;
+  background:linear-gradient(180deg,#8d8577 0,#6f685c 100%);
+}
+input[type=range]::-webkit-slider-thumb{
+  width:19px;height:19px;border-radius:50%;margin-top:-6px;
+  /* knurling: fine radial ticks, the grip on a real control knob */
+  background:
+    repeating-conic-gradient(from 0deg,#0000 0 6deg,#00000014 6deg 12deg),
+    linear-gradient(180deg,#fbf8f1 0,#d3ccbc 62%,#bdb5a4 100%);
+  border:1px solid #8f8879;
+  box-shadow:inset 0 1px 0 #fff,inset 0 -2px 3px #0000001f,0 2px 4px #00000047;
+}
+input[type=range]::-moz-range-thumb{
+  width:19px;height:19px;border-radius:50%;border:1px solid #8f8879;
+  background:linear-gradient(180deg,#fbf8f1 0,#bdb5a4 100%);
+  box-shadow:0 2px 4px #00000047;
+}
+input[type=range]:active::-webkit-slider-thumb{
+  box-shadow:inset 0 1px 0 #fff,inset 0 -1px 2px #00000029,0 1px 2px #0000003d;
+}
+
+/* ------------------------------------------------------------- readouts --- */
+
+/* numbers live behind glass, backlit, the way a machine reports itself */
+#stat,#inkline,#meta,#fps,.sec .sm,.val,.v,#vidtime,#drop b,
+[id^="v_"],.mono{
+  font-variant-numeric:tabular-nums;
+}
+#stat,#vidtime,#meta,#fps{
+  background:linear-gradient(180deg,#0f150d 0,var(--m-lcd) 100%);
+  color:var(--m-lcd-lit);
+  border-radius:var(--m-r-sm);
+  padding:4px 9px;
+  box-shadow:inset 0 2px 5px #000000a6,inset 0 0 12px #7ee85426,0 1px 0 var(--m-edge-hi);
+  text-shadow:0 0 6px #a9f28680;
+}
+
+/* ---------------------------------------------------------------- wells --- */
+
+input[type=text],textarea,select,#c_recipe,#find,.chip input{
+  background:linear-gradient(180deg,#efeade 0,#fbf8f0 100%);
+  color:var(--m-ink);
+  border:1px solid var(--m-edge-lo);
+  border-radius:var(--m-r-sm);
+  box-shadow:inset 0 2px 4px #00000029,0 1px 0 var(--m-edge-hi);
+}
+input[type=text]:focus,textarea:focus,select:focus{
+  outline:none;border-color:#7d7565;
+  box-shadow:inset 0 2px 4px #00000038,0 0 0 3px #b8402f33;
+}
+
+/* sections read as moulded ridges in the shell rather than as CSS borders */
+details.sec,.grp,.sec{border-block-end:1px solid var(--m-edge-lo);
+  box-shadow:0 1px 0 var(--m-edge-hi)}
+details.sec>summary:hover{background:#00000008}
+
+/* ---------------------------------------------------------------- stage --- */
+
+/* The costume stops here. A print has to be judged against a neutral ground,
+   so the bed stays dark and only the rails around it are machine. */
+#stage,#bed{
+  background:#0d0d0f;
+  box-shadow:inset 0 0 0 1px #00000080, inset 0 14px 28px -14px #000;
+}
+#board,#out,#cv{
+  box-shadow:0 1px 2px #00000073,0 22px 48px -18px #000000cc,0 0 0 1px #ffffff14;
+}
+
+/* the aluminium rail the panel is bolted to */
+#panel::after,#ticket::after{
+  content:"";position:absolute;inset-block:0;inset-inline-start:0;width:3px;
+  background:var(--m-brushed);
+  box-shadow:1px 0 2px #00000038;
+  pointer-events:none;
+}
+#panel,#ticket{position:relative}
+
+@media (prefers-reduced-motion:reduce){
+  .chip,.b,.seg button,#dock button{transition:none}
+}
+
+/* ------------------------------------------------- press page specifics --- */
+
+/* the drop target is a recess in the deck, with a moulded lip */
+#drop{
+  background:linear-gradient(180deg,#c9c2b1 0,#d5cfc1 100%);
+  border:1px dashed var(--m-edge-lo);border-radius:var(--m-r);
+  box-shadow:inset 0 2px 5px #00000029,0 1px 0 var(--m-edge-hi);
+  color:var(--m-ink-dim);
+}
+#drop b{color:var(--m-ink)}
+#drop.hot{background:linear-gradient(180deg,#dcd4bf 0,#e8e2d2 100%);
+  border-color:var(--m-red);box-shadow:inset 0 2px 5px #00000029,0 0 0 3px #b8402f2e}
+
+/* the ink chips are drum caps: round-shouldered, each showing its own colour */
+.inks{gap:5px}
+.chip::before{border-radius:3px;box-shadow:inset 0 0 0 1px #00000033,0 1px 0 #ffffff59}
+
+/* the sub-line under the masthead reads as a moulded label strip */
+#sub{color:var(--m-ink-dim);text-shadow:0 1px 0 var(--m-edge-hi)}
+
+/* toolbar and the ink panel sit proud of the shell */
+#inkpanel{border:1px solid var(--m-edge-lo);border-radius:var(--m-r);
+  box-shadow:0 2px 6px #00000038,inset 0 1px 0 var(--m-edge-hi)}
+
+/* the video bar is a separate module clipped onto the machine */
+#vidbar{background:linear-gradient(180deg,var(--m-shell-hi) 0,var(--m-shell-lo) 100%);
+  border:1px solid var(--m-edge-lo);border-radius:var(--m-r);
+  box-shadow:0 3px 10px #00000047,inset 0 1px 0 var(--m-edge-hi)}
+
+/* warnings are a lamp, not a toast */
+#warn{background:linear-gradient(180deg,#d4553f 0,#b8402f 100%);color:#fff5f1;
+  border:1px solid #7d2b20;border-radius:var(--m-r-sm);
+  text-shadow:0 -1px 0 #00000059;
+  box-shadow:inset 0 1px 0 #ffffff4d,0 2px 5px #0000004d}
+</style>
 </body>
 </html>
