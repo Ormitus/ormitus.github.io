@@ -658,7 +658,7 @@ body.onlychanged label.f:not(.changed){display:none}
   <div id="ticket">
     <div id="masthead">
       <h1>RISOMITUS</h1>
-      <nav class="tabs" aria-label="מערכות"><a href="./" aria-current="page">ריזו<small>מכבש הדפסה</small></a><a href="./gradient/?v=1aab0c7">גרדיאנט<small>טיפוגרפיה</small></a></nav><div class="build" title="גרסת בנייה">26.08 13:42 · 1aab0c7</div>
+      <nav class="tabs" aria-label="מערכות"><a href="./" aria-current="page">ריזו<small>מכבש הדפסה</small></a><a href="./gradient/?v=38340e4">גרדיאנט<small>טיפוגרפיה</small></a></nav><div class="build" title="גרסת בנייה">26.08 16:28 · 38340e4</div>
       <div id="sub"><span>הפרדות · מסך · נייר</span><span id="stat">—</span></div>
     </div>
 
@@ -937,6 +937,8 @@ body.onlychanged label.f:not(.changed){display:none}
         <input type="range" id="sl" min="2" max="80" step="1" value="18"></label>
       <label class="f"><span>כתמיות גליל<b id="v_mo"></b></span>
         <input type="range" id="mo" min="0" max="70" step="1" value="18"></label>
+      <label class="f"><span>הרעבת דיו<b id="v_starve"></b></span>
+        <input type="range" id="starve" min="0" max="70" step="1" value="14"></label>
       <label class="f"><span>פסי גליל<b id="v_sk"></b></span>
         <input type="range" id="sk" min="0" max="60" step="1" value="10"></label>
       <label class="f"><span>גרעיניות דיו<b id="v_grit"></b></span>
@@ -1266,6 +1268,7 @@ uniform float uCell,uTrans,uMottleAmt,uStreak,uAbsorb,uDotGain,uYN;
 uniform float uPapDepth,uPapScale,uSpecks,uSmudge,uSmudgeLen,uSeed;
 uniform float uGrit,uDotJit,uPool,uThrough,uPress,uBleed,uFrameSeed;
 uniform float uMlo,uMhi,uCockle,uUnder,uHickey,uCrease;
+uniform float uStarve;
 uniform vec3 uSlip;            // y position, x offset, on/off
 uniform vec3 uInk2[8];         // split-fountain second ink, linear
 uniform vec2 uFount[8];        // x = on/off, y = angle
@@ -1395,7 +1398,39 @@ void main(){
       a*=1.0+uPool*(gx+gy);
     }
     a*=uInkQ[i].y*press;
-    if(uMottleAmt>0.0) a*=1.0+(texture(uMottle, uv*uRes/220.0+float(i)*3.7+uPapOfs*3.0).r-0.5)*2.0*uMottleAmt;
+
+    /* Ink starvation. A drum carries a finite film, and a large solid asks for
+       more than it can feed: the middle of a big flat area prints lighter and
+       blotchier than its edges, which is one of the most recognisable things a
+       riso does and was not modelled at all. Measured before this: the centre
+       of a 900x700 solid sat 4 levels DARKER than its edge, the wrong way round.
+
+       Demand is read from the plate itself at a coarse mip — a wide neighbourhood
+       that is nearly all ink is exactly the condition that starves the drum,
+       while a dot in isolation gets all the ink it wants. The recovery term
+       makes it directional: the drum re-inks as it turns, so the leading edge of
+       a solid runs richer than the trailing side. */
+    if(uStarve>0.0){
+      /* GLSL ES will not let a ternary pick between samplers, which is why
+         covRaw above branches instead of selecting. Same here. */
+      vec4 dmip; if(i<4) dmip=textureLod(uCovA,uv,5.0); else dmip=textureLod(uCovB,uv,5.0);
+      int dc=i&3;
+      float demand = dc==0?dmip.r : dc==1?dmip.g : dc==2?dmip.b : dmip.a;
+      float lead=smoothstep(0.0,0.16,fract(uv.y*1.0));
+      a*=1.0-uStarve*smoothstep(0.35,1.0,demand)*(0.55+0.45*lead);
+    }
+    /* Mottle runs along the feed axis, because that is where a drum puts it.
+       Sampled square, this was isotropic noise: measured on a solid, the drift
+       across the sheet (+5.8) came out stronger than the drift down it (-2.0),
+       which is backwards. A rotating drum lays ink in bands down the direction
+       the paper travels, so the noise is stretched 6:1 on that axis and a slow
+       periodic term rides on top for the drum's own circumference. */
+    if(uMottleAmt>0.0){
+      vec2 mq=vec2(uv.x*uRes.x/220.0, uv.y*uRes.y/1320.0)+float(i)*3.7+uPapOfs*3.0;
+      float m=texture(uMottle,mq).r-0.5;
+      float band=sin(uv.y*uRes.y/74.0 + float(i)*2.1 + uSeed*6.28)*0.5;
+      a*=1.0+(m+band*0.35)*2.0*uMottleAmt;
+    }
     if(uGrit>0.0)      a*=1.0+(texture(uWhite, ip*0.87+float(i)*31.0).r-0.5)*2.0*uGrit;
     if(uStreak>0.0) a*=1.0+streak*uStreak;
     if(uAbsorb>0.0) a*=1.0-uAbsorb*(1.0-pap);
@@ -2020,6 +2055,7 @@ function render(){
   gl.uniform1f(P.uCell,(phys? (dpi/Math.max(1,+$("lpi").value))*scale : +$("cell").value)*ss);
   gl.uniform1f(P.uTrans,+$("tr").value/100);
   gl.uniform1f(P.uMottleAmt,+$("mo").value/100);
+  gl.uniform1f(P.uStarve,+$("starve").value/100);
   gl.uniform1f(P.uStreak,+$("sk").value/100);
   gl.uniform1f(P.uAbsorb,+$("ab").value/100);
   gl.uniform1f(P.uDotGain,+$("dg").value/100);
@@ -2138,7 +2174,7 @@ function schedule(){ if(raf) return; raf=requestAnimationFrame(()=>{
   if(typeof abOn!=="undefined" && abOn){ slotB=cfgObject(); renderAB(); } else render();
 }); }
 const RO={cmp:"%",br:"",ct:"",st:"%",px:"",ow:"px",ss:"×",mg:"%",cell:"px",dg:"%",yn:"%",tr:"%",
-          mr:"px",rt:"%",sm:"%",sl:"px",mo:"%",sk:"%",grit:"%",djit:"%",pool:"%",bleed:"%",
+          mr:"px",rt:"%",sm:"%",sl:"px",mo:"%",starve:"%",sk:"%",grit:"%",djit:"%",pool:"%",bleed:"%",
           press:"%",thru:"%",mlo:"%",mhi:"%",under:"%",glow:"%",
           dpi:"",lpi:"",tac:"%",hick:"%",crease:"%",slipy:"%",slipx:"px",trap:"px",dhit:"%",dhx:"px",
           deckle:"%",setoff:"%",holdvar:" פר'",flick:"%",dust:"%",ptone:"%",blank:"%",numsz:"px",
@@ -2486,7 +2522,7 @@ $("rnd").onclick=()=>{
   const R=(a,b)=>a+Math.random()*(b-a), S=(k,v)=>$(k).value=Math.round(v);
   S("cell",R(3,9)); S("dg",R(10,60)); S("tr",R(10,80));
   S("mr",R(0,4)); S("rt",R(0,60)); S("sm",R(0,70)); S("sl",R(6,40));
-  S("mo",R(5,45)); S("sk",R(0,30)); S("sd",R(0,30));
+  S("mo",R(5,45)); S("starve",R(0,45)); S("sk",R(0,30)); S("sd",R(0,30));
   S("pd",R(8,45)); S("ab",R(5,55)); S("sp",R(0,30)); S("mg",R(0,4));
   S("grit",R(4,35)); S("djit",R(5,55)); S("pool",R(0,80)); S("bleed",R(0,60));
   S("press",R(0,35)); S("thru",R(0,30));
