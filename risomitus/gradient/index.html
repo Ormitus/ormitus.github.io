@@ -42,57 +42,118 @@
     background:var(--bg);color:var(--txt);
     font:13px/1.45 "Heebo","Assistant",system-ui,sans-serif;
     display:grid;grid-template-columns:1fr 348px;
+    /* The row has to be told to be the container's height. Left implicit it is
+       auto-sized, which means content-sized: the panel grew past 100vh and, with
+       overflow hidden on this element, everything below the fold became
+       unreachable — including the export controls. It was latent until the
+       sliders went from 2px to 20px, which added roughly 860px of panel. */
+    grid-template-rows:100%;
   }
   .mono{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-variant-numeric:tabular-nums}
   /* numbers must not be re-ordered by the RTL bidi algorithm */
   .v,.seg small,#rect,[dir=ltr]{direction:ltr;unicode-bidi:isolate}
 
-  /* ---------- stage ---------- */
-  #stage{position:relative;display:grid;place-items:center;padding:26px;min-width:0;
-    background:
-      linear-gradient(45deg,#0e0e11 25%,transparent 25%,transparent 75%,#0e0e11 75%),
-      linear-gradient(45deg,#0e0e11 25%,#0c0c0f 25%,#0c0c0f 75%,#0e0e11 75%);
-    background-size:22px 22px;background-position:0 0,11px 11px}
-  #board{position:relative;box-shadow:0 24px 70px -20px #000c,0 0 0 1px #ffffff12;
+  /* ---------- stage ----------
+
+     The chequerboard was doing the job a gallery wall does badly: it competes
+     with the artwork for attention, and every one of these compositions is a
+     dense field of type that needs a quiet ground to read against. A flat
+     surface with one soft pool of light puts the sheet forward instead.
+
+     The sheet is the only object here that casts a shadow, which is what makes
+     it read as a printed thing sitting on a surface rather than a rectangle of
+     pixels. */
+  #stage{position:relative;display:grid;place-items:center;padding:clamp(26px,4vw,64px);
+    min-width:0;background:#08080a}
+  #stage::before{content:"";position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(ellipse 62% 52% at 50% 44%,#ffffff0b,transparent 72%)}
+  #board{position:relative;
+    box-shadow:0 1px 2px #00000066, 0 32px 80px -24px #000000cc, 0 0 0 1px #ffffff0f;
     transition:width var(--fast) var(--ease),height var(--fast) var(--ease)}
   #cv{display:block;width:100%;height:100%}
-  #meta{position:absolute;inset-block-start:-21px;inset-inline-start:0;font-size:10.5px;color:var(--dim2);letter-spacing:.3px}
-  #fps{position:absolute;inset-block-start:-21px;inset-inline-end:0;font-size:10.5px;color:var(--dim2)}
+  /* One strip, one weight, tabular figures so the numbers stop twitching as
+     they update. Two separate readouts at opposite corners read as chrome; a
+     single line under the sheet reads as a caption. */
+  #meta,#fps{position:absolute;inset-block-start:-24px;font:10.5px/1 var(--mono);
+    color:var(--dim2);letter-spacing:.02em;font-variant-numeric:tabular-nums;
+    opacity:.75;transition:opacity .2s var(--ease)}
+  #meta{inset-inline-start:0} #fps{inset-inline-end:0}
+  #stage:hover #meta,#stage:hover #fps{opacity:1}
   #recdot{position:absolute;inset-block-end:10px;inset-inline-end:10px;display:none;align-items:center;gap:6px;
     background:#0009;padding:5px 10px;border-radius:99px;font-size:11px;backdrop-filter:blur(8px)}
   #recdot i{width:7px;height:7px;border-radius:99px;background:#ff4d4d;animation:blink 1s steps(2,end) infinite}
   @keyframes blink{50%{opacity:.15}}
 
   /* ---------- panel ---------- */
-  #panel{background:var(--surf);border-inline-start:1px solid var(--line);overflow-y:auto;overscroll-behavior:contain}
+  /* min-block-size:0 is the guard a scrolling grid item needs. Its default is
+     auto, which sizes the item to its content — the item then never overflows,
+     so it never scrolls, and the content simply runs past the bottom of the
+     window with no way to reach it. */
+  #panel{background:var(--surf);border-inline-start:1px solid var(--line);
+    min-block-size:0;display:flex;flex-direction:column}
+  #panelscroll{flex:1;min-block-size:0;overflow-y:auto;overscroll-behavior:contain;
+    scrollbar-width:thin;scrollbar-color:var(--line2) transparent}
+  #panelscroll::-webkit-scrollbar{width:10px}
+  #panelscroll::-webkit-scrollbar-thumb{background:var(--line2);border-radius:99px;
+    border:3px solid var(--surf)}
+  #panelscroll::-webkit-scrollbar-thumb:hover{background:#3a3a44}
+
+  /* The three things you actually reach for, pinned. Export used to sit at the
+     bottom of 1700px of controls, so getting to it depended on the scroll
+     working — and when that failed, the page could not do the one thing it is
+     for. A dock does not depend on scrolling at all. */
+  #dock{flex:none;border-block-start:1px solid var(--line);background:var(--surf);
+    padding:10px 12px calc(10px + env(safe-area-inset-bottom));
+    display:grid;grid-template-columns:1fr 1fr 1.2fr;gap:6px;
+    box-shadow:0 -8px 24px -12px #000c}
+  #dock button{font:12px/1 var(--ui);padding:11px 6px;cursor:pointer;border-radius:6px;
+    display:inline-flex;align-items:center;justify-content:center;gap:5px;
+    background:var(--surf2);color:var(--txt);border:1px solid var(--line2);
+    transition:background .16s var(--ease),border-color .16s var(--ease),transform .12s var(--ease)}
+  #dock button:hover{background:var(--raise);border-color:var(--raise)}
+  #dock button:active{transform:scale(.97)}
+  #dock button.solid{background:var(--hi);color:#101013;border-color:var(--hi);font-weight:600}
+  #dock button.rec{background:#3a1416;border-color:#6b2226;color:#ffb3b3}
+  #dock button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   #panel::-webkit-scrollbar{width:10px}
   #panel::-webkit-scrollbar-thumb{background:#2b2b34;border-radius:9px;border:3px solid var(--surf)}
-  .head{padding:14px 15px 12px;border-block-end:1px solid var(--line);position:sticky;inset-block-start:0;background:var(--surf);z-index:5}
-  .head h1{margin:0;font-size:13.5px;font-weight:700;letter-spacing:-.1px}
-  .head p{margin:1px 0 11px;font-size:10.5px;color:var(--dim2)}
+  /* Sticky, and it needs to survive scrolling over a busy panel — a flat
+     sticky header bleeds into whatever slides under it. */
+  .head{padding:18px 16px 14px;border-block-end:1px solid var(--line);
+    position:sticky;inset-block-start:0;background:var(--surf);z-index:5;
+    box-shadow:0 6px 16px -12px #000}
+  .head h1{margin:0;font-size:16px;font-weight:600;letter-spacing:-.011em}
+  .head p{margin:5px 0 14px;font-size:11.5px;line-height:1.5;color:var(--dim);max-width:30ch}
   .seg{display:grid;grid-template-columns:1fr 1fr;gap:3px;background:var(--surf2);padding:3px;border-radius:9px;border:1px solid var(--line)}
   .seg button{background:none;border:none;color:var(--dim);padding:6px 4px;border-radius:6px;font:inherit;font-size:11.5px;cursor:pointer;transition:var(--fast) var(--ease)}
   .seg button small{display:block;font-size:9.5px;color:var(--dim2);margin-block-start:1px}
   .seg button[aria-pressed=true]{background:var(--hi);color:#101013;font-weight:600}
   .seg button[aria-pressed=true] small{color:#101013;opacity:.6}
 
-  .looks{padding:11px 15px;border-block-end:1px solid var(--line);display:flex;gap:5px;flex-wrap:wrap}
+  .looks{padding:13px 16px;border-block-end:1px solid var(--line);display:flex;gap:6px;flex-wrap:wrap}
 
   details.sec{border-block-end:1px solid var(--line)}
-  details.sec>summary{list-style:none;cursor:pointer;padding:11px 15px;display:flex;align-items:center;gap:8px;
+  details.sec>summary{list-style:none;cursor:pointer;padding:13px 16px;display:flex;align-items:center;gap:9px;
     transition:background var(--fast) var(--ease)}
   details.sec>summary::-webkit-details-marker{display:none}
   details.sec>summary:hover{background:var(--surf2)}
-  .sec .nm{font-weight:600;font-size:12.5px}
-  .sec .sm{color:var(--dim2);font-size:10.5px;margin-inline-start:auto;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:end}
+  .sec .nm{font-weight:500;font-size:13px;letter-spacing:-.005em}
+  /* the summary is a glance, not a label: mono keeps the values from
+     re-flowing every time one of them changes width */
+  .sec .sm{color:var(--dim2);font:10.5px/1 var(--mono);margin-inline-start:auto;
+    max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+    text-align:end;font-variant-numeric:tabular-nums}
   .sec .chev{width:9px;height:9px;border-inline-end:1.5px solid var(--dim2);border-block-end:1.5px solid var(--dim2);
     transform:rotate(-45deg);transition:transform var(--fast) var(--ease);flex:0 0 auto}
   details[open].sec>summary .chev{transform:rotate(45deg)}
   .lk{background:none;border:none;padding:2px;cursor:pointer;color:var(--dim2);display:flex;flex:0 0 auto}
   .lk[aria-pressed=true]{color:var(--hi)}
-  .body{padding:2px 15px 15px}
+  /* Rows were 27px tall with a 9px gap — dense enough that a section read as
+     one grey block. Type controls and colour controls should not have to be
+     told apart by reading them. */
+  .body{padding:4px 16px 18px}
 
-  .r{display:flex;align-items:center;gap:9px;min-height:27px}
+  .r{display:flex;align-items:center;gap:11px;min-height:32px}
   .r>label{flex:0 0 76px;color:var(--dim);font-size:11px;line-height:1.25}
   .r>input[type=range]{flex:1;min-width:0}
   .r .v{flex:0 0 40px;text-align:center;font-size:10.5px;color:var(--txt);background:#00000055;border-radius:5px;padding:2px 0}
@@ -148,7 +209,8 @@
   .chip[aria-pressed=true]{background:var(--hi);color:#101013;border-color:var(--hi);font-weight:600}
   .chips{display:flex;flex-wrap:wrap;gap:5px;margin:2px 0 10px}
 
-  .lab{font-size:9.5px;letter-spacing:.6px;color:var(--dim2);margin:12px 0 5px;display:flex;align-items:center;gap:7px}
+  .lab{font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;
+    color:var(--dim2);margin:18px 0 8px;display:flex;align-items:center;gap:8px}
   .lab::after{content:"";flex:1;height:1px;background:var(--line)}
   #ramp{height:26px;border-radius:7px;border:1px solid var(--line2);margin-block-end:6px}
   #inkline{display:flex;flex-wrap:wrap;gap:3px 10px;margin-block-end:9px;
@@ -168,7 +230,8 @@
   svg.i{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
   @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
   @media (max-width:960px){body{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) auto}
-    #panel{border-inline-start:none;border-block-start:1px solid var(--line);max-height:50vh}#stage{padding:30px 14px 14px}
+    body{grid-template-columns:1fr;grid-template-rows:1fr auto}
+    #panel{border-inline-start:none;border-block-start:1px solid var(--line);max-block-size:50dvh}#stage{padding:30px 14px 14px}
     #fps{display:none}}  /* narrow boards: the two readouts would overlap */
 </style>
 <style>
@@ -635,10 +698,11 @@ global.RISOKIT = {
 </div>
 
 <div id="panel">
+ <div id="panelscroll">
   <div class="head">
     <h1>גרדיאנט</h1>
     <p>מערכת טיפוגרפיה מונפשת — הגרדיאנט עשוי מהמילה</p>
-    <nav class="tabs" aria-label="מערכות"><a href="../?v=47170d5">ריזו<small>מכבש הדפסה</small></a><a href="./" aria-current="page">גרדיאנט<small>טיפוגרפיה</small></a></nav><div class="build" title="גרסת בנייה">26.08 13:09 · 47170d5</div>
+    <nav class="tabs" aria-label="מערכות"><a href="../?v=1aab0c7">ריזו<small>מכבש הדפסה</small></a><a href="./" aria-current="page">גרדיאנט<small>טיפוגרפיה</small></a></nav><div class="build" title="גרסת בנייה">26.08 13:42 · 1aab0c7</div>
     <div class="seg" role="group" aria-label="פורמט">
       <button id="f_post" aria-pressed="true">פוסט<small>1080 × 1350</small></button>
       <button id="f_story" aria-pressed="false">סטורי<small>1080 × 1920</small></button>
@@ -646,6 +710,12 @@ global.RISOKIT = {
   </div>
   <div class="looks" id="looks"></div>
   <div id="sections"></div>
+ </div>
+ <div id="dock" role="group" aria-label="פעולות">
+   <button id="d_play" title="רווח"></button>
+   <button id="d_png" class="solid" title="S">PNG</button>
+   <button id="d_rec" class="rec">הקלט</button>
+ </div>
 </div>
 
 <script>
@@ -1648,8 +1718,27 @@ exp.appendChild(eb); secWrap.appendChild(exp);
 
 const $=id=>document.getElementById(id);
 function playIcon(){ $("b_play").innerHTML = svg(playing?"pause":"play") + (playing?"עצור":"הפעל"); }
-$("b_play").onclick=()=>{ playing=!playing; playIcon(); }; playIcon();
+$("b_play").onclick=()=>{ playing=!playing; playIcon();
+  if(window.syncDock) syncDock(); }; playIcon();
 $("b_rand").onclick=randomize;
+
+/* The dock drives the real controls rather than repeating their logic, so
+   there is one implementation of each action and the two stay in step. */
+(function(){
+  const link=(dockId,realId)=>{
+    const d=$(dockId);
+    d.onclick=()=>{ const r=$(realId); if(r && !r.disabled) r.click(); };
+  };
+  link("d_png","b_png"); link("d_rec","b_rec");
+  $("d_play").onclick=()=>{ $("b_play").click(); syncDock(); };
+  window.syncDock=function(){
+    $("d_play").textContent = playing ? "עצור" : "הפעל";
+    const rec=$("b_rec");
+    $("d_rec").disabled = !!(rec && rec.disabled);
+    $("d_png").disabled = !!($("b_png") && $("b_png").disabled);
+  };
+  syncDock();
+})();
 
 function download(blob,name){
   if(!blob) return;
