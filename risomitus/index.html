@@ -676,7 +676,7 @@ body.onlychanged label.f:not(.changed){display:none}
   <div id="ticket">
     <div id="masthead">
       <h1>RISOMITUS</h1>
-      <nav class="tabs" aria-label="מערכות"><a href="./" aria-current="page">ריזו<small>מכבש הדפסה</small></a><a href="./gradient/?v=07d7841">גרדיאנט<small>טיפוגרפיה</small></a></nav><div class="build" title="גרסת בנייה">26.08 16:34 · 07d7841</div>
+      <nav class="tabs" aria-label="מערכות"><a href="./" aria-current="page">ריזו<small>מכבש הדפסה</small></a><a href="./gradient/?v=5296bf8">גרדיאנט<small>טיפוגרפיה</small></a></nav><div class="build" title="גרסת בנייה">27.08 10:57 · 5296bf8</div>
       <div id="sub"><span>הפרדות · מסך · נייר</span><span id="stat">—</span></div>
     </div>
 
@@ -3218,16 +3218,91 @@ details.sec,.grp,.sec{border-block-end:1px solid var(--m-edge-lo);
   box-shadow:0 1px 0 var(--m-edge-hi)}
 details.sec>summary:hover{background:#00000008}
 
-/* ---------------------------------------------------------------- stage --- */
+/* ------------------------------------------------------- the output tray --- */
 
-/* The costume stops here. A print has to be judged against a neutral ground,
-   so the bed stays dark and only the rails around it are machine. */
+/* The sheet lands in the paper receiving tray, because that is where a Riso
+   actually puts it. Mid grey, cool, and clearly not paper: a real tray is grey
+   plastic, and that is lucky, because the one risk in putting the work on a
+   tray at all is that a warm tray behind a warm stock kills the contrast the
+   print is being judged on. Grey keeps them apart and is also the truth.
+
+   Built from three things a tray has: a ribbed floor, two side guides, and the
+   dark slot the paper comes out of.
+
+   The ribs run along the feed direction — that is what they are for, cutting
+   the friction under a sheet sliding out — so they are vertical on screen, the
+   way the sheet travels toward you. */
 #stage,#bed{
-  background:#0d0d0f;
-  box-shadow:inset 0 0 0 1px #00000080, inset 0 14px 28px -14px #000;
+  /* Room for the tray to be a tray. The sheet is sized off the bed's inner
+     width, so it filled the whole thing and the guides were a sliver at one
+     edge — this padding is what lets you see what the sheet is lying on, and it
+     shrinks the sheet automatically because the canvas is fitted to what is
+     left over. */
+  /* The top padding clears the exit assembly, which is 46px deep — otherwise
+     the sheet's top edge sits on top of the rollers it is supposed to have just
+     come out from between. */
+  padding:60px clamp(34px,4.5vw,72px) clamp(30px,4vw,58px);
+  background-color:#8e8c86;
+  background-image:
+    /* the ribs */
+    repeating-linear-gradient(90deg,
+      #00000012 0 1px, #ffffff0f 1px 2px, #0000 2px 13px),
+    /* the floor, lit from the slot end and falling away toward the front */
+    linear-gradient(180deg,#7d7b76 0,#8e8c86 22%,#96948e 68%,#84827c 100%);
+  box-shadow:
+    inset 0 0 0 1px #00000059,
+    inset 0 22px 30px -20px #000000a6,   /* the shade the machine throws over it */
+    inset 0 -14px 26px -18px #0000006b;
 }
-#board,#out,#cv{
-  box-shadow:0 1px 2px #00000073,0 22px 48px -18px #000000cc,0 0 0 1px #ffffff14;
+
+/* the side guides: two raised walls the sheet is squared against */
+#stage::before,#bed::before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:
+    linear-gradient(90deg,
+      #b4b2ab 0 14px, #a3a19a 14px 19px, #00000038 19px 27px, #0000 27px),
+    linear-gradient(270deg,
+      #b4b2ab 0 14px, #a3a19a 14px 19px, #00000038 19px 27px, #0000 27px);
+  box-shadow:inset 0 1px 0 #ffffff33;
+  opacity:1;
+}
+
+/* THE EXIT. The top edge is the back of the machine, not a decorative band:
+   a moulded plastic lip, the dark recess under it, and the two rubber ejection
+   rollers the sheet has just passed between. This is what makes the surface
+   read as the place a sheet comes OUT of rather than a grey rectangle it
+   happens to be sitting on.
+
+   Drawn as stacked gradients on one pseudo-element, top to bottom:
+     0-13px   the lip, lit on its top face, shading to its underside
+     13-17px  the dark line where the lip overhangs
+     17-40px  the recess, black at the back and opening toward the viewer
+     the rollers ride inside the recess, spaced along it */
+#stage::after,#bed::after{
+  content:"";position:absolute;inset-inline:0;inset-block-start:0;height:46px;
+  pointer-events:none;
+  background:
+    /* the ejection rollers, seen end-on inside the slot */
+    radial-gradient(ellipse 26px 9px at 12% 30px,#3a3733 0 55%,#00000000 78%),
+    radial-gradient(ellipse 26px 9px at 38% 30px,#3a3733 0 55%,#00000000 78%),
+    radial-gradient(ellipse 26px 9px at 62% 30px,#3a3733 0 55%,#00000000 78%),
+    radial-gradient(ellipse 26px 9px at 88% 30px,#3a3733 0 55%,#00000000 78%),
+    /* lip, overhang, recess */
+    linear-gradient(180deg,
+      #d9d3c6 0, #cec8ba 9px, #b3ad9f 13px,
+      #14130f 15px, #0b0a08 22px,
+      #1d1b17 32px, #33302b 40px, #6f6d67 46px);
+  box-shadow:0 5px 10px -2px #00000080, inset 0 1px 0 #fffdf6;
+}
+
+/* The sheet, lying on the tray rather than floating in space: a tight contact
+   shadow where it touches, and a longer soft one for the corner that lifts. */
+#board,#out,#cv,canvas#out{
+  box-shadow:
+    0 1px 0 #0000002e,
+    0 2px 3px #00000047,
+    0 12px 22px -8px #00000073,
+    0 0 0 1px #0000001f;
 }
 
 /* the aluminium rail the panel is bolted to */
