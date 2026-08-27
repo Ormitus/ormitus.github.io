@@ -841,7 +841,7 @@ global.RISOKIT = {
   <div class="head">
     <h1>Gradient</h1>
     <p>An animated typography system — the gradient is made out of the word</p>
-    <nav class="tabs" aria-label="Systems"><a href="../?v=55e32f1">Riso<small>Printing press</small></a><a href="./" aria-current="page">Gradient<small>Typography</small></a></nav><div class="build" title="Build version">27.08 12:17 · 55e32f1</div>
+    <nav class="tabs" aria-label="Systems"><a href="../?v=f2b68cb">Riso<small>Printing press</small></a><a href="./" aria-current="page">Gradient<small>Typography</small></a></nav><div class="build" title="Build version">27.08 12:25 · f2b68cb</div>
     <div class="seg" role="group" aria-label="Format">
       <button id="f_post" aria-pressed="true">Post<small>1080 × 1350</small></button>
       <button id="f_story" aria-pressed="false">Story<small>1080 × 1920</small></button>
@@ -2508,6 +2508,13 @@ details.sec>summary:hover{background:#00000008}
 
 /* ------------------------------------------------------------ ink drums --- */
 
+/* Scoped to #inks deliberately. `.chip` means two different things on this
+   site: an ink swatch on the press, and a plain text button — look names, weave
+   names — on the gradient page. Styling it unscoped turned every one of those
+   into a blank grey cylinder with its label painted over by the drum body, and
+   the gradient page lost all of its chip captions at once. A class that is
+   generic across two pages has to be qualified by where it lives. */
+
 /* A drum, not a swatch. The thing you load into a Riso is a cylinder of one
    colour with its name on a band, and a rack of squares tells you nothing about
    what you are picking up. The whole panel is a machine now; the ink should be
@@ -2517,12 +2524,12 @@ details.sec>summary:hover{background:#00000008}
    (dark at both edges, one bright specular stripe off-centre — that off-centre
    stripe is what reads as round rather than merely shaded), an elliptical cap
    catching the light from above, and a darker ellipse at the foot. */
-.chip{
+#inks .chip{
   width:52px;height:64px;border:0;border-radius:6px 6px 9px 9px;
   background:transparent;position:relative;overflow:visible;
   filter:drop-shadow(0 2px 3px #0000004d);
 }
-.chip::after{
+#inks .chip::after{
   content:"";position:absolute;inset:7px 0 12px;border-radius:4px/6px;
   background:
     /* the specular stripe, deliberately off-centre */
@@ -2532,7 +2539,7 @@ details.sec>summary:hover{background:#00000008}
   box-shadow:inset 0 0 0 1px #0000004d;
 }
 /* the cap */
-.chip .cap{
+#inks .chip .cap{
   position:absolute;inset-inline:0;top:2px;height:11px;border-radius:50%;
   background:
     linear-gradient(180deg,#ffffff73,#ffffff1a 60%,#00000014),
@@ -2541,7 +2548,7 @@ details.sec>summary:hover{background:#00000008}
   pointer-events:none;z-index:3;
 }
 /* the label band, which is where the name goes on a real drum */
-.chip::before{
+#inks .chip::before{
   content:attr(data-lab);
   position:absolute;left:0;right:0;bottom:3px;top:auto;z-index:4;
   font:8.5px/12px ui-monospace,SFMono-Regular,Menlo,monospace;
@@ -2551,23 +2558,23 @@ details.sec>summary:hover{background:#00000008}
   box-shadow:inset 0 0 0 1px #00000038,0 1px 0 #ffffff59;
   pointer-events:none;
 }
-.chip.sel,.chip[aria-pressed=true]{
+#inks .chip.sel{
   box-shadow:none;transform:none;
   filter:drop-shadow(0 0 0 2px var(--m-red)) drop-shadow(0 3px 5px #00000059);
 }
-.chip.sel::after{box-shadow:inset 0 0 0 1px #0000004d,inset 0 0 0 2px #ffffff40}
-.chip .x{
+#inks .chip.sel::after{box-shadow:inset 0 0 0 1px #0000004d,inset 0 0 0 2px #ffffff40}
+#inks .chip .x{
   top:-4px;left:-4px;width:16px;height:16px;z-index:6;border-radius:50%;
   background:linear-gradient(180deg,#d4553f,#b8402f);color:#fff5f1;
   border:1px solid #7d2b20;font:11px/14px ui-monospace,monospace;
   box-shadow:0 1px 2px #00000059;
 }
-.chip .x:hover{background:linear-gradient(180deg,#e0654f,#c44a37)}
+#inks .chip .x:hover{background:linear-gradient(180deg,#e0654f,#c44a37)}
 /* The colour picker is a hit area, not a surface. It sits above the drum so the
    whole thing is clickable, which means anything that gives it a background
    hides the drum completely — which is exactly what happened when it was
    swept into the input styling above. */
-.chip input{inset:-6px;width:64px;height:76px;z-index:5;
+#inks .chip input{inset:-6px;width:64px;height:76px;z-index:5;
   background:none;border:0;padding:0;opacity:0;-webkit-appearance:none;appearance:none}
 .inks{gap:9px;flex-wrap:wrap}
 
