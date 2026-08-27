@@ -676,7 +676,7 @@ body.onlychanged label.f:not(.changed){display:none}
   <div id="ticket">
     <div id="masthead">
       <h1>RISOMITUS</h1>
-      <nav class="tabs" aria-label="מערכות"><a href="./" aria-current="page">ריזו<small>מכבש הדפסה</small></a><a href="./gradient/?v=5296bf8">גרדיאנט<small>טיפוגרפיה</small></a></nav><div class="build" title="גרסת בנייה">27.08 10:57 · 5296bf8</div>
+      <nav class="tabs" aria-label="מערכות"><a href="./" aria-current="page">ריזו<small>מכבש הדפסה</small></a><a href="./gradient/?v=e743b8b">גרדיאנט<small>טיפוגרפיה</small></a></nav><div class="build" title="גרסת בנייה">27.08 11:07 · e743b8b</div>
       <div id="sub"><span>הפרדות · מסך · נייר</span><span id="stat">—</span></div>
     </div>
 
@@ -2951,6 +2951,49 @@ async function takeHandoff(){
   im.onload=()=>{ URL.revokeObjectURL(im.src); im._id=++imgId; src=im; isVideo=false;
     srcKey=""; note(im.width+"×"+im.height); schedule(); };
   im.src=URL.createObjectURL(blob);
+}
+
+/* ================= embedding =================
+
+   The gradient page runs this press on its own live output, in an iframe on the
+   same origin. It cannot simply assign to `src`: a top-level `let` in a classic
+   script is script-scoped, not a property of window, so the host can reach
+   schedule() and uploadSource() but not the state they act on. Hence a small
+   deliberate API rather than the host reaching into internals — which is the
+   better shape anyway, because it says exactly what a host is allowed to do.
+
+   uploadSource() already calls texImage2D with whatever `src` holds, and that
+   accepts a canvas, so a live canvas needs no change to the engine at all. The
+   only thing it needs is a reason to re-upload: srcKey is cleared and _id bumped
+   so the cache miss forces a fresh texture each frame. */
+window.PRESS={
+  /** Take frames from a canvas belonging to another document. */
+  setSource(canvas){
+    if(!canvas) return false;
+    src=canvas; isVideo=false; ref=null;
+    src._id=++imgId; srcKey=""; refKey="";
+    schedule();
+    return true;
+  },
+  /** The source canvas has been redrawn: re-upload and render. */
+  refresh(){
+    if(!src) return;
+    src._id=++imgId; srcKey="";
+    schedule();
+  },
+  /** Host asks whether the pipeline is up before it starts pumping frames. */
+  ready(){ return !!(gl && src); },
+  /** The press's own output, for the host to read back if it wants it. */
+  canvas(){ return document.getElementById("out"); }
+};
+
+/* When embedded the visitor is already past the gate on the host page, so the
+   curtain would only be asking twice. */
+if(new URLSearchParams(location.search).has("embed")){
+  document.documentElement.classList.add("embedded");
+  const g=document.getElementById("gate");
+  if(g){ g.classList.add("open"); }
+  document.body.classList.add("unlocked");
 }
 
 /* ---- boot ---- */

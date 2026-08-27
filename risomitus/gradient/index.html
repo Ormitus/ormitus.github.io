@@ -71,6 +71,10 @@
     box-shadow:0 1px 2px #00000066, 0 32px 80px -24px #000000cc, 0 0 0 1px #ffffff0f;
     transition:width var(--fast) var(--ease),height var(--fast) var(--ease)}
   #cv{display:block;width:100%;height:100%}
+  /* the press takes over the tray entirely: it draws its own bed and panel */
+  #pressframe{position:absolute;inset:0;width:100%;height:100%;border:0;z-index:2}
+  #stage:has(#pressframe){padding:0}
+  #stage:has(#pressframe)::before,#stage:has(#pressframe)::after{display:none}
   /* One strip, one weight, tabular figures so the numbers stop twitching as
      they update. Two separate readouts at opposite corners read as chrome; a
      single line under the sheet reads as a caption. */
@@ -104,7 +108,7 @@
      for. A dock does not depend on scrolling at all. */
   #dock{flex:none;border-block-start:1px solid var(--line);background:var(--surf);
     padding:10px 12px calc(10px + env(safe-area-inset-bottom));
-    display:grid;grid-template-columns:1fr 1fr 1.2fr;gap:6px;
+    display:grid;grid-template-columns:1fr 1fr 1fr 1.2fr;gap:6px;
     box-shadow:0 -8px 24px -12px #000c}
   #dock button{font:12px/1 var(--ui);padding:11px 6px;cursor:pointer;border-radius:6px;
     display:inline-flex;align-items:center;justify-content:center;gap:5px;
@@ -720,7 +724,7 @@ global.RISOKIT = {
   <div class="head">
     <h1>גרדיאנט</h1>
     <p>מערכת טיפוגרפיה מונפשת — הגרדיאנט עשוי מהמילה</p>
-    <nav class="tabs" aria-label="מערכות"><a href="../?v=5296bf8">ריזו<small>מכבש הדפסה</small></a><a href="./" aria-current="page">גרדיאנט<small>טיפוגרפיה</small></a></nav><div class="build" title="גרסת בנייה">27.08 10:57 · 5296bf8</div>
+    <nav class="tabs" aria-label="מערכות"><a href="../?v=e743b8b">ריזו<small>מכבש הדפסה</small></a><a href="./" aria-current="page">גרדיאנט<small>טיפוגרפיה</small></a></nav><div class="build" title="גרסת בנייה">27.08 11:07 · e743b8b</div>
     <div class="seg" role="group" aria-label="פורמט">
       <button id="f_post" aria-pressed="true">פוסט<small>1080 × 1350</small></button>
       <button id="f_story" aria-pressed="false">סטורי<small>1080 × 1920</small></button>
@@ -730,6 +734,7 @@ global.RISOKIT = {
   <div id="sections"></div>
  </div>
  <div id="dock" role="group" aria-label="פעולות">
+   <button id="d_riso" aria-pressed="false" title="הדפס את מה שרואים על מכבש הריזו">ריזו</button>
    <button id="d_play" title="רווח"></button>
    <button id="d_png" class="solid" title="S">PNG</button>
    <button id="d_rec" class="rec">הקלט</button>
@@ -1762,6 +1767,84 @@ $("b_rand").onclick=randomize;
   };
   syncDock();
 })();
+
+/* ================= the press, on this page =================
+
+   A toggle that prints what you are looking at, live, without leaving. The
+   press is not reimplemented here — it is the actual press page in a same-origin
+   iframe, which is why every one of its controls comes along. Reimplementing it
+   would have meant a second copy of a 2,500-line simulator drifting out of step
+   with the first.
+
+   The press exposes window.PRESS for exactly this. It cannot be driven by
+   assigning to its internals: a top-level `let` in a classic script is
+   script-scoped rather than a property of window, so setSource() is the seam.
+
+   Frames are pushed at 15/s, not 60. The press is a multi-pass WebGL simulation
+   -- separations, screening, paper, resolve -- and running it on every animation
+   frame starves the animation it is supposed to be printing. Fifteen reads as
+   live and leaves the gradient smooth. */
+let pressFrame=null, pressOn=false, pressTimer=0;
+const PRESS_FPS=12;
+
+/* The pump runs on its own timer rather than hanging off the page's render
+   loop. Hooking the loop tied "is the press live" to "did the host draw this
+   frame", which is a question with several boring wrong answers — the loop
+   idles when nothing is moving, and it stops entirely while the tab is
+   backgrounded. A timer asks the only question that matters: has enough time
+   passed to send another sheet through.
+
+   Twelve a second, not sixty. The press is a multi-pass WebGL simulation and
+   running it per animation frame starves the animation it is printing. */
+function pressPump(){
+  if(!pressOn || !pressFrame) return;
+  const w=pressFrame.contentWindow;
+  if(!w || !w.PRESS || !w.PRESS.ready()) return;
+  try{ w.PRESS.refresh(); }catch(e){}
+}
+
+function pressToggle(on){
+  pressOn=on;
+  const btn=$("d_riso");
+  btn.setAttribute("aria-pressed",String(on));
+
+  if(!on){
+    if(pressTimer){ clearInterval(pressTimer); pressTimer=0; }
+    if(pressFrame){ pressFrame.remove(); pressFrame=null; }
+    return;
+  }
+
+  /* The board is not hidden at all. display:none collapses it to zero, and
+     setupCanvases then sizes the drawing buffer to match, so the page quietly
+     stops producing the frames the press exists to print. visibility:hidden was
+     no better — reading the canvas while it was hidden came back empty. The
+     iframe is positioned over the board with a higher z-index, so leaving the
+     board alone costs nothing and keeps it rendering. */
+  const f=document.createElement("iframe");
+  f.id="pressframe";
+  f.src="../?embed=1";
+  f.setAttribute("title","מכבש הריזו");
+  f.style.cssText="width:100%;height:100%;border:0;display:block;background:#0c0c0e";
+  stage.appendChild(f);
+  pressFrame=f;
+
+  f.addEventListener("load",()=>{
+    /* The press boots its own WebGL context and sizes its canvases; handing it a
+       source before that is done is dropped silently, so wait for ready(). */
+    let tries=0;
+    const hand=()=>{
+      const w=f.contentWindow;
+      if(!w || !w.PRESS){ if(++tries<80) setTimeout(hand,100); return; }
+      if(!w.PRESS.ready()){ if(++tries<80) setTimeout(hand,100); return; }
+      w.PRESS.setSource(cv);
+      if(pressTimer) clearInterval(pressTimer);
+      pressTimer=setInterval(pressPump, 1000/PRESS_FPS);
+    };
+    hand();
+  });
+}
+
+$("d_riso").onclick=()=>pressToggle(!pressOn);
 
 function download(blob,name){
   if(!blob) return;
