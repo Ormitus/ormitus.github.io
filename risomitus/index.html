@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="he">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RISOMITUS · ריזו</title>
+  <title>RISOMITUS · Riso</title>
   <meta name="description" content="Risograph simulator — ink separations, halftone screens, paper texture, press defects.">
   <meta name="color-scheme" content="light dark">
   <meta name="robots" content="noindex, nofollow">
@@ -248,8 +248,8 @@ function review(pal, opts){
   snapped.forEach(function(s, i){
     if(s.drift >= 20)
       out.push({level:"warn", where:i,
-        msg:"הצבע " + pal[i].toUpperCase() + " לא קיים בקטלוג — הכי קרוב הוא "
-            + s.name + " " + s.hex + " (מרחק " + Math.round(s.drift) + ")"});
+        msg:"Colour " + pal[i].toUpperCase() + " is not in the catalogue — the nearest is "
+            + s.name + " " + s.hex + " (Distance " + Math.round(s.drift) + ")"});
   });
 
   const inks = snapped.slice(1).map(function(s){ return s.hex; });
@@ -258,19 +258,19 @@ function review(pal, opts){
       const sc = pairScore(inks[a], inks[b]);
       if(sc < 0.28)
         out.push({level:"warn", where:[a+1, b+1],
-          msg:"הדפסת־על של " + byHex[inks[a]].name + " ו" + byHex[inks[b]].name
-              + " נותנת " + overprint(inks[a], inks[b], .92) + " — בוץ. שקול זוג אחר."});
+          msg:"Overprinting " + byHex[inks[a]].name + " and" + byHex[inks[b]].name
+              + " gives " + overprint(inks[a], inks[b], .92) + " — mud. Consider another pair."});
     }
   }
 
   if(inks.length > 4)
-    out.push({level:"note", msg:inks.length + " דיו = " + inks.length
-      + " מעברים במכונה. מעל 4, שגיאת הרג'יסטר מצטברת."});
+    out.push({level:"note", msg:inks.length + " Ink = " + inks.length
+      + " passes through the machine. Past 4, registration error'accumulates."});
 
   if(opts.opacity != null && opts.opacity > 0.9 && inks.length >= 3)
     out.push({level:"note",
-      msg:"אטימות " + Math.round(opts.opacity*100) + "% על " + inks.length
-          + " שכבות תרווה את הנייר — הדיו יימרח."});
+      msg:"Opacity " + Math.round(opts.opacity*100) + "% on " + inks.length
+          + " layers will saturate the paper — the ink will smear."});
 
   return out;
 }
@@ -409,34 +409,129 @@ global.RISOKIT = {
 </head>
 <body>
 <style>
+/* ---- the operation panel ----
+
+   The entry code is asked for the way the machine would ask: a numeric keypad,
+   a backlit LCD, and a START key. A Riso's panel is bilingual because the
+   machine is Japanese and sold everywhere, so the Japanese sits above the
+   English exactly as it does on the real thing — it is a label, not decoration.
+
+   The keypad is not a skin over a text field. It IS the input: pressing a key
+   appends a digit, and START commits. That is the whole reason to draw a
+   machine instead of a form. */
 #gate{position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;
-  background:var(--paper,#F2EDE1);color:var(--ink,#1E1A17);font:13px/1.5 "Helvetica Neue",Helvetica,Arial,sans-serif;
-  direction:rtl;padding:24px}
+  background:#6f6d67;
+  background-image:
+    repeating-linear-gradient(90deg,#00000012 0 1px,#ffffff0f 1px 2px,#0000 2px 13px),
+    linear-gradient(180deg,#7d7b76 0,#8e8c86 40%,#84827c 100%);
+  color:#2b2721;font:13px/1.5 -apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
+  direction:ltr;padding:24px}
 #gate.open{display:none}
-#gatecard{width:min(420px,100%);text-align:center}
-#gatecard h1{margin:0 0 6px;font:700 30px/1 ui-monospace,SFMono-Regular,Menlo,monospace;
-  letter-spacing:.14em;
-  /* engraved into the shell rather than printed on it */
+
+#gatecard{width:min(430px,100%);
+  background-color:#d7d1c4;
+  background-image:linear-gradient(180deg,#e6e1d6 0,#d7d1c4 46%,#bdb6a6 100%);
+  border:1px solid #8f8879;border-radius:12px;
+  padding:22px 22px 24px;
+  box-shadow:
+    inset 0 1px 0 #fffdf6,
+    inset 0 -2px 0 #00000014,
+    0 2px 0 #ffffff33,
+    0 18px 40px -12px #00000080,
+    0 44px 70px -30px #000000a6;
+  position:relative}
+/* the four bolts that hold a panel onto a machine */
+#gatecard::before,#gatecard::after{content:"";position:absolute;width:7px;height:7px;
+  border-radius:50%;top:11px;
+  background:radial-gradient(circle at 35% 30%,#f2eee4,#a29a89 70%,#7d7565);
+  box-shadow:inset 0 -1px 1px #00000038,0 1px 0 #fffdf6}
+#gatecard::before{left:11px} #gatecard::after{right:11px}
+
+#gatehead{display:flex;align-items:baseline;justify-content:space-between;
+  border-bottom:1px solid #8f8879;box-shadow:0 1px 0 #fffdf6;
+  padding-bottom:12px;margin-bottom:16px}
+#gatecard h1{margin:0;font:700 19px/1 ui-monospace,SFMono-Regular,Menlo,monospace;
+  letter-spacing:.16em;color:#2b2721;
   text-shadow:0 1px 0 #fffdf6,0 -1px 0 #00000029}
-#gatecard p.k{margin:0 0 26px;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;opacity:.6}
-#gatecard p.d{margin:0 0 22px;font-size:12.5px;line-height:1.7;opacity:.65}
-#code{width:100%;text-align:center;font:700 26px/1 ui-monospace,Menlo,monospace;letter-spacing:.5em;
-  text-indent:.5em;padding:13px 8px;background:var(--field,#DED6C2);color:var(--ink,#1E1A17);border:1.5px solid var(--ink,#1E1A17);border-radius:0}
-#code:focus{outline:2px solid #FF3D9A;outline-offset:2px}
-#enter{width:100%;margin-top:10px;font:11px/1 ui-monospace,Menlo,monospace;letter-spacing:.1em;
-  padding:11px;background:var(--ink,#1E1A17);color:var(--paper,#F2EDE1);border:1.5px solid var(--ink,#1E1A17);cursor:pointer}
-#enter:hover{box-shadow:3px 3px 0 #FF3D9A}
-#gatemsg{min-height:18px;margin-top:12px;font:11px/1.4 ui-monospace,Menlo,monospace;color:#FF3D9A}
+#gatecard .jp{font-size:10px;letter-spacing:.24em;color:#6d6558;
+  text-shadow:0 1px 0 #fffdf6}
+#gatecard p.k{margin:0;font-size:9px;letter-spacing:.2em;text-transform:uppercase;
+  color:#6d6558;text-shadow:0 1px 0 #fffdf6;text-align:right;line-height:1.7}
+#gatecard p.d{margin:0 0 16px;font-size:12px;line-height:1.6;color:#6d6558;
+  text-shadow:0 1px 0 #ffffff8c}
+
+/* the display */
+#code{display:block;width:100%;box-sizing:border-box;
+  font:700 30px/1 ui-monospace,SFMono-Regular,Menlo,monospace;
+  letter-spacing:.44em;text-indent:.44em;text-align:center;
+  padding:15px 8px;margin:0 0 4px;
+  background:linear-gradient(180deg,#0f150d 0,#1b2418 100%);
+  color:#a9f286;border:1px solid #4a4844;border-radius:6px;
+  box-shadow:inset 0 3px 7px #000000a6,inset 0 0 16px #7ee85426,0 1px 0 #fffdf6;
+  text-shadow:0 0 8px #a9f28699;
+  -webkit-text-security:disc;text-security:disc}
+#code:focus{outline:none;border-color:#6d6558;
+  box-shadow:inset 0 3px 7px #000000a6,inset 0 0 22px #7ee8543d,0 0 0 3px #b8402f33}
+#gatemsg{min-height:17px;margin:0 0 14px;text-align:center;
+  font:10px/1.5 ui-monospace,Menlo,monospace;letter-spacing:.1em;color:#b8402f;
+  text-shadow:0 1px 0 #ffffff8c}
+
+/* the keypad */
+#pad{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:12px}
+#pad button{font:600 17px/1 ui-monospace,SFMono-Regular,Menlo,monospace;
+  padding:13px 0;cursor:pointer;color:#2b2721;
+  background-image:linear-gradient(180deg,#ebe6da 0,#cdc6b6 100%);
+  border:1px solid #8f8879;border-radius:6px;
+  text-shadow:0 1px 0 #ffffff8c;
+  box-shadow:inset 0 1px 0 #fffdf6,inset 0 -1px 0 #00000014,
+             0 1px 0 #ffffff40,0 2px 3px #0000002e;
+  transition:box-shadow .08s ease,transform .08s ease}
+#pad button:hover{background-image:linear-gradient(180deg,#f2eee4 0,#cdc6b6 100%)}
+#pad button:active{transform:translateY(1px);
+  background-image:linear-gradient(180deg,#c6bfae 0,#d5cfc0 100%);
+  box-shadow:inset 0 2px 4px #00000047}
+#pad button.wide{grid-column:span 2}
+#pad button.clear{color:#7d2b20}
+
+#enter{width:100%;font:600 13px/1 -apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
+  letter-spacing:.12em;padding:15px;cursor:pointer;color:#f2fbef;
+  background-image:linear-gradient(180deg,#4f9a52 0,#357a38 100%);
+  border:1px solid #1f4a22;border-radius:7px;
+  text-shadow:0 -1px 0 #00000059;
+  box-shadow:inset 0 1px 0 #ffffff4d,inset 0 -1px 0 #0000002e,
+             0 2px 3px #0000003d,0 0 0 0 #4f9a5200;
+  transition:box-shadow .1s ease,transform .08s ease}
+#enter:hover{background-image:linear-gradient(180deg,#5cab5f 0,#3d8741 100%)}
+#enter:active{transform:translateY(1px);
+  box-shadow:inset 0 2px 5px #00000059}
+/* The colour has to be stated. #gatecard .jp and #enter .jp have identical
+   specificity, and this rule never set one, so the sublabel inherited the
+   panel's brown and vanished into the green key. */
+#enter .jp{display:block;font-size:9px;letter-spacing:.3em;margin-top:4px;
+  color:#dff0dc;opacity:.75;text-shadow:0 -1px 0 #00000040}
+
+/* the status lamps every machine has */
+#lamps{display:flex;gap:14px;justify-content:center;margin-top:15px;
+  font:8.5px/1 ui-monospace,Menlo,monospace;letter-spacing:.14em;color:#6d6558}
+#lamps span{display:inline-flex;align-items:center;gap:5px;text-shadow:0 1px 0 #fffdf6}
+#lamps i{width:7px;height:7px;border-radius:50%;display:block;
+  box-shadow:inset 0 0 0 1px #00000038,inset 0 1px 1px #0000004d}
+#lamps i.ready{background:#4f9a52;box-shadow:inset 0 0 0 1px #00000038,0 0 5px #4f9a5299}
+#lamps i.err{background:#7d6f6a}
+#gate.bad #lamps i.err{background:#b8402f;box-shadow:inset 0 0 0 1px #00000038,0 0 6px #b8402fcc}
+#gate.bad #lamps i.ready{background:#3d5a3f;box-shadow:inset 0 0 0 1px #00000038}
+
 #gatemarks{position:fixed;inset:26px;pointer-events:none}
-#gatemarks i{position:absolute;width:18px;height:18px;opacity:.45}
-#gatemarks i::before,#gatemarks i::after{content:"";position:absolute;background:var(--ink,#1E1A17)}
+#gatemarks i{position:absolute;width:18px;height:18px;opacity:.3}
+#gatemarks i::before,#gatemarks i::after{content:"";position:absolute;background:#2b2721}
 #gatemarks i::before{left:8px;top:0;width:2px;height:18px}
 #gatemarks i::after{top:8px;left:0;height:2px;width:18px}
 #gatemarks i:nth-child(1){left:0;top:0} #gatemarks i:nth-child(2){right:0;top:0}
 #gatemarks i:nth-child(3){left:0;bottom:0} #gatemarks i:nth-child(4){right:0;bottom:0}
 .shake{animation:sh .28s}
 @keyframes sh{25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
-@media (prefers-reduced-motion:reduce){.shake{animation:none}}
+@media (prefers-reduced-motion:reduce){.shake{animation:none}
+  #pad button,#enter{transition:none}}
 body:not(.unlocked) #app{visibility:hidden}
 
 /* switcher, shared by every tool — two keys in a moulded trough, so the machine
@@ -470,13 +565,35 @@ body:not(.unlocked) #app{visibility:hidden}
 <div id="gate">
   <div id="gatemarks"><i></i><i></i><i></i><i></i></div>
   <div id="gatecard">
-    <h1>RISOMITUS</h1>
-    <p class="k">ריזוגרף בדפדפן · הפרדות · מסך · נייר</p>
-    <p class="d">מדמה מכבש ריזו אמיתי: הפרדות דיו, רשתות הדפסה, מרקם נייר, פגמי מכונה, ורתיחת פריימים לווידאו. דרוש קוד כניסה.</p>
+    <div id="gatehead">
+      <div>
+        <h1>RISOMITUS</h1>
+        <div class="jp">リソミトゥス</div>
+      </div>
+      <p class="k">A risograph in the browser · separations · screen · paper</p>
+    </div>
+    <p class="d">Simulates a real Riso press: ink separations, halftone screens, paper texture, machine defects and frame boil for video. Entry code required.</p>
     <input id="code" inputmode="numeric" autocomplete="off" maxlength="8"
-           aria-label="קוד כניסה" placeholder="····">
-    <button id="enter">כניסה</button>
+           aria-label="Entry code" placeholder="····">
     <div id="gatemsg" role="status" aria-live="polite"></div>
+    <div id="pad" role="group" aria-label="Keypad">
+      <button type="button" data-d="1">1</button>
+      <button type="button" data-d="2">2</button>
+      <button type="button" data-d="3">3</button>
+      <button type="button" data-d="4">4</button>
+      <button type="button" data-d="5">5</button>
+      <button type="button" data-d="6">6</button>
+      <button type="button" data-d="7">7</button>
+      <button type="button" data-d="8">8</button>
+      <button type="button" data-d="9">9</button>
+      <button type="button" class="wide" data-d="0">0</button>
+      <button type="button" class="clear" id="clr">C</button>
+    </div>
+    <button id="enter">START<span class="jp">スタート</span></button>
+    <div id="lamps">
+      <span><i class="ready"></i>READY</span>
+      <span><i class="err"></i>ERROR</span>
+    </div>
   </div>
 </div>
 
@@ -565,7 +682,7 @@ body.cmp #handle{display:block}
 
 /* ---------- job ticket ---------- */
 #ticket{width:404px;flex:0 0 404px;background:var(--paper-2);border-left:2px solid var(--ink);
-  overflow-y:auto;padding:0 18px 40px;direction:rtl}
+  overflow-y:auto;padding:0 18px 40px;direction:ltr}
 #ticket::-webkit-scrollbar{width:10px}
 #ticket::-webkit-scrollbar-thumb{background:var(--rule)}
 
@@ -676,37 +793,37 @@ body.onlychanged label.f:not(.changed){display:none}
   <div id="ticket">
     <div id="masthead">
       <h1>RISOMITUS</h1>
-      <nav class="tabs" aria-label="מערכות"><a href="./" aria-current="page">ריזו<small>מכבש הדפסה</small></a><a href="./gradient/?v=e743b8b">גרדיאנט<small>טיפוגרפיה</small></a></nav><div class="build" title="גרסת בנייה">27.08 11:07 · e743b8b</div>
-      <div id="sub"><span>הפרדות · מסך · נייר</span><span id="stat">—</span></div>
+      <nav class="tabs" aria-label="Systems"><a href="./" aria-current="page">Riso<small>Printing press</small></a><a href="./gradient/?v=76e42d8">Gradient<small>Typography</small></a></nav><div class="build" title="Build version">27.08 11:29 · 76e42d8</div>
+      <div id="sub"><span>Separations · screen · paper</span><span id="stat">—</span></div>
     </div>
 
     <div id="warn"></div>
 
     <div id="toolbar">
-      <input type="text" id="find" placeholder="חיפוש בקרה…" autocomplete="off">
+      <input type="text" id="find" placeholder="Search controls…" autocomplete="off">
       <div class="g3">
-        <button id="collapse">קפל הכל</button>
-        <button id="onlychanged">רק ששונו</button>
-        <button id="resetall">אפס</button>
+        <button id="collapse">Fold all</button>
+        <button id="onlychanged">Changed only</button>
+        <button id="resetall">Reset</button>
       </div>
       <div class="g2">
-        <select id="userpre"><option value="">— פריסטים שמורים —</option></select>
-        <button id="savepre">שמור בשם</button>
+        <select id="userpre"><option value="">— Saved presets —</option></select>
+        <button id="savepre">Save as</button>
       </div>
       <div class="g3">
-        <button id="slotA">שמור A</button>
-        <button id="slotB">שמור B</button>
-        <button id="abtoggle">השווה A/B</button>
+        <button id="slotA">Save A</button>
+        <button id="slotB">Save B</button>
+        <button id="abtoggle">Compare A/B</button>
       </div>
     </div>
 
     <section>
-      <h2><em>IN</em>מקור</h2>
-      <div id="drop"><b>גררי תמונה או וידאו</b>או ⌘V · Shift+גרירה = תמונת ייחוס</div>
+      <h2><em>IN</em>Source</h2>
+      <div id="drop"><b>Drop an image or video</b>or ⌘V · Shift+Drag = Reference image</div>
       <div class="g3">
-        <button id="pick">מקור</button>
-        <button id="pickvid">וידאו</button>
-        <button id="pickref">ייחוס</button>
+        <button id="pick">Source</button>
+        <button id="pickvid">Video</button>
+        <button id="pickref">Reference</button>
       </div>
       <div id="vidbar">
         <button id="play">▶</button>
@@ -715,12 +832,12 @@ body.onlychanged label.f:not(.changed){display:none}
       </div>
       <div class="g3">
         <button id="save">PNG</button>
-        <button id="plates">הפרדות</button>
-        <button id="recbtn">וידאו</button>
+        <button id="plates">Separations</button>
+        <button id="recbtn">Video</button>
       </div>
       <div class="g2">
-        <button id="seq" disabled>רצף PNG · ZIP</button>
-        <select id="fps" title="קצב לייצוא רצף">
+        <button id="seq" disabled>Sequence PNG · ZIP</button>
+        <select id="fps" title="Sequence export rate">
           <option value="24">24 fps</option>
           <option value="25">25 fps</option>
           <option value="12">12 fps</option>
@@ -728,15 +845,15 @@ body.onlychanged label.f:not(.changed){display:none}
         </select>
       </div>
       <div class="g3">
-        <button id="batch">אצווה</button>
-        <button id="link">קישור</button>
-        <button id="rnd">אקראי</button>
+        <button id="batch">Batch</button>
+        <button id="link">Link</button>
+        <button id="rnd">Random</button>
       </div>
       <div class="g2">
-        <button id="savecfg">שמור ⚙</button>
-        <button id="loadcfg">טען ⚙</button>
+        <button id="savecfg">Save ⚙</button>
+        <button id="loadcfg">Load ⚙</button>
       </div>
-      <button id="zoom">תצוגה 1:1</button>
+      <button id="zoom">View 1:1</button>
       <input type="file" id="file" accept="image/*" hidden>
       <input type="file" id="filevid" accept="video/*" hidden>
       <input type="file" id="fileref" accept="image/*" hidden>
@@ -745,318 +862,319 @@ body.onlychanged label.f:not(.changed){display:none}
     </section>
 
     <section>
-      <h2><em>CMP</em>השוואה</h2>
-      <label class="f"><span>חשיפת המקור/ייחוס<b id="v_cmp"></b></span>
+      <h2><em>CMP</em>Comparison</h2>
+      <label class="f"><span>Source / reference exposure<b id="v_cmp"></b></span>
         <input type="range" id="cmp" min="0" max="100" step="1" value="0"></label>
-      <p class="note">גררי את הקו הצהוב על ההדפס כדי לכייל מול צילום ייחוס.</p>
+      <p class="note">Drag the yellow line across the print to calibrate against a reference photo.</p>
     </section>
 
     <section>
-      <h2><em>0</em>טון מקור</h2>
-      <label class="f"><span>בהירות<b id="v_br"></b></span>
+      <h2><em>0</em>Source tone</h2>
+      <label class="f"><span>Brightness<b id="v_br"></b></span>
         <input type="range" id="br" min="-80" max="80" step="1" value="0"></label>
-      <label class="f"><span>ניגודיות<b id="v_ct"></b></span>
+      <label class="f"><span>Contrast<b id="v_ct"></b></span>
         <input type="range" id="ct" min="-80" max="120" step="1" value="45"></label>
-      <label class="f"><span>רוויה<b id="v_st"></b></span>
+      <label class="f"><span>Saturation<b id="v_st"></b></span>
         <input type="range" id="st" min="0" max="250" step="5" value="140"></label>
     </section>
 
     <section>
-      <h2><em>1</em>גיליון</h2>
-      <label class="f"><span>מידה לפי</span>
+      <h2><em>1</em>Sheet</h2>
+      <label class="f"><span>Size by</span>
         <select id="sizemode">
-          <option value="px">פיקסלים</option>
-          <option value="mm">גודל דף פיזי</option>
+          <option value="px">Pixels</option>
+          <option value="mm">Physical sheet size</option>
         </select></label>
-      <label class="f"><span>דף</span>
+      <label class="f"><span>page</span>
         <select id="psize">
           <option value="210x297">A4 · 210×297</option>
           <option value="297x420">A3 · 297×420</option>
           <option value="148x210">A5 · 148×210</option>
           <option value="216x279">Letter · 216×279</option>
-          <option value="200x200">ריבוע · 200×200</option>
+          <option value="200x200">Square · 200×200</option>
         </select></label>
-      <label class="f"><span>כיוון</span>
+      <label class="f"><span>Direction</span>
         <select id="porient">
-          <option value="p">לאורך</option>
-          <option value="l">לרוחב</option>
+          <option value="p">Lengthwise</option>
+          <option value="l">Crosswise</option>
         </select></label>
       <label class="f"><span>DPI<b id="v_dpi"></b></span>
         <input type="range" id="dpi" min="100" max="600" step="25" value="300"></label>
-      <label class="f"><span>צפיפות רשת · LPI<b id="v_lpi"></b></span>
+      <label class="f"><span>Screen density · LPI<b id="v_lpi"></b></span>
         <input type="range" id="lpi" min="30" max="150" step="1" value="85"></label>
-      <label class="f"><span>סימני חיתוך ורישום</span>
+      <label class="f"><span>Crop and registration marks</span>
         <select id="marks">
-          <option value="0">ללא</option>
-          <option value="1">מודפסים</option>
+          <option value="0">None</option>
+          <option value="1">printed</option>
         </select></label>
-      <label class="f"><span>גודל פיקסל<b id="v_px"></b></span>
+      <label class="f"><span>Pixel size<b id="v_px"></b></span>
         <input type="range" id="px" min="1" max="16" step="1" value="2"></label>
-      <label class="f"><span>רוחב פלט<b id="v_ow"></b></span>
+      <label class="f"><span>Output width<b id="v_ow"></b></span>
         <input type="range" id="ow" min="400" max="2400" step="50" value="900"></label>
-      <label class="f"><span>סופרסמפלינג<b id="v_ss"></b></span>
+      <label class="f"><span>Supersampling<b id="v_ss"></b></span>
         <input type="range" id="ss" min="1" max="3" step="1" value="2"></label>
-      <label class="f"><span>שוליים לא מודפסים<b id="v_mg"></b></span>
+      <label class="f"><span>Unprinted margin<b id="v_mg"></b></span>
         <input type="range" id="mg" min="0" max="8" step="0.25" value="1.5"></label>
-      <p class="note">ריזו לא מדפיס עד הקצה — יש מסגרת שהמכונה לא מגיעה אליה.</p>
+      <p class="note">A Riso does not print to the edge — there is a margin the machine cannot reach.</p>
     </section>
 
     <section>
-      <h2><em>2</em>דיו + נייר</h2>
-      <label class="f"><span>מראה מוכן</span>
+      <h2><em>2</em>Ink + Paper</h2>
+      <label class="f"><span>Preset look</span>
         <select id="look">
-          <option value="">— בחרי מראה —</option>
-          <option value="poster">פוסטר ריזו נקי</option>
-          <option value="zine">זין מצולם · גס</option>
-          <option value="news">עיתון · רשת גסה</option>
-          <option value="photocopy">צילום מכונה</option>
-          <option value="wet">דיו רטוב · נמרח</option>
-          <option value="clean">מינימום פגמים</option>
+          <option value="">— Pick a look —</option>
+          <option value="poster">Clean Riso poster</option>
+          <option value="zine">Photocopied · coarse</option>
+          <option value="news">Newsprint · coarse screen</option>
+          <option value="photocopy">Machine photo</option>
+          <option value="wet">Wet ink · smeared</option>
+          <option value="clean">Minimum defects</option>
         </select></label>
       <div class="inks" id="inks"></div>
-      <button id="sample" disabled style="margin-bottom:8px">דגימת דיו מתמונת הייחוס</button>
+      <button id="sample" disabled style="margin-bottom:8px">Sample inks from the reference</button>
       <div class="g2">
-        <button id="addink">+ דיו</button>
+        <button id="addink">+ Ink</button>
         <select id="preset">
-          <optgroup label="שני צבעים">
+          <optgroup label="Two colours">
             <option value="fp_blue">Fluoro Pink + Blue</option>
             <option value="fp_yellow">Fluoro Pink + Yellow</option>
             <option value="black_fp">Black + Fluoro Pink</option>
             <option value="teal_red">Teal + Bright Red</option>
-            <option value="mono">Black בלבד</option>
+            <option value="mono">Black only</option>
           </optgroup>
-          <optgroup label="שלושה ומעלה">
-            <option value="midbar">מידבר · 5 תופים</option>
+          <optgroup label="Three or more">
+            <option value="midbar">Midbar · 5 drums</option>
             <option value="riso_cmy">Riso CMY</option>
             <option value="four">CMY + Black</option>
           </optgroup>
-          <optgroup label="עמומים">
+          <optgroup label="Muted">
             <option value="muted">Federal Blue · Burgundy · Gold</option>
             <option value="earth">Moss · Brown · Orange</option>
             <option value="night">Indigo · Turquoise · Fluoro Orange</option>
           </optgroup>
-          <optgroup label="נייר לא לבן">
-            <option value="kraft">על Kraft</option>
-            <option value="onblack">פלואו על נייר שחור</option>
+          <optgroup label="Non-white paper">
+            <option value="kraft">on Kraft</option>
+            <option value="onblack">Fluoro on black paper</option>
           </optgroup>
-          <optgroup label="אחר">
-            <option value="shot">מהצילום (דגימה, לא דיו אמיתי)</option>
+          <optgroup label="Other">
+            <option value="shot">From the photo (sampled, not real ink)</option>
           </optgroup>
         </select>
       </div>
       <div id="inkpanel">
         <h3 id="inktitle">INK</h3>
-        <label class="f" id="libwrap"><span>דיו מהקטלוג</span>
+        <label class="f" id="libwrap"><span>Ink from catalogue</span>
           <select id="inklib"></select></label>
         <div id="inkonly">
-        <div class="g2"><button id="mvup">◀ מוקדם יותר</button><button id="mvdn">מאוחר יותר ▶</button></div>
-        <button id="solo" style="margin-bottom:9px">בודד את הדיו הזה</button>
-        <label class="f"><span>Split fountain · צבע שני</span>
+        <div class="g2"><button id="mvup">◀ earlier</button><button id="mvdn">later ▶</button></div>
+        <button id="solo" style="margin-bottom:9px">Solo this ink</button>
+        <label class="f"><span>Split fountain · Second colour</span>
           <select id="fount2"></select></label>
-        <label class="f"><span>כיוון המעבר<b id="v_i_fa"></b></span>
+        <label class="f"><span>Pass direction<b id="v_i_fa"></b></span>
           <input type="range" id="i_fa" min="0" max="359" step="1" value="0"></label>
-        <label class="f"><span>אטימות<b id="v_i_op"></b></span>
+        <label class="f"><span>Opacity<b id="v_i_op"></b></span>
           <input type="range" id="i_op" min="0" max="100" step="1" value="92"></label>
-        <label class="f"><span>עקומה · gamma<b id="v_i_gm"></b></span>
+        <label class="f"><span>Curve · gamma<b id="v_i_gm"></b></span>
           <input type="range" id="i_gm" min="20" max="300" step="5" value="100"></label>
-        <label class="f"><span>הגברת כיסוי<b id="v_i_bo"></b></span>
+        <label class="f"><span>Coverage boost<b id="v_i_bo"></b></span>
           <input type="range" id="i_bo" min="0" max="250" step="5" value="100"></label>
-        <label class="f"><span>זווית מסך<b id="v_i_an"></b></span>
+        <label class="f"><span>Screen angle<b id="v_i_an"></b></span>
           <input type="range" id="i_an" min="0" max="90" step="1" value="15"></label>
-        <label class="f"><span>הזחה X<b id="v_i_ox"></b></span>
+        <label class="f"><span>Offset X<b id="v_i_ox"></b></span>
           <input type="range" id="i_ox" min="-8" max="8" step="0.5" value="0"></label>
-        <label class="f"><span>הזחה Y<b id="v_i_oy"></b></span>
+        <label class="f"><span>Offset Y<b id="v_i_oy"></b></span>
           <input type="range" id="i_oy" min="-8" max="8" step="0.5" value="0"></label>
-        <p class="note">הערכים נוספים על ההגדרות הגלובליות.</p>
+        <p class="note">These values are added on top of the global settings.</p>
         </div>
       </div>
       <div id="lutbar"></div>
-      <label class="f"><span>הפרדה</span>
+      <label class="f"><span>Separation</span>
         <select id="map">
-          <option value="tone">טונאלית · בהירות</option>
-          <option value="lut">גאמוט מלא · צבע</option>
-          <option value="hue">גוון + דית'ר · CPU</option>
+          <option value="tone">Tonal · luminance</option>
+          <option value="lut">Full gamut · colour</option>
+          <option value="hue">Hue + Dith'r · CPU</option>
         </select></label>
-      <label class="f"><span>דית'ר (רק בגוון)</span>
+      <label class="f"><span>Dith'r (hue only)</span>
         <select id="dith">
           <option value="fs">Floyd–Steinberg</option>
           <option value="atk">Atkinson</option>
           <option value="b4">Bayer 4×4</option>
           <option value="b8">Bayer 8×8</option>
-          <option value="none">ללא</option>
+          <option value="none">None</option>
         </select></label>
-      <p class="note"><b>טונאלית</b> נותנת את המראה החזק — שטחים שטוחים, כמו פוסטר.
-      <b>גאמוט מלא</b> בונה טבלה של כל צבע שאפשר להשיג מהדיו האלה וממפה כל פיקסל לצירוף הקרוב;
-      זו הפרדה נאמנה לצבע המקור, ולכן היא יוצאת רכה יותר. תעלי רוויה כדי לדחוף אותה לקצוות הגאמוט.</p>
+      <p class="note"><b>Tonal</b> Gives the strong look — flat areas, like a poster.
+      <b>Full gamut</b> Builds a table of every colour these inks can reach and maps each pixel to the nearest combination;
+      A separation faithful to the source colour, so it comes out softer. Raise saturation to push it toward the edges of the gamut.</p>
     </section>
 
     <section>
-      <h2><em>3</em>מסך</h2>
-      <label class="f"><span>סוג</span>
+      <h2><em>3</em>Screen</h2>
+      <label class="f"><span>Type</span>
         <select id="scr">
-          <optgroup label="רשת גאומטרית">
-            <option value="0">נקודה עגולה</option>
-            <option value="1">קווים</option>
-            <option value="2">אליפסה</option>
-            <option value="3">צלב</option>
-            <option value="4">מעוין</option>
-            <option value="5">טבעות קונצנטריות</option>
+          <optgroup label="Geometric screen">
+            <option value="0">Round dot</option>
+            <option value="1">Lines</option>
+            <option value="2">Ellipse</option>
+            <option value="3">Cross</option>
+            <option value="4">Diamond</option>
+            <option value="5">Concentric rings</option>
           </optgroup>
-          <optgroup label="גרעין">
-            <option value="6">עדין · מפוזר אחיד</option>
-            <option value="7">גס · רעש לבן</option>
+          <optgroup label="Grain">
+            <option value="6">Fine · evenly diffused</option>
+            <option value="7">Coarse · white noise</option>
           </optgroup>
-          <optgroup label="ללא">
-            <option value="8">שטוח</option>
+          <optgroup label="None">
+            <option value="8">Flat</option>
           </optgroup>
         </select></label>
-      <label class="f"><span>גודל תא<b id="v_cell"></b></span>
+      <label class="f"><span>Cell size<b id="v_cell"></b></span>
         <input type="range" id="cell" min="2" max="16" step="0.5" value="5"></label>
-      <label class="f"><span>התפשטות נקודה<b id="v_dg"></b></span>
+      <label class="f"><span>Dot gain<b id="v_dg"></b></span>
         <input type="range" id="dg" min="0" max="100" step="1" value="28"></label>
-      <label class="f"><span>פיזור אור בנייר · n<b id="v_yn"></b></span>
+      <label class="f"><span>Light scatter in paper · n<b id="v_yn"></b></span>
         <input type="range" id="yn" min="100" max="300" step="5" value="170"></label>
-      <label class="f"><span>שקיפות בחפיפה<b id="v_tr"></b></span>
+      <label class="f"><span>Transparency on overlap<b id="v_tr"></b></span>
         <input type="range" id="tr" min="0" max="100" step="1" value="35"></label>
-      <label class="f"><span>מגבלת דיו כוללת · TAC<b id="v_tac"></b></span>
+      <label class="f"><span>Total ink limit · TAC<b id="v_tac"></b></span>
         <input type="range" id="tac" min="0" max="500" step="10" value="0"></label>
-      <label class="f"><span>היילייטים נופלים<b id="v_mlo"></b></span>
+      <label class="f"><span>Highlights drop out<b id="v_mlo"></b></span>
         <input type="range" id="mlo" min="0" max="25" step="0.5" value="6"></label>
-      <label class="f"><span>צללים נסתמים<b id="v_mhi"></b></span>
+      <label class="f"><span>Shadows plug<b id="v_mhi"></b></span>
         <input type="range" id="mhi" min="75" max="100" step="0.5" value="94"></label>
-      <label class="f"><span>גוון תחתון בדיו דק<b id="v_under"></b></span>
+      <label class="f"><span>Undertone in thin ink<b id="v_under"></b></span>
         <input type="range" id="under" min="0" max="100" step="1" value="40"></label>
-      <label class="f"><span>זוהר פלואורסנטי<b id="v_glow"></b></span>
+      <label class="f"><span>Fluorescent glow<b id="v_glow"></b></span>
         <input type="range" id="glow" min="0" max="100" step="1" value="22"></label>
-      <label class="f"><span>מלכודת · spread / choke<b id="v_trap"></b></span>
+      <label class="f"><span>Trap · spread / choke<b id="v_trap"></b></span>
         <input type="range" id="trap" min="-3" max="3" step="0.25" value="0"></label>
-      <label class="f"><span>הדפסה כפולה<b id="v_dhit"></b></span>
+      <label class="f"><span>Double hit<b id="v_dhit"></b></span>
         <input type="range" id="dhit" min="0" max="100" step="1" value="0"></label>
-      <label class="f"><span>הזחת ההדפסה הכפולה<b id="v_dhx"></b></span>
+      <label class="f"><span>Double-hit offset<b id="v_dhx"></b></span>
         <input type="range" id="dhx" min="-8" max="8" step="0.5" value="2"></label>
-      <label class="f"><span>קצוות הפרדה</span>
+      <label class="f"><span>Separation edges</span>
         <select id="smooth">
-          <option value="0">מפוקסלות</option>
-          <option value="1">חלקות</option>
+          <option value="0">Pixelated</option>
+          <option value="1">Smoothness</option>
         </select></label>
-      <p class="note">מאסטר תרמי לא צורב חור קטן מספיק לגוון הכי עדין, והכהים ביותר נסתמים —
-      טווח הטונים נעצר משני הקצוות. זה אחד הסימנים הכי מובהקים של הדפסה אמיתית.</p>
+      <p class="note">A thermal master cannot burn a hole small enough for the faintest tone, and the
+      darkest tones plug — the tonal range stops at both ends. One of the surest
+      signs of a real print.</p>
     </section>
 
     <section>
-      <h2><em>4</em>פגמי מכונה</h2>
-      <label class="f"><span>חוסר רישום<b id="v_mr"></b></span>
+      <h2><em>4</em>Machine defects</h2>
+      <label class="f"><span>Misregistration<b id="v_mr"></b></span>
         <input type="range" id="mr" min="0" max="8" step="0.5" value="1"></label>
-      <label class="f"><span>סיבוב תוף<b id="v_rt"></b></span>
+      <label class="f"><span>Drum rotation<b id="v_rt"></b></span>
         <input type="range" id="rt" min="0" max="100" step="1" value="22"></label>
-      <label class="f"><span>מריחת גליל<b id="v_sm"></b></span>
+      <label class="f"><span>Roller smear<b id="v_sm"></b></span>
         <input type="range" id="sm" min="0" max="100" step="1" value="30"></label>
-      <label class="f"><span>אורך מריחה<b id="v_sl"></b></span>
+      <label class="f"><span>Smear length<b id="v_sl"></b></span>
         <input type="range" id="sl" min="2" max="80" step="1" value="18"></label>
-      <label class="f"><span>כתמיות גליל<b id="v_mo"></b></span>
+      <label class="f"><span>Drum mottle<b id="v_mo"></b></span>
         <input type="range" id="mo" min="0" max="70" step="1" value="18"></label>
-      <label class="f"><span>הרעבת דיו<b id="v_starve"></b></span>
+      <label class="f"><span>Ink starvation<b id="v_starve"></b></span>
         <input type="range" id="starve" min="0" max="70" step="1" value="14"></label>
-      <label class="f"><span>פסי גליל<b id="v_sk"></b></span>
+      <label class="f"><span>Drum banding<b id="v_sk"></b></span>
         <input type="range" id="sk" min="0" max="60" step="1" value="10"></label>
-      <label class="f"><span>גרעיניות דיו<b id="v_grit"></b></span>
+      <label class="f"><span>Ink grain<b id="v_grit"></b></span>
         <input type="range" id="grit" min="0" max="60" step="1" value="14"></label>
-      <label class="f"><span>אי-סדירות המאסטר<b id="v_djit"></b></span>
+      <label class="f"><span>Master irregularity<b id="v_djit"></b></span>
         <input type="range" id="djit" min="0" max="80" step="1" value="22"></label>
-      <label class="f"><span>התכנסות דיו בשוליים<b id="v_pool"></b></span>
+      <label class="f"><span>Ink pooling at edges<b id="v_pool"></b></span>
         <input type="range" id="pool" min="0" max="120" step="1" value="35"></label>
-      <label class="f"><span>נזילה הצידה<b id="v_bleed"></b></span>
+      <label class="f"><span>Sideways bleed<b id="v_bleed"></b></span>
         <input type="range" id="bleed" min="0" max="100" step="1" value="25"></label>
-      <label class="f"><span>לחץ תוף לא אחיד<b id="v_press"></b></span>
+      <label class="f"><span>Uneven drum pressure<b id="v_press"></b></span>
         <input type="range" id="press" min="0" max="60" step="1" value="14"></label>
-      <label class="f"><span>הצצה מהצד השני<b id="v_thru"></b></span>
+      <label class="f"><span>Show-through<b id="v_thru"></b></span>
         <input type="range" id="thru" min="0" max="60" step="1" value="10"></label>
-      <label class="f"><span>כתמי דיו יבש<b id="v_hick"></b></span>
+      <label class="f"><span>Dry ink specks<b id="v_hick"></b></span>
         <input type="range" id="hick" min="0" max="30" step="1" value="4"></label>
-      <label class="f"><span>קמטים במאסטר<b id="v_crease"></b></span>
+      <label class="f"><span>Master creases<b id="v_crease"></b></span>
         <input type="range" id="crease" min="0" max="60" step="1" value="8"></label>
-      <label class="f"><span>החלקת גיליון · מיקום<b id="v_slipy"></b></span>
+      <label class="f"><span>Sheet slip · position<b id="v_slipy"></b></span>
         <input type="range" id="slipy" min="0" max="100" step="1" value="55"></label>
-      <label class="f"><span>החלקת גיליון · הזחה<b id="v_slipx"></b></span>
+      <label class="f"><span>Sheet slip · offset<b id="v_slipx"></b></span>
         <input type="range" id="slipx" min="-60" max="60" step="1" value="0"></label>
       <label class="f"><span>seed<b id="v_sd"></b></span>
         <input type="range" id="sd" min="0" max="30" step="1" value="7"></label>
-      <p class="note">אי-סדירות המאסטר משנה כל תא רשת בנפרד — בלעדיה הנקודות מושלמות מדי וזה נראה דיגיטלי.</p>
+      <p class="note">Master irregularity varies each screen cell on its own — without it the dots are too perfect and it reads as digital.</p>
     </section>
 
     <section>
-      <h2><em>6</em>פריים ביי פריים</h2>
-      <label class="f"><span>הצג על כל<b id="v_shoot"></b></span>
+      <h2><em>6</em>Frame by frame</h2>
+      <label class="f"><span>Show on every<b id="v_shoot"></b></span>
         <input type="range" id="shoot" min="1" max="6" step="1" value="2"></label>
-      <label class="f"><span>רתיחה<b id="v_boil"></b></span>
+      <label class="f"><span>Boil<b id="v_boil"></b></span>
         <input type="range" id="boil" min="0" max="100" step="1" value="40"></label>
-      <label class="f"><span>רעידת גיליון<b id="v_sheet"></b></span>
+      <label class="f"><span>Sheet jitter<b id="v_sheet"></b></span>
         <input type="range" id="sheet" min="0" max="20" step="0.5" value="2"></label>
-      <label class="f"><span>סחף דיו<b id="v_drift"></b></span>
+      <label class="f"><span>Ink drift<b id="v_drift"></b></span>
         <input type="range" id="drift" min="0" max="80" step="1" value="14"></label>
-      <label class="f"><span>הדפסה חסרה<b id="v_mis"></b></span>
+      <label class="f"><span>Missed print<b id="v_mis"></b></span>
         <input type="range" id="mis" min="0" max="30" step="1" value="3"></label>
-      <label class="f"><span>אורך החזקה משתנה<b id="v_holdvar"></b></span>
+      <label class="f"><span>Hold length varies<b id="v_holdvar"></b></span>
         <input type="range" id="holdvar" min="0" max="3" step="0.5" value="0"></label>
-      <label class="f"><span>ריצוד חשיפה<b id="v_flick"></b></span>
+      <label class="f"><span>Exposure flicker<b id="v_flick"></b></span>
         <input type="range" id="flick" min="0" max="40" step="1" value="8"></label>
-      <label class="f"><span>אבק ושערות<b id="v_dust"></b></span>
+      <label class="f"><span>Dust and hairs<b id="v_dust"></b></span>
         <input type="range" id="dust" min="0" max="30" step="1" value="6"></label>
-      <label class="f"><span>שינוי גוון נייר<b id="v_ptone"></b></span>
+      <label class="f"><span>Paper tint variation<b id="v_ptone"></b></span>
         <input type="range" id="ptone" min="0" max="40" step="1" value="6"></label>
-      <label class="f"><span>גיליון ריק<b id="v_blank"></b></span>
+      <label class="f"><span>Blank sheet<b id="v_blank"></b></span>
         <input type="range" id="blank" min="0" max="20" step="1" value="0"></label>
 
-      <label class="f" style="margin-top:12px"><span>מספור פריימים</span>
+      <label class="f" style="margin-top:12px"><span>Frame numbering</span>
         <select id="numfmt">
-          <option value="">ללא</option>
-          <option value="n">מספר בלבד · 014</option>
-          <option value="nt">מתוך הכל · 014/240</option>
-          <option value="ed">מהדורה · 14/50</option>
+          <option value="">None</option>
+          <option value="n">Number only · 014</option>
+          <option value="nt">of the whole · 014/240</option>
+          <option value="ed">Edition · 14/50</option>
         </select></label>
-      <label class="f"><span>מיקום המספר</span>
+      <label class="f"><span>Number position</span>
         <select id="numpos">
-          <option value="bl">שמאל למטה</option>
-          <option value="br">ימין למטה</option>
-          <option value="tl">שמאל למעלה</option>
-          <option value="tr">ימין למעלה</option>
+          <option value="bl">Bottom left</option>
+          <option value="br">Bottom right</option>
+          <option value="tl">Top left</option>
+          <option value="tr">Top right</option>
         </select></label>
-      <label class="f"><span>צבע המספור</span>
+      <label class="f"><span>Numbering colour</span>
         <select id="numink"></select></label>
-      <label class="f"><span>גודל המספר<b id="v_numsz"></b></span>
+      <label class="f"><span>Number size<b id="v_numsz"></b></span>
         <input type="range" id="numsz" min="8" max="80" step="1" value="26"></label>
-      <p class="note">המספר נצרב למאסטר של תוף אחד, אז הוא עובר את אותו מסך, אותו חוסר רישום ואותה רתיחה כמו כל השאר.</p>
-      <p class="note">כל פריים הוא הדפס נפרד: גיליון אחר, רישום אחר, גליל שדיו שלו נגמר קצת.
-      <b>הצג על כל 2</b> = כל הדפס מוחזק שני פריימים, כמו אנימציה מצולמת. משפיע רק על וידאו.</p>
+      <p class="note">The number is burned into one drum's master, so it takes the same screen, the same misregistration and the same boil as everything else.</p>
+      <p class="note">Every frame is a separate print: another sheet, another registration, a drum running a little dry.
+      <b>Show on every 2</b> = Each print is held for two frames, like animation on twos. Video only.</p>
     </section>
 
     <section>
-      <h2><em>5</em>נייר</h2>
-      <label class="f"><span>סוג</span>
+      <h2><em>5</em>Paper</h2>
+      <label class="f"><span>Type</span>
         <select id="pap">
-          <option value="rough">סופג · סיבים</option>
-          <option value="smooth">חלק</option>
-          <option value="laid">מקווקו · laid</option>
-          <option value="fabric">בד / אריג</option>
+          <option value="rough">Absorbent · fibrous</option>
+          <option value="smooth">Smooth</option>
+          <option value="laid">Dashed · laid</option>
+          <option value="fabric">Cloth / weave</option>
         </select></label>
-      <label class="f"><span>עומק מרקם<b id="v_pd"></b></span>
+      <label class="f"><span>Texture depth<b id="v_pd"></b></span>
         <input type="range" id="pd" min="0" max="60" step="1" value="20"></label>
-      <label class="f"><span>גודל סיב<b id="v_ps"></b></span>
+      <label class="f"><span>Fibre size<b id="v_ps"></b></span>
         <input type="range" id="ps" min="0.5" max="8" step="0.25" value="1.5"></label>
-      <label class="f"><span>ספיגה<b id="v_ab"></b></span>
+      <label class="f"><span>Absorption<b id="v_ab"></b></span>
         <input type="range" id="ab" min="0" max="80" step="1" value="24"></label>
-      <label class="f"><span>קצה קרוע · deckle<b id="v_deckle"></b></span>
+      <label class="f"><span>Torn edge · deckle<b id="v_deckle"></b></span>
         <input type="range" id="deckle" min="0" max="100" step="1" value="0"></label>
-      <label class="f"><span>העתק מהערימה · set-off<b id="v_setoff"></b></span>
+      <label class="f"><span>Copy from the stack · set-off<b id="v_setoff"></b></span>
         <input type="range" id="setoff" min="0" max="60" step="1" value="0"></label>
-      <label class="f"><span>נקבוביות<b id="v_sp"></b></span>
+      <label class="f"><span>Porosity<b id="v_sp"></b></span>
         <input type="range" id="sp" min="0" max="40" step="1" value="12"></label>
-      <label class="f"><span>קימוט מדיו רטוב<b id="v_cockle"></b></span>
+      <label class="f"><span>Cockle from wet ink<b id="v_cockle"></b></span>
         <input type="range" id="cockle" min="0" max="60" step="1" value="16"></label>
-      <label class="f"><span>מתיחת גיליון בין תופים<b id="v_stretch"></b></span>
+      <label class="f"><span>Sheet stretch between drums<b id="v_stretch"></b></span>
         <input type="range" id="stretch" min="0" max="60" step="1" value="18"></label>
-      <p class="note">דיו רטוב מקמט את הנייר, והגיליון נמתח קצת בין מעבר למעבר —
-      ולכן חוסר הרישום גדל ככל שמתרחקים ממרכז הגיליון.</p>
+      <p class="note">Wet ink cockles the paper and the sheet stretches a little between passes —
+      which is why misregistration grows the further you get from the centre.</p>
     </section>
   </div>
 </div>
@@ -1209,7 +1327,7 @@ const WHITEN=(()=>{const u=new Uint8Array(NS*NS);
 /* ================= GL ================= */
 const out=$("out");
 const gl=out.getContext("webgl2",{preserveDrawingBuffer:true,antialias:false});
-if(!gl) warn("הדפדפן לא תומך ב-WebGL2 — הכלי לא יוכל לרוץ כאן.");
+if(!gl) warn("This browser does not support WebGL2 — This tool cannot run here.");
 
 const VS=`#version 300 es
 void main(){ vec2 p=vec2((gl_VertexID<<1)&2, gl_VertexID&2); gl_Position=vec4(p*2.0-1.0,0,1); }`;
@@ -1661,7 +1779,7 @@ if(gl){
     SEP=build(FS_SEP); PRINT=build(FS_PRINT); RES=build(FS_RES);
     gl.bindVertexArray(gl.createVertexArray());
     gl.pixelStorei(gl.UNPACK_ALIGNMENT,1);
-  }catch(e){ warn("שגיאת שיידר: "+e.message); }
+  }catch(e){ warn("Shader error: "+e.message); }
 }
 
 function tex2d(unit,filter,wrap){
@@ -2195,9 +2313,9 @@ const RO={cmp:"%",br:"",ct:"",st:"%",px:"",ow:"px",ss:"×",mg:"%",cell:"px",dg:"
           mr:"px",rt:"%",sm:"%",sl:"px",mo:"%",starve:"%",sk:"%",grit:"%",djit:"%",pool:"%",bleed:"%",
           press:"%",thru:"%",mlo:"%",mhi:"%",under:"%",glow:"%",
           dpi:"",lpi:"",tac:"%",hick:"%",crease:"%",slipy:"%",slipx:"px",trap:"px",dhit:"%",dhx:"px",
-          deckle:"%",setoff:"%",holdvar:" פר'",flick:"%",dust:"%",ptone:"%",blank:"%",numsz:"px",
+          deckle:"%",setoff:"%",holdvar:" per'",flick:"%",dust:"%",ptone:"%",blank:"%",numsz:"px",
           sd:"",pd:"%",ps:"px",ab:"%",sp:"%",cockle:"%",stretch:"%",
-          shoot:" פר'",boil:"%",sheet:"px",drift:"%",mis:"%"};
+          shoot:" per'",boil:"%",sheet:"px",drift:"%",mis:"%"};
 function readouts(){ for(const k in RO) $("v_"+k).textContent=$(k).value+RO[k]; }
 for(const k in RO) $(k).addEventListener("input",schedule);
 ["dith","map","scr","pap","smooth","numfmt","numpos","numink","sizemode","psize","porient","marks"].forEach(k=>$(k).addEventListener("change",schedule));
@@ -2218,17 +2336,17 @@ function buildChips(){
     const c=document.createElement("div");
     const on=(i===0&&selIdx===-2)||(i>0&&i-1===selIdx);
     c.className="chip"+(on?" sel":"");
-    c.dataset.lab=i===0?"נייר":"K"+i;
+    c.dataset.lab=i===0?"Paper":"K"+i;
     c.style.background=hex;
     c.title=inkName(hex);
     c.onclick=()=>{ selIdx=(i===0?-2:i-1); buildChips(); showInk(); };
     const inp=document.createElement("input");
-    inp.type="color"; inp.value=hex; inp.setAttribute("aria-label",i===0?"נייר":"דיו "+i);
+    inp.type="color"; inp.value=hex; inp.setAttribute("aria-label",i===0?"Paper":"Ink "+i);
     inp.oninput=()=>{ palette[i]=inp.value; c.style.background=inp.value; schedule(); };
     c.appendChild(inp);
     if(palette.length>2&&i>0){
       const x=document.createElement("button");
-      x.className="x"; x.textContent="×"; x.title="הסרת דיו";
+      x.className="x"; x.textContent="×"; x.title="Ink removal";
       x.onclick=e=>{ e.stopPropagation(); palette.splice(i,1); inkP.splice(i-1,1);
         if(selIdx>=palette.length-1) selIdx=-1;
         buildChips(); showInk(); schedule(); };
@@ -2238,8 +2356,8 @@ function buildChips(){
   });
   const ni=$("numink"), keep=ni.value;
   ni.innerHTML=palette.slice(1).map((h,i)=>
-      '<option value="'+i+'">תוף '+(i+1)+' · '+inkName(h)+'</option>').join("")
-    +'<option value="-1">נייר · מנוקב החוצה</option>';
+      '<option value="'+i+'">Drum '+(i+1)+' · '+inkName(h)+'</option>').join("")
+    +'<option value="-1">Paper · knocked out</option>';
   ni.value = (keep!==""&&[...ni.options].some(o=>o.value===keep)) ? keep : String(palette.length-2);
 }
 const IK=["op","gm","bo","an","ox","oy"];
@@ -2249,19 +2367,19 @@ function showInk(){
     '<option value="'+h+'"'+(h.toUpperCase()===cur.toUpperCase()?' selected':'')+'>'+n+' · '+h+'</option>').join("");
   if(selIdx===-2){                                    // the sheet, not a drum
     b.classList.add("show"); only.style.display="none";
-    $("inktitle").textContent="נייר · "+inkName(palette[0]);
-    $("libwrap").querySelector("span").textContent="נייר מהקטלוג";
+    $("inktitle").textContent="Paper · "+inkName(palette[0]);
+    $("libwrap").querySelector("span").textContent="Paper from catalogue";
     lib.innerHTML=opt(PAPERS,palette[0]);
     return;
   }
   if(selIdx<0||selIdx>=inkP.length){ b.classList.remove("show"); return; }
   b.classList.add("show"); only.style.display="";
   const hex=palette[selIdx+1];
-  $("inktitle").textContent="תוף "+(selIdx+1)+" · "+inkName(hex);
-  $("libwrap").querySelector("span").textContent="דיו מהקטלוג";
+  $("inktitle").textContent="Drum "+(selIdx+1)+" · "+inkName(hex);
+  $("libwrap").querySelector("span").textContent="Ink from catalogue";
   lib.innerHTML=opt(RISO_INKS,hex);
   const f2=inkP[selIdx].f2||"";
-  $("fount2").innerHTML='<option value="">— ללא —</option>'+
+  $("fount2").innerHTML='<option value="">— none —</option>'+
     RISO_INKS.map(([n,h])=>'<option value="'+h+'"'+(h.toUpperCase()===f2.toUpperCase()&&f2?' selected':'')+'>'+n+'</option>').join("");
   $("i_fa").value=inkP[selIdx].fa||0; $("v_i_fa").textContent=(inkP[selIdx].fa||0)+"°";
   IK.forEach(k=>{ $("i_"+k).value=inkP[selIdx][k]; $("v_i_"+k).textContent=inkP[selIdx][k]; });
@@ -2301,10 +2419,10 @@ $("filevid").onchange=e=>e.target.files[0]&&loadVideo(e.target.files[0]);
 function loadImage(f,asRef){
   const im=new Image();
   im.onload=()=>{ URL.revokeObjectURL(im.src); im._id=++imgId;
-    if(asRef){ ref=im; $("sample").disabled=false; if(+$("cmp").value===0){ $("cmp").value=50; } $("drop").innerHTML="<b>ייחוס: "+f.name+"</b>גררי את הקו הצהוב"; }
+    if(asRef){ ref=im; $("sample").disabled=false; if(+$("cmp").value===0){ $("cmp").value=50; } $("drop").innerHTML="<b>Reference: "+f.name+"</b>Drag the yellow line"; }
     else { src=im; isVideo=false; stopVideo(); $("drop").innerHTML="<b>"+f.name+"</b>"+im.width+"×"+im.height; }
     srcKey=""; schedule(); };
-  im.onerror=()=>warn("לא הצלחתי לפתוח את "+f.name);
+  im.onerror=()=>warn("Could not open "+f.name);
   im.src=URL.createObjectURL(f);
 }
 function loadVideo(f){
@@ -2318,7 +2436,7 @@ function loadVideo(f){
     v.play().then(()=>{ playing=true; $("play").textContent="❚❚"; loopVideo(); })
             .catch(()=>{ playing=false; render(); });
   };
-  v.onerror=()=>warn("לא הצלחתי לפתוח את הווידאו "+f.name);
+  v.onerror=()=>warn("Could not open the video "+f.name);
   v.src=URL.createObjectURL(f);
 }
 let playing=false, vraf=0;
@@ -2354,12 +2472,12 @@ $("seek").oninput=()=>{
    plain local file there is no such member, so we fall back to the anchor. */
 const framed=()=>!!(window.claude&&window.claude.downloads);
 const DLMSG={
-  rejected_extension:"סוג הקובץ הזה חסום לשמירה מתוך הדף.",
-  extension_not_enabled:"סוג הקובץ הזה לא מאופשר בתצוגה הזאת.",
-  too_large:"הקובץ גדול מ-16MB — הגבול לשמירה מתוך הדף. הקטיני רוחב פלט או סופרסמפלינג.",
-  rate_limited:"יש כבר בקשת שמירה פתוחה. אשרי אותה ונסי שוב.",
-  bad_request:"בקשת השמירה לא תקינה.",
-  unavailable:"שמירה לא זמינה בתצוגה הזאת."
+  rejected_extension:"This file type is blocked from saving out of the page.",
+  extension_not_enabled:"This file type is not permitted in this view.",
+  too_large:"The file is larger than 16MB — the limit for saving out of the page. Reduce output width or supersampling.",
+  rate_limited:"A save request is already open. Approve it and try again.",
+  bad_request:"The save request was malformed.",
+  unavailable:"Saving is not available in this view."
 };
 const MAXSAVE=16*1024*1024;
 const MB=b=>(b/1048576).toFixed(1)+"MB";
@@ -2368,7 +2486,7 @@ function shout(msg){ warn(msg); try{ $("warn").scrollIntoView({block:"nearest"})
 async function saveFile(filename,blob){
   // a null blob (canvas too big for the browser to encode) used to throw inside an async
   // click handler and vanish as an unhandled rejection — which looks exactly like a dead button
-  if(!blob||!blob.size){ shout("לא הצלחתי לייצר את "+filename+" — כנראה שהקנבס גדול מדי לקידוד. הקטיני רוחב פלט."); return false; }
+  if(!blob||!blob.size){ shout("Could not produce "+filename+" — The canvas is probably too large to encode. Reduce output width."); return false; }
   if(!framed()){
     const url=URL.createObjectURL(blob);
     const a=document.createElement("a"); a.download=filename; a.href=url; a.click();
@@ -2376,13 +2494,13 @@ async function saveFile(filename,blob){
     return true;
   }
   if(blob.size>MAXSAVE){
-    shout(filename+" הוא "+MB(blob.size)+" — מעל מגבלת 16MB לשמירה מתוך הדף. הקטיני רוחב פלט או סופרסמפלינג.");
+    shout(filename+" is "+MB(blob.size)+" — over the 16MB to save out of the page. Reduce output width or supersampling.");
     return false;
   }
   try{ await window.claude.downloads.save({filename,data:blob}); return true; }
   catch(e){
     const c=(e&&e.code)||"unavailable";
-    if(c!=="declined") shout((DLMSG[c]||DLMSG.unavailable)+" — "+filename+" ("+MB(blob.size)+", קוד "+c+")");
+    if(c!=="declined") shout((DLMSG[c]||DLMSG.unavailable)+" — "+filename+" ("+MB(blob.size)+", Code "+c+")");
     return false;
   }
 }
@@ -2394,7 +2512,7 @@ async function sheetBlob(base){
   if(framed()&&b&&b.size>MAXSAVE){
     const w=await new Promise(r=>out.toBlob(r,"image/webp",0.95));
     if(w&&w.size<=MAXSAVE){
-      shout(base+".png יצא "+MB(b.size)+", מעל המגבלה — שמרתי WebP באיכות 95 ("+MB(w.size)+") במקום.");
+      shout(base+".png came out "+MB(b.size)+", over the limit — saved WebP at quality 95 ("+MB(w.size)+")  instead.");
       return {blob:w,name:base+".webp"};
     }
   }
@@ -2406,9 +2524,9 @@ async function saveSheet(base){ const f=await sheetBlob(base); return saveFile(f
 function guard(btn,fn){
   return async(...a)=>{
     const el=$(btn), was=el.textContent;
-    el.disabled=true; el.textContent="שומר…";
+    el.disabled=true; el.textContent="Saving…";
     try{ await fn(...a); }
-    catch(e){ shout("השמירה נכשלה: "+((e&&e.message)||e)); }
+    catch(e){ shout("Save failed: "+((e&&e.message)||e)); }
     finally{ el.disabled=false; el.textContent=was; }
   };
 }
@@ -2430,7 +2548,7 @@ $("filebatch").onchange=e=>{
   let i=0;
   const step=()=>{
     if(i>=files.length){ src=keep; isVideo=keepV; srcKey=""; schedule();
-      $("batch").textContent="אצווה"; return; }
+      $("batch").textContent="Batch"; return; }
     const f=files[i++];
     $("batch").textContent=i+"/"+files.length;
     const im=new Image();
@@ -2456,10 +2574,10 @@ function pickMime(){
 }
 $("recbtn").onclick=async()=>{
   if(vrec){ vrec.cancel=true; return; }
-  if(!isVideo){ shout("טעני קודם וידאו — הכפתור הזה מייצא את הקליפ פריים-פריים."); return; }
-  if(!window.MediaRecorder||!out.captureStream){ shout("הדפדפן לא תומך בהקלטת קנבס."); return; }
+  if(!isVideo){ shout("Load a video first — this exports the clip frame by frame."); return; }
+  if(!window.MediaRecorder||!out.captureStream){ shout("This browser cannot record a canvas."); return; }
   const mime=pickMime();
-  if(!mime){ shout("אין קודק וידאו נתמך בדפדפן הזה."); return; }
+  if(!mime){ shout("No supported video codec in this browser."); return; }
 
   const fps=+$("fps").value, dur=vid.duration||0, total=Math.max(1,Math.floor(dur*fps));
   // inside the published page a save is capped at 16MB, so pick a bitrate that fits the clip
@@ -2471,7 +2589,7 @@ $("recbtn").onclick=async()=>{
 
   const stream=out.captureStream(0);
   const track=stream.getVideoTracks()[0];
-  if(!track||!track.requestFrame){ shout("הדפדפן לא תומך בדחיפת פריימים ידנית לקנבס."); return; }
+  if(!track||!track.requestFrame){ shout("This browser cannot push frames to a canvas manually."); return; }
   const chunks=[];
   const rec=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:bps});
   rec.ondataavailable=e=>e.data.size&&chunks.push(e.data);
@@ -2488,18 +2606,18 @@ $("recbtn").onclick=async()=>{
       await seek(i/fps);
       render();
       track.requestFrame();
-      $("recbtn").textContent="עצור "+(i+1)+"/"+total;
+      $("recbtn").textContent="Stop "+(i+1)+"/"+total;
       const due=t0+(i+1)*1000/fps, wait=due-performance.now();
       if(wait>0) await sleep(wait); else slow++;
     }
     rec.stop(); await done;
     const blob=new Blob(chunks,{type:mime});
     if(slow>total*0.1)
-      shout("הרינדור לא עמד ב-"+fps+" פריימים לשנייה ב-"+slow+" פריימים — הווידאו יישמע איטי יותר מהמקור. הקטיני רוחב פלט או סופרסמפלינג.");
+      shout("Rendering could not hold "+fps+" frames per second on "+slow+" frames — the video will play slower than the source. Reduce output width or supersampling.");
     await saveFile("riso."+ext,blob);
-  }catch(e){ shout("ייצוא הווידאו נכשל: "+((e&&e.message)||e)); }
+  }catch(e){ shout("Video export failed: "+((e&&e.message)||e)); }
   finally{
-    vrec=null; $("recbtn").textContent="וידאו"; $("recbtn").classList.remove("on");
+    vrec=null; $("recbtn").textContent="Video"; $("recbtn").classList.remove("on");
     if(wasPlaying){ playing=true; vid.play(); loopVideo(); } else render();
   }
 };
@@ -2524,16 +2642,16 @@ $("filecfg").onchange=e=>{
   const f=e.target.files[0]; if(!f) return;
   const r=new FileReader();
   r.onload=()=>{ try{ applyCfg(JSON.parse(r.result)); }
-                 catch(err){ warn("קובץ ההגדרות לא תקין: "+err.message); } };
+                 catch(err){ warn("That settings file is not valid: "+err.message); } };
   r.readAsText(f);
 };
 $("link").onclick=async()=>{
   const h="#"+btoa(unescape(encodeURIComponent(JSON.stringify(cfgObject()))));
   const url=location.origin+location.pathname+h;
   history.replaceState(null,"",h);
-  try{ await navigator.clipboard.writeText(url); $("link").textContent="הועתק ✓"; }
-  catch(e){ $("link").textContent="בכתובת ↑"; }
-  setTimeout(()=>$("link").textContent="קישור",1600);
+  try{ await navigator.clipboard.writeText(url); $("link").textContent="Copied ✓"; }
+  catch(e){ $("link").textContent="at ↑"; }
+  setTimeout(()=>$("link").textContent="Link",1600);
 };
 
 $("rnd").onclick=()=>{
@@ -2558,7 +2676,7 @@ $("rnd").onclick=()=>{
 $("zoom").onclick=()=>{
   const fit=document.body.classList.toggle("fit");
   $("zoom").classList.toggle("on",!fit);
-  $("zoom").textContent=fit?"תצוגה 1:1":"התאמה למסך";
+  $("zoom").textContent=fit?"View 1:1":"Fit to screen";
   if(ref&&+$("cmp").value>0) schedule();
 };
 
@@ -2623,7 +2741,7 @@ $("look").onchange=e=>{
 
 /* ================= pull the inks out of a reference photo ================= */
 function sampleInks(){
-  if(!ref){ warn("צריך קודם לטעון תמונת ייחוס."); return; }
+  if(!ref){ warn("Load a reference image first."); return; }
   const k=Math.max(2,Math.min(MAXINK+1,palette.length));
   const W=140, H=Math.max(1,Math.round(W*ref.height/ref.width));
   const cv=document.createElement("canvas"); cv.width=W; cv.height=H;
@@ -2681,7 +2799,7 @@ $("sample").onclick=sampleInks;
 $("solo").onclick=()=>{
   soloInk = soloInk===selIdx ? -1 : selIdx;
   $("solo").classList.toggle("on",soloInk>=0);
-  $("solo").textContent = soloInk>=0 ? "הצג את כל הדיו" : "בודד את הדיו הזה";
+  $("solo").textContent = soloInk>=0 ? "Show every ink" : "Solo this ink";
   schedule();
 };
 
@@ -2720,11 +2838,11 @@ const seek=t=>new Promise(res=>{
 
 let exporting=false;
 async function exportSequence(){
-  if(!isVideo){ warn("רצף PNG עובד רק על וידאו."); return; }
+  if(!isVideo){ warn("Sequence PNG Video only."); return; }
   if(framed()){
-    warn("ZIP לא נמצא ברשימת סוגי הקבצים שמותר לשמור מתוך דף מפורסם, וגם רצף פריימים "+
-         "עובר בקלות את מגבלת ה-16MB. להורדת רצף: הורידי את הכלי כקובץ והריצי אותו מקומית. "+
-         "כאן אפשר להשתמש ב\u2018הקלטה\u2019 שמייצאת WebM.");
+    warn("ZIP is not among the file types allowed to be saved from a published page, and a frame sequence "+
+         "comfortably exceeds the 16MB. To download a sequence: save the tool as a file and run it locally. "+
+         "Here you can use \u2018Recording\u2019 that exports WebM.");
     return;
   }
   if(exporting) { exporting=false; return; }
@@ -2743,13 +2861,13 @@ async function exportSequence(){
       bytes+=buf.length;
       files.push({name:"frame_"+String(i+1).padStart(4,"0")+".png",data:buf});
       $("seq").textContent=(i+1)+"/"+total+" · "+(bytes/1048576).toFixed(0)+"MB";
-      if(bytes>1400*1048576){ warn("עצרתי ב-"+files.length+" פריימים — הזיכרון התמלא. הקטיני רוחב פלט."); break; }
+      if(bytes>1400*1048576){ warn("Stopped at "+files.length+" frames — memory filled up. Reduce output width."); break; }
       await new Promise(r=>setTimeout(r,0));
     }
     if(files.length) await saveFile("riso_frames_"+fps+"fps.zip",zipStore(files));
-  }catch(e){ warn("הייצוא נכשל: "+e.message); }
+  }catch(e){ warn("Export failed: "+e.message); }
   exporting=false;
-  $("seq").textContent="רצף PNG · ZIP";
+  $("seq").textContent="Sequence PNG · ZIP";
   if(wasPlaying){ playing=true; vid.play(); loopVideo(); }
 }
 $("seq").onclick=exportSequence;
@@ -2781,7 +2899,7 @@ SECTIONS.forEach(sec=>{
 $("collapse").onclick=()=>{
   const anyOpen=SECTIONS.some(x=>!x.classList.contains("collapsed"));
   SECTIONS.forEach(x=>x.classList.toggle("collapsed",anyOpen));
-  $("collapse").textContent=anyOpen?"פתח הכל":"קפל הכל";
+  $("collapse").textContent=anyOpen?"Open all":"Fold all";
 };
 $("onlychanged").onclick=()=>{
   const on=document.body.classList.toggle("onlychanged");
@@ -2823,28 +2941,28 @@ function autosave(){
 function listPresets(){
   let all={}; try{ all=JSON.parse(localStorage.getItem(LSP)||"{}"); }catch(e){}
   const sel=$("userpre"), keep=sel.value;
-  sel.innerHTML='<option value="">— פריסטים שמורים —</option>'
+  sel.innerHTML='<option value="">— Saved presets —</option>'
     +Object.keys(all).sort().map(n=>'<option value="'+n.replace(/"/g,"&quot;")+'">'+n+'</option>').join("")
-    +(Object.keys(all).length?'<option value="__del">מחק את הנבחר…</option>':"");
+    +(Object.keys(all).length?'<option value="__del">Delete selected…</option>':"");
   sel.value=keep; return all;
 }
 $("savepre").onclick=()=>{
-  const n=prompt("שם לפריסט:"); if(!n) return;
+  const n=prompt("Preset name:"); if(!n) return;
   const all=listPresets(); all[n]=cfgObject();
-  try{ localStorage.setItem(LSP,JSON.stringify(all)); }catch(e){ warn("אין מקום לשמור פריסטים."); return; }
+  try{ localStorage.setItem(LSP,JSON.stringify(all)); }catch(e){ warn("No room left to store presets."); return; }
   listPresets(); $("userpre").value=n;
 };
 $("userpre").onchange=e=>{
   const all=listPresets(), v=e.target.value;
   if(v==="__del"){
-    const cur=prompt("שם הפריסט למחיקה:"); if(cur&&all[cur]){ delete all[cur];
+    const cur=prompt("Preset to delete:"); if(cur&&all[cur]){ delete all[cur];
       localStorage.setItem(LSP,JSON.stringify(all)); listPresets(); }
     e.target.value=""; return;
   }
   if(v&&all[v]){ pushUndo(); applyCfg(all[v]); }
 };
 $("resetall").onclick=()=>{
-  if(!confirm("לאפס את כל ההגדרות לברירת המחדל?")) return;
+  if(!confirm("Reset every setting to its default?")) return;
   pushUndo();
   try{ localStorage.removeItem(LS); }catch(e){}
   for(const k in RO) $(k).value=$(k).getAttribute("value");
@@ -2871,7 +2989,7 @@ let slotA=null, slotB=null, abOn=false, abCv=null;
 $("slotA").onclick=()=>{ slotA=cfgObject(); $("slotA").classList.add("on"); };
 $("slotB").onclick=()=>{ slotB=cfgObject(); $("slotB").classList.add("on"); };
 $("abtoggle").onclick=()=>{
-  if(!slotA||!slotB){ warn("שמרי קודם הגדרה ל-A ול-B."); return; }
+  if(!slotA||!slotB){ warn("Save a setting to A and to B."); return; }
   abOn=!abOn;
   $("abtoggle").classList.toggle("on",abOn);
   document.body.classList.toggle("cmp",abOn||+$("cmp").value>0);
@@ -2921,10 +3039,10 @@ async function takeHandoff(){
   const {blob,meta:m,separations}=got||{};
   if(!blob) return;
 
-  const FROM={poster:"כרזה", mosaic:"מוזאיקה", compose:"קומפוזיציה",
-              composition:"קומפוזיציה", gradient:"גרדיאנט"};
+  const FROM={poster:"Poster", mosaic:"Mosaic", compose:"Composition",
+              composition:"Composition", gradient:"Gradient"};
   const key=new URLSearchParams(location.search).get("from")||"";
-  const from=FROM[key]||key||"קומפוזיציה";
+  const from=FROM[key]||key||"Composition";
   const known=m.palette&&m.palette.length;
 
   /* adopt the sender's inks — they are catalogue entries, so this is exact */
@@ -2939,12 +3057,12 @@ async function takeHandoff(){
       ? " · "+m.palette.map(h=>RISOKIT.nameOf(h)||h).join(" + ")
       : "";
     $("drop").innerHTML="<b>"+from+"</b>"+extra+inkNames+
-      (separations&&separations.length ? " · "+separations.length+" הפרדות מוכנות" : "");
+      (separations&&separations.length ? " · "+separations.length+" separations ready" : "");
   };
 
   if(m.kind==="video"||/^video\//.test(blob.type||"")){
     loadVideo(new File([blob],from+"."+(m.ext||"mp4"),{type:blob.type||"video/mp4"}));
-    note("קליפ "+(m.seconds?m.seconds.toFixed(1)+"s · ":"")+(m.w&&m.h?m.w+"×"+m.h:""));
+    note("Clip "+(m.seconds?m.seconds.toFixed(1)+"s · ":"")+(m.w&&m.h?m.w+"×"+m.h:""));
     return;
   }
   const im=new Image();
@@ -3015,28 +3133,53 @@ markChanged(); applyFind();
 </script>
 
 <script>
-/* A code on a static page is a curtain, not a lock: this whole file reaches the visitor's
-   browser, so anyone who opens the source walks straight past it. It keeps passers-by out,
-   and that is all it does. One key for both tools, so the code is asked once. */
+/* A code on a static page is a curtain, not a lock: this whole file reaches the
+   visitor's browser, so anyone who opens the source walks straight past it. It
+   keeps passers-by out, and that is all it does. One key for both tools, so the
+   code is asked once.
+
+   The keypad is the input rather than a decoration over one: a key appends a
+   digit and START commits. Drawing a machine and then asking people to type
+   into a text field would be the costume without the object. */
 (function(){
   var CODE="1111", KEY="risomitus.entered";
   var gate=document.getElementById("gate"), inp=document.getElementById("code"),
       btn=document.getElementById("enter"), msg=document.getElementById("gatemsg"),
-      card=document.getElementById("gatecard");
+      card=document.getElementById("gatecard"), pad=document.getElementById("pad"),
+      clr=document.getElementById("clr");
   function open(){
     gate.classList.add("open"); document.body.classList.add("unlocked");
     try{ localStorage.setItem(KEY,"1"); }catch(e){}
     window.dispatchEvent(new Event("resize"));
   }
-  function tryCode(){
-    if(inp.value.trim()===CODE){ open(); return; }
-    msg.textContent="קוד שגוי";
+  function bad(){
+    msg.textContent="WRONG CODE";
+    gate.classList.add("bad");
     card.classList.remove("shake"); void card.offsetWidth; card.classList.add("shake");
     inp.select();
   }
+  function tryCode(){
+    if(inp.value.trim()===CODE){ open(); return; }
+    bad();
+  }
+  function press(d){
+    if(inp.value.length>=8) return;
+    inp.value+=d; msg.textContent=""; gate.classList.remove("bad");
+    if(inp.value.trim()===CODE) tryCode();
+  }
+  pad.addEventListener("click",function(e){
+    var b=e.target.closest("button[data-d]");
+    if(b) press(b.getAttribute("data-d"));
+  });
+  clr.addEventListener("click",function(){
+    inp.value=""; msg.textContent=""; gate.classList.remove("bad"); inp.focus();
+  });
   btn.addEventListener("click",tryCode);
   inp.addEventListener("keydown",function(e){ if(e.key==="Enter") tryCode(); });
-  inp.addEventListener("input",function(){ msg.textContent=""; if(inp.value.trim()===CODE) tryCode(); });
+  inp.addEventListener("input",function(){
+    msg.textContent=""; gate.classList.remove("bad");
+    if(inp.value.trim()===CODE) tryCode();
+  });
   var seen=false; try{ seen=localStorage.getItem(KEY)==="1"; }catch(e){}
   if(seen) open(); else setTimeout(function(){ inp.focus(); },60);
 })();

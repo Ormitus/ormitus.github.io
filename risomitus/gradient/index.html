@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="he" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>RISOMITUS · גרדיאנט</title>
+<title>RISOMITUS · Gradient</title>
 <meta name="robots" content="noindex, nofollow">
 <style>
   /* Assistant (OFL, Google Fonts) embedded as a variable font so a shared link
@@ -239,34 +239,129 @@
     #fps{display:none}}  /* narrow boards: the two readouts would overlap */
 </style>
 <style>
+/* ---- the operation panel ----
+
+   The entry code is asked for the way the machine would ask: a numeric keypad,
+   a backlit LCD, and a START key. A Riso's panel is bilingual because the
+   machine is Japanese and sold everywhere, so the Japanese sits above the
+   English exactly as it does on the real thing — it is a label, not decoration.
+
+   The keypad is not a skin over a text field. It IS the input: pressing a key
+   appends a digit, and START commits. That is the whole reason to draw a
+   machine instead of a form. */
 #gate{position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;
-  background:var(--bg,#0b0b0e);color:var(--txt,#ececed);font:13px/1.5 "Helvetica Neue",Helvetica,Arial,sans-serif;
-  direction:rtl;padding:24px}
+  background:#6f6d67;
+  background-image:
+    repeating-linear-gradient(90deg,#00000012 0 1px,#ffffff0f 1px 2px,#0000 2px 13px),
+    linear-gradient(180deg,#7d7b76 0,#8e8c86 40%,#84827c 100%);
+  color:#2b2721;font:13px/1.5 -apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
+  direction:ltr;padding:24px}
 #gate.open{display:none}
-#gatecard{width:min(420px,100%);text-align:center}
-#gatecard h1{margin:0 0 6px;font:700 30px/1 ui-monospace,SFMono-Regular,Menlo,monospace;
-  letter-spacing:.14em;
-  /* engraved into the shell rather than printed on it */
+
+#gatecard{width:min(430px,100%);
+  background-color:#d7d1c4;
+  background-image:linear-gradient(180deg,#e6e1d6 0,#d7d1c4 46%,#bdb6a6 100%);
+  border:1px solid #8f8879;border-radius:12px;
+  padding:22px 22px 24px;
+  box-shadow:
+    inset 0 1px 0 #fffdf6,
+    inset 0 -2px 0 #00000014,
+    0 2px 0 #ffffff33,
+    0 18px 40px -12px #00000080,
+    0 44px 70px -30px #000000a6;
+  position:relative}
+/* the four bolts that hold a panel onto a machine */
+#gatecard::before,#gatecard::after{content:"";position:absolute;width:7px;height:7px;
+  border-radius:50%;top:11px;
+  background:radial-gradient(circle at 35% 30%,#f2eee4,#a29a89 70%,#7d7565);
+  box-shadow:inset 0 -1px 1px #00000038,0 1px 0 #fffdf6}
+#gatecard::before{left:11px} #gatecard::after{right:11px}
+
+#gatehead{display:flex;align-items:baseline;justify-content:space-between;
+  border-bottom:1px solid #8f8879;box-shadow:0 1px 0 #fffdf6;
+  padding-bottom:12px;margin-bottom:16px}
+#gatecard h1{margin:0;font:700 19px/1 ui-monospace,SFMono-Regular,Menlo,monospace;
+  letter-spacing:.16em;color:#2b2721;
   text-shadow:0 1px 0 #fffdf6,0 -1px 0 #00000029}
-#gatecard p.k{margin:0 0 26px;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;opacity:.6}
-#gatecard p.d{margin:0 0 22px;font-size:12.5px;line-height:1.7;opacity:.65}
-#code{width:100%;text-align:center;font:700 26px/1 ui-monospace,Menlo,monospace;letter-spacing:.5em;
-  text-indent:.5em;padding:13px 8px;background:var(--surf2,#16161a);color:var(--txt,#ececed);border:1.5px solid var(--txt,#ececed);border-radius:0}
-#code:focus{outline:2px solid #FF3D9A;outline-offset:2px}
-#enter{width:100%;margin-top:10px;font:11px/1 ui-monospace,Menlo,monospace;letter-spacing:.1em;
-  padding:11px;background:var(--txt,#ececed);color:var(--bg,#0b0b0e);border:1.5px solid var(--txt,#ececed);cursor:pointer}
-#enter:hover{box-shadow:3px 3px 0 #FF3D9A}
-#gatemsg{min-height:18px;margin-top:12px;font:11px/1.4 ui-monospace,Menlo,monospace;color:#FF3D9A}
+#gatecard .jp{font-size:10px;letter-spacing:.24em;color:#6d6558;
+  text-shadow:0 1px 0 #fffdf6}
+#gatecard p.k{margin:0;font-size:9px;letter-spacing:.2em;text-transform:uppercase;
+  color:#6d6558;text-shadow:0 1px 0 #fffdf6;text-align:right;line-height:1.7}
+#gatecard p.d{margin:0 0 16px;font-size:12px;line-height:1.6;color:#6d6558;
+  text-shadow:0 1px 0 #ffffff8c}
+
+/* the display */
+#code{display:block;width:100%;box-sizing:border-box;
+  font:700 30px/1 ui-monospace,SFMono-Regular,Menlo,monospace;
+  letter-spacing:.44em;text-indent:.44em;text-align:center;
+  padding:15px 8px;margin:0 0 4px;
+  background:linear-gradient(180deg,#0f150d 0,#1b2418 100%);
+  color:#a9f286;border:1px solid #4a4844;border-radius:6px;
+  box-shadow:inset 0 3px 7px #000000a6,inset 0 0 16px #7ee85426,0 1px 0 #fffdf6;
+  text-shadow:0 0 8px #a9f28699;
+  -webkit-text-security:disc;text-security:disc}
+#code:focus{outline:none;border-color:#6d6558;
+  box-shadow:inset 0 3px 7px #000000a6,inset 0 0 22px #7ee8543d,0 0 0 3px #b8402f33}
+#gatemsg{min-height:17px;margin:0 0 14px;text-align:center;
+  font:10px/1.5 ui-monospace,Menlo,monospace;letter-spacing:.1em;color:#b8402f;
+  text-shadow:0 1px 0 #ffffff8c}
+
+/* the keypad */
+#pad{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:12px}
+#pad button{font:600 17px/1 ui-monospace,SFMono-Regular,Menlo,monospace;
+  padding:13px 0;cursor:pointer;color:#2b2721;
+  background-image:linear-gradient(180deg,#ebe6da 0,#cdc6b6 100%);
+  border:1px solid #8f8879;border-radius:6px;
+  text-shadow:0 1px 0 #ffffff8c;
+  box-shadow:inset 0 1px 0 #fffdf6,inset 0 -1px 0 #00000014,
+             0 1px 0 #ffffff40,0 2px 3px #0000002e;
+  transition:box-shadow .08s ease,transform .08s ease}
+#pad button:hover{background-image:linear-gradient(180deg,#f2eee4 0,#cdc6b6 100%)}
+#pad button:active{transform:translateY(1px);
+  background-image:linear-gradient(180deg,#c6bfae 0,#d5cfc0 100%);
+  box-shadow:inset 0 2px 4px #00000047}
+#pad button.wide{grid-column:span 2}
+#pad button.clear{color:#7d2b20}
+
+#enter{width:100%;font:600 13px/1 -apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
+  letter-spacing:.12em;padding:15px;cursor:pointer;color:#f2fbef;
+  background-image:linear-gradient(180deg,#4f9a52 0,#357a38 100%);
+  border:1px solid #1f4a22;border-radius:7px;
+  text-shadow:0 -1px 0 #00000059;
+  box-shadow:inset 0 1px 0 #ffffff4d,inset 0 -1px 0 #0000002e,
+             0 2px 3px #0000003d,0 0 0 0 #4f9a5200;
+  transition:box-shadow .1s ease,transform .08s ease}
+#enter:hover{background-image:linear-gradient(180deg,#5cab5f 0,#3d8741 100%)}
+#enter:active{transform:translateY(1px);
+  box-shadow:inset 0 2px 5px #00000059}
+/* The colour has to be stated. #gatecard .jp and #enter .jp have identical
+   specificity, and this rule never set one, so the sublabel inherited the
+   panel's brown and vanished into the green key. */
+#enter .jp{display:block;font-size:9px;letter-spacing:.3em;margin-top:4px;
+  color:#dff0dc;opacity:.75;text-shadow:0 -1px 0 #00000040}
+
+/* the status lamps every machine has */
+#lamps{display:flex;gap:14px;justify-content:center;margin-top:15px;
+  font:8.5px/1 ui-monospace,Menlo,monospace;letter-spacing:.14em;color:#6d6558}
+#lamps span{display:inline-flex;align-items:center;gap:5px;text-shadow:0 1px 0 #fffdf6}
+#lamps i{width:7px;height:7px;border-radius:50%;display:block;
+  box-shadow:inset 0 0 0 1px #00000038,inset 0 1px 1px #0000004d}
+#lamps i.ready{background:#4f9a52;box-shadow:inset 0 0 0 1px #00000038,0 0 5px #4f9a5299}
+#lamps i.err{background:#7d6f6a}
+#gate.bad #lamps i.err{background:#b8402f;box-shadow:inset 0 0 0 1px #00000038,0 0 6px #b8402fcc}
+#gate.bad #lamps i.ready{background:#3d5a3f;box-shadow:inset 0 0 0 1px #00000038}
+
 #gatemarks{position:fixed;inset:26px;pointer-events:none}
-#gatemarks i{position:absolute;width:18px;height:18px;opacity:.45}
-#gatemarks i::before,#gatemarks i::after{content:"";position:absolute;background:var(--txt,#ececed)}
+#gatemarks i{position:absolute;width:18px;height:18px;opacity:.3}
+#gatemarks i::before,#gatemarks i::after{content:"";position:absolute;background:#2b2721}
 #gatemarks i::before{left:8px;top:0;width:2px;height:18px}
 #gatemarks i::after{top:8px;left:0;height:2px;width:18px}
 #gatemarks i:nth-child(1){left:0;top:0} #gatemarks i:nth-child(2){right:0;top:0}
 #gatemarks i:nth-child(3){left:0;bottom:0} #gatemarks i:nth-child(4){right:0;bottom:0}
 .shake{animation:sh .28s}
 @keyframes sh{25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
-@media (prefers-reduced-motion:reduce){.shake{animation:none}}
+@media (prefers-reduced-motion:reduce){.shake{animation:none}
+  #pad button,#enter{transition:none}}
 body:not(.unlocked) #stage,body:not(.unlocked) #panel{visibility:hidden}
 
 /* switcher, shared by every tool — two keys in a moulded trough, so the machine
@@ -536,8 +631,8 @@ function review(pal, opts){
   snapped.forEach(function(s, i){
     if(s.drift >= 20)
       out.push({level:"warn", where:i,
-        msg:"הצבע " + pal[i].toUpperCase() + " לא קיים בקטלוג — הכי קרוב הוא "
-            + s.name + " " + s.hex + " (מרחק " + Math.round(s.drift) + ")"});
+        msg:"Colour " + pal[i].toUpperCase() + " is not in the catalogue — the nearest is "
+            + s.name + " " + s.hex + " (Distance " + Math.round(s.drift) + ")"});
   });
 
   const inks = snapped.slice(1).map(function(s){ return s.hex; });
@@ -546,19 +641,19 @@ function review(pal, opts){
       const sc = pairScore(inks[a], inks[b]);
       if(sc < 0.28)
         out.push({level:"warn", where:[a+1, b+1],
-          msg:"הדפסת־על של " + byHex[inks[a]].name + " ו" + byHex[inks[b]].name
-              + " נותנת " + overprint(inks[a], inks[b], .92) + " — בוץ. שקול זוג אחר."});
+          msg:"Overprinting " + byHex[inks[a]].name + " and" + byHex[inks[b]].name
+              + " gives " + overprint(inks[a], inks[b], .92) + " — mud. Consider another pair."});
     }
   }
 
   if(inks.length > 4)
-    out.push({level:"note", msg:inks.length + " דיו = " + inks.length
-      + " מעברים במכונה. מעל 4, שגיאת הרג'יסטר מצטברת."});
+    out.push({level:"note", msg:inks.length + " Ink = " + inks.length
+      + " passes through the machine. Past 4, registration error'accumulates."});
 
   if(opts.opacity != null && opts.opacity > 0.9 && inks.length >= 3)
     out.push({level:"note",
-      msg:"אטימות " + Math.round(opts.opacity*100) + "% על " + inks.length
-          + " שכבות תרווה את הנייר — הדיו יימרח."});
+      msg:"Opacity " + Math.round(opts.opacity*100) + "% on " + inks.length
+          + " layers will saturate the paper — the ink will smear."});
 
   return out;
 }
@@ -700,13 +795,35 @@ global.RISOKIT = {
 <div id="gate">
   <div id="gatemarks"><i></i><i></i><i></i><i></i></div>
   <div id="gatecard">
-    <h1>RISOMITUS</h1>
-    <p class="k">טיפוגרפיה מונפשת · גרדיאנט מהמילה</p>
-    <p class="d">בונה פטרנים וגרדיאנטים מאותיות: תשעה מנועי תנועה, מסכות, חומריות וייצוא לווידאו. דרוש קוד כניסה.</p>
+    <div id="gatehead">
+      <div>
+        <h1>RISOMITUS</h1>
+        <div class="jp">リソミトゥス</div>
+      </div>
+      <p class="k">Animated typography · a gradient made of the word</p>
+    </div>
+    <p class="d">Builds patterns and gradients out of letters: nine motion engines, masks, materials and video export. Entry code required.</p>
     <input id="code" inputmode="numeric" autocomplete="off" maxlength="8"
-           aria-label="קוד כניסה" placeholder="····">
-    <button id="enter">כניסה</button>
+           aria-label="Entry code" placeholder="····">
     <div id="gatemsg" role="status" aria-live="polite"></div>
+    <div id="pad" role="group" aria-label="Keypad">
+      <button type="button" data-d="1">1</button>
+      <button type="button" data-d="2">2</button>
+      <button type="button" data-d="3">3</button>
+      <button type="button" data-d="4">4</button>
+      <button type="button" data-d="5">5</button>
+      <button type="button" data-d="6">6</button>
+      <button type="button" data-d="7">7</button>
+      <button type="button" data-d="8">8</button>
+      <button type="button" data-d="9">9</button>
+      <button type="button" class="wide" data-d="0">0</button>
+      <button type="button" class="clear" id="clr">C</button>
+    </div>
+    <button id="enter">START<span class="jp">スタート</span></button>
+    <div id="lamps">
+      <span><i class="ready"></i>READY</span>
+      <span><i class="err"></i>ERROR</span>
+    </div>
   </div>
 </div>
 
@@ -722,22 +839,22 @@ global.RISOKIT = {
 <div id="panel">
  <div id="panelscroll">
   <div class="head">
-    <h1>גרדיאנט</h1>
-    <p>מערכת טיפוגרפיה מונפשת — הגרדיאנט עשוי מהמילה</p>
-    <nav class="tabs" aria-label="מערכות"><a href="../?v=e743b8b">ריזו<small>מכבש הדפסה</small></a><a href="./" aria-current="page">גרדיאנט<small>טיפוגרפיה</small></a></nav><div class="build" title="גרסת בנייה">27.08 11:07 · e743b8b</div>
-    <div class="seg" role="group" aria-label="פורמט">
-      <button id="f_post" aria-pressed="true">פוסט<small>1080 × 1350</small></button>
-      <button id="f_story" aria-pressed="false">סטורי<small>1080 × 1920</small></button>
+    <h1>Gradient</h1>
+    <p>An animated typography system — the gradient is made out of the word</p>
+    <nav class="tabs" aria-label="Systems"><a href="../?v=76e42d8">Riso<small>Printing press</small></a><a href="./" aria-current="page">Gradient<small>Typography</small></a></nav><div class="build" title="Build version">27.08 11:29 · 76e42d8</div>
+    <div class="seg" role="group" aria-label="Format">
+      <button id="f_post" aria-pressed="true">Post<small>1080 × 1350</small></button>
+      <button id="f_story" aria-pressed="false">Story<small>1080 × 1920</small></button>
     </div>
   </div>
   <div class="looks" id="looks"></div>
   <div id="sections"></div>
  </div>
- <div id="dock" role="group" aria-label="פעולות">
-   <button id="d_riso" aria-pressed="false" title="הדפס את מה שרואים על מכבש הריזו">ריזו</button>
-   <button id="d_play" title="רווח"></button>
+ <div id="dock" role="group" aria-label="Actions">
+   <button id="d_riso" aria-pressed="false" title="Print what you are looking at on the Riso press">Riso</button>
+   <button id="d_play" title="Space"></button>
    <button id="d_png" class="solid" title="S">PNG</button>
-   <button id="d_rec" class="rec">הקלט</button>
+   <button id="d_rec" class="rec">Record</button>
  </div>
 </div>
 
@@ -746,7 +863,7 @@ global.RISOKIT = {
 /* ═══════════════════════════════════════════════════════════════════
    1. DATA — formats, palettes, weaves, engines, looks
    ═══════════════════════════════════════════════════════════════════ */
-const FORMATS = { post:{w:1080,h:1350,l:"פוסט"}, story:{w:1080,h:1920,l:"סטורי"} };
+const FORMATS = { post:{w:1080,h:1350,l:"Post"}, story:{w:1080,h:1920,l:"Story"} };
 
 /* Palettes stay in the bright half of the range on purpose: depth comes from the
    mask, the blend mode and the vignette. A near-black stop on a near-black
@@ -763,68 +880,68 @@ const FORMATS = { post:{w:1080,h:1350,l:"פוסט"}, story:{w:1080,h:1920,l:"ס�
    scanline), Firestarter (smoke and rose), IRIDESCENCE (oil slick), Wavelength
    (water and navy). */
 const PALETTES = {
-  "חלודה":     [{p:0,c:"#bd2b13"},{p:.25,c:"#390c08"},{p:.5,c:"#952b15"},{p:.75,c:"#fea85a"},{p:1,c:"#fdbd66"}],
-  "גחלים":     [{p:0,c:"#54100b"},{p:.25,c:"#881407"},{p:.5,c:"#ef582a"},{p:.75,c:"#fead5d"},{p:1,c:"#fdbc65"}],
-  "חספוס":     [{p:0,c:"#92502d"},{p:.25,c:"#5d180d"},{p:.5,c:"#862211"},{p:.75,c:"#9c2d15"},{p:1,c:"#f2934e"}],
-  "להבה":      [{p:0,c:"#fd8244"},{p:.25,c:"#b33419"},{p:.5,c:"#4b1a14"},{p:.75,c:"#cc7d44"},{p:1,c:"#f77d3f"}],
-  "עשן":       [{p:0,c:"#febd63"},{p:.25,c:"#f07f26"},{p:.5,c:"#732d0d"},{p:.75,c:"#7c370e"},{p:1,c:"#422d09"}],
-  "שושן":      [{p:0,c:"#ffd0c3"},{p:.25,c:"#fa9081"},{p:.5,c:"#772821"},{p:.75,c:"#2f1410"},{p:1,c:"#3b160e"}],
-  "יין":       [{p:0,c:"#01060b"},{p:.25,c:"#3d1625"},{p:.5,c:"#dd6d85"},{p:.75,c:"#bb6778"},{p:1,c:"#9a4957"}],
-  "ורד שרוף":  [{p:0,c:"#a2333c"},{p:.25,c:"#7d282e"},{p:.5,c:"#6b242a"},{p:.75,c:"#ffcfc7"},{p:1,c:"#fab8b0"}],
-  "שמן":       [{p:0,c:"#3e166b"},{p:.25,c:"#c0a3f4"},{p:.5,c:"#a06fea"},{p:.75,c:"#8e58da"},{p:1,c:"#d4b8f7"}],
-  "סחלב":      [{p:0,c:"#e8c5f7"},{p:.25,c:"#bd8de5"},{p:.5,c:"#7551ac"},{p:.75,c:"#463275"},{p:1,c:"#4e3982"}],
-  "לילך":      [{p:0,c:"#9279dc"},{p:.25,c:"#c5a0f2"},{p:.5,c:"#8351bd"},{p:.75,c:"#764ab0"},{p:1,c:"#604092"}],
-  "אולטרה":    [{p:0,c:"#5c2d86"},{p:.25,c:"#ad58d6"},{p:.5,c:"#a194dc"},{p:.75,c:"#95a7e4"},{p:1,c:"#7441bd"}],
-  "כפור":      [{p:0,c:"#c4ecfe"},{p:.25,c:"#71b3e1"},{p:.5,c:"#355a87"},{p:.75,c:"#2c4c81"},{p:1,c:"#2a2d43"}],
-  "אופק":      [{p:0,c:"#141931"},{p:.25,c:"#385ea6"},{p:.5,c:"#64abe1"},{p:.75,c:"#abcfee"},{p:1,c:"#55516b"}],
-  "רדוד":      [{p:0,c:"#fafbff"},{p:.25,c:"#94cff0"},{p:.5,c:"#7ec2ea"},{p:.75,c:"#4473ac"},{p:1,c:"#243253"}],
-  "תהום":      [{p:0,c:"#6273a9"},{p:.25,c:"#1b2568"},{p:.5,c:"#131955"},{p:.75,c:"#0d1034"},{p:1,c:"#0d0f2c"}],
+  "Rust":     [{p:0,c:"#bd2b13"},{p:.25,c:"#390c08"},{p:.5,c:"#952b15"},{p:.75,c:"#fea85a"},{p:1,c:"#fdbd66"}],
+  "Embers":     [{p:0,c:"#54100b"},{p:.25,c:"#881407"},{p:.5,c:"#ef582a"},{p:.75,c:"#fead5d"},{p:1,c:"#fdbc65"}],
+  "Grit":     [{p:0,c:"#92502d"},{p:.25,c:"#5d180d"},{p:.5,c:"#862211"},{p:.75,c:"#9c2d15"},{p:1,c:"#f2934e"}],
+  "Flame":      [{p:0,c:"#fd8244"},{p:.25,c:"#b33419"},{p:.5,c:"#4b1a14"},{p:.75,c:"#cc7d44"},{p:1,c:"#f77d3f"}],
+  "Smoke":       [{p:0,c:"#febd63"},{p:.25,c:"#f07f26"},{p:.5,c:"#732d0d"},{p:.75,c:"#7c370e"},{p:1,c:"#422d09"}],
+  "Lily":      [{p:0,c:"#ffd0c3"},{p:.25,c:"#fa9081"},{p:.5,c:"#772821"},{p:.75,c:"#2f1410"},{p:1,c:"#3b160e"}],
+  "Wine":       [{p:0,c:"#01060b"},{p:.25,c:"#3d1625"},{p:.5,c:"#dd6d85"},{p:.75,c:"#bb6778"},{p:1,c:"#9a4957"}],
+  "Burnt Rose":  [{p:0,c:"#a2333c"},{p:.25,c:"#7d282e"},{p:.5,c:"#6b242a"},{p:.75,c:"#ffcfc7"},{p:1,c:"#fab8b0"}],
+  "Oil":       [{p:0,c:"#3e166b"},{p:.25,c:"#c0a3f4"},{p:.5,c:"#a06fea"},{p:.75,c:"#8e58da"},{p:1,c:"#d4b8f7"}],
+  "Orchid":      [{p:0,c:"#e8c5f7"},{p:.25,c:"#bd8de5"},{p:.5,c:"#7551ac"},{p:.75,c:"#463275"},{p:1,c:"#4e3982"}],
+  "Lilac":      [{p:0,c:"#9279dc"},{p:.25,c:"#c5a0f2"},{p:.5,c:"#8351bd"},{p:.75,c:"#764ab0"},{p:1,c:"#604092"}],
+  "Ultra":    [{p:0,c:"#5c2d86"},{p:.25,c:"#ad58d6"},{p:.5,c:"#a194dc"},{p:.75,c:"#95a7e4"},{p:1,c:"#7441bd"}],
+  "Frost":      [{p:0,c:"#c4ecfe"},{p:.25,c:"#71b3e1"},{p:.5,c:"#355a87"},{p:.75,c:"#2c4c81"},{p:1,c:"#2a2d43"}],
+  "Horizon":      [{p:0,c:"#141931"},{p:.25,c:"#385ea6"},{p:.5,c:"#64abe1"},{p:.75,c:"#abcfee"},{p:1,c:"#55516b"}],
+  "Shallow":      [{p:0,c:"#fafbff"},{p:.25,c:"#94cff0"},{p:.5,c:"#7ec2ea"},{p:.75,c:"#4473ac"},{p:1,c:"#243253"}],
+  "Abyss":      [{p:0,c:"#6273a9"},{p:.25,c:"#1b2568"},{p:.5,c:"#131955"},{p:.75,c:"#0d1034"},{p:1,c:"#0d0f2c"}],
 
-  "ניאון":    [{p:0,c:"#ff2e88"},{p:.34,c:"#7c5cff"},{p:.67,c:"#22d3ee"},{p:1,c:"#ffe066"}],
-  "לבה":      [{p:0,c:"#ff3d00"},{p:.35,c:"#ff8500"},{p:.7,c:"#ffb703"},{p:1,c:"#ffe9a8"}],
-  "אקווה":    [{p:0,c:"#0466c8"},{p:.4,c:"#00b4d8"},{p:.75,c:"#7ae0ef"},{p:1,c:"#d6f6ff"}],
-  "שקיעה":    [{p:0,c:"#6a2c9c"},{p:.35,c:"#b14aed"},{p:.7,c:"#ff5d8f"},{p:1,c:"#ffc07a"}],
-  "כרום":     [{p:0,c:"#8d9aab"},{p:.25,c:"#f4f8fb"},{p:.5,c:"#616e7e"},{p:.75,c:"#e6eef5"},{p:1,c:"#8d9aab"}],
-  "מונוכרום": [{p:0,c:"#4a4a52"},{p:.5,c:"#ffffff"},{p:1,c:"#4a4a52"}],
-  "ריסו":     [{p:0,c:"#ff4d00"},{p:.5,c:"#0038ff"},{p:1,c:"#ff4d00"}],
-  "פוספור":   [{p:0,c:"#12873c"},{p:.4,c:"#1db954"},{p:.75,c:"#6ef7a5"},{p:1,c:"#ddffe9"}],
-  "פסטל":     [{p:0,c:"#ffd6e0"},{p:.33,c:"#c1fba4"},{p:.66,c:"#a0e7e5"},{p:1,c:"#ffd6e0"}],
-  "אספרסו":   [{p:0,c:"#7a4a2f"},{p:.4,c:"#b9764a"},{p:.72,c:"#e2b183"},{p:1,c:"#f8ecd9"}]
+  "Neon":    [{p:0,c:"#ff2e88"},{p:.34,c:"#7c5cff"},{p:.67,c:"#22d3ee"},{p:1,c:"#ffe066"}],
+  "Lava":      [{p:0,c:"#ff3d00"},{p:.35,c:"#ff8500"},{p:.7,c:"#ffb703"},{p:1,c:"#ffe9a8"}],
+  "Aqua":    [{p:0,c:"#0466c8"},{p:.4,c:"#00b4d8"},{p:.75,c:"#7ae0ef"},{p:1,c:"#d6f6ff"}],
+  "Sunset":    [{p:0,c:"#6a2c9c"},{p:.35,c:"#b14aed"},{p:.7,c:"#ff5d8f"},{p:1,c:"#ffc07a"}],
+  "Chrome":     [{p:0,c:"#8d9aab"},{p:.25,c:"#f4f8fb"},{p:.5,c:"#616e7e"},{p:.75,c:"#e6eef5"},{p:1,c:"#8d9aab"}],
+  "Monochrome": [{p:0,c:"#4a4a52"},{p:.5,c:"#ffffff"},{p:1,c:"#4a4a52"}],
+  "Riso":     [{p:0,c:"#ff4d00"},{p:.5,c:"#0038ff"},{p:1,c:"#ff4d00"}],
+  "Phosphor":   [{p:0,c:"#12873c"},{p:.4,c:"#1db954"},{p:.75,c:"#6ef7a5"},{p:1,c:"#ddffe9"}],
+  "Pastel":     [{p:0,c:"#ffd6e0"},{p:.33,c:"#c1fba4"},{p:.66,c:"#a0e7e5"},{p:1,c:"#ffd6e0"}],
+  "Espresso":   [{p:0,c:"#7a4a2f"},{p:.4,c:"#b9764a"},{p:.72,c:"#e2b183"},{p:1,c:"#f8ecd9"}]
 };
 
 /* typography textures — each preset re-shapes the whole grid at once.
    Sizes are tuned for a 1080px-wide artboard. */
 const WEAVES = {
-  "צפוף":   {size:26,tracking:.5,lineGap:.97,stagger:.42,spacing:1,jitter:0},
-  "אוורירי":{size:46,tracking:9,lineGap:1.6,stagger:.5,spacing:1,jitter:0},
-  "לוח":    {size:40,tracking:2,lineGap:1.08,stagger:0,spacing:1,jitter:0},
-  "מדרגות": {size:36,tracking:2,lineGap:1.04,stagger:.5,spacing:1,jitter:0},
-  "ענק":    {size:104,tracking:2,lineGap:.94,stagger:.5,spacing:1,jitter:0},
-  "זעיר":   {size:15,tracking:.4,lineGap:1.02,stagger:.33,spacing:1,jitter:0},
-  "רועד":   {size:38,tracking:2,lineGap:1.18,stagger:.35,spacing:1,jitter:.55},
-  "מונו":   {size:28,tracking:1,lineGap:1.32,stagger:0,spacing:1,jitter:0,font:"ui-monospace,Menlo,monospace"}
+  "Dense":   {size:26,tracking:.5,lineGap:.97,stagger:.42,spacing:1,jitter:0},
+  "Airy":{size:46,tracking:9,lineGap:1.6,stagger:.5,spacing:1,jitter:0},
+  "Table":    {size:40,tracking:2,lineGap:1.08,stagger:0,spacing:1,jitter:0},
+  "Steps": {size:36,tracking:2,lineGap:1.04,stagger:.5,spacing:1,jitter:0},
+  "Giant":    {size:104,tracking:2,lineGap:.94,stagger:.5,spacing:1,jitter:0},
+  "Tiny":   {size:15,tracking:.4,lineGap:1.02,stagger:.33,spacing:1,jitter:0},
+  "Shaky":   {size:38,tracking:2,lineGap:1.18,stagger:.35,spacing:1,jitter:.55},
+  "Mono":   {size:28,tracking:1,lineGap:1.32,stagger:0,spacing:1,jitter:0,font:"ui-monospace,Menlo,monospace"}
 };
 
 /* motion engines — `sub` lists the sub-parameters each engine reveals */
 const ENGINES = {
-  scroll:   {l:"כביש",     sub:["angle"]},
-  pulse:    {l:"פעימה",    sub:["cx","cy"]},
-  swirl:    {l:"מערבולת",  sub:["angle","twist","cx","cy"]},
-  spiral:   {l:"ספירלה",   sub:["arms","cx","cy"]},
-  ripple:   {l:"ריפל",     sub:["count","cx","cy"]},
-  breathe:  {l:"נשימה",    sub:["ratio"]},
-  drift:    {l:"עשן",      sub:["turb"]},
-  aurora:   {l:"אורורה",   sub:["turb"]},
-  metronome:{l:"מטרונום",  sub:["angle"]}
+  scroll:   {l:"Road",     sub:["angle"]},
+  pulse:    {l:"Pulse",    sub:["cx","cy"]},
+  swirl:    {l:"Vortex",  sub:["angle","twist","cx","cy"]},
+  spiral:   {l:"Spiral",   sub:["arms","cx","cy"]},
+  ripple:   {l:"Ripple",     sub:["count","cx","cy"]},
+  breathe:  {l:"Breath",    sub:["ratio"]},
+  drift:    {l:"Smoke",      sub:["turb"]},
+  aurora:   {l:"Aurora",   sub:["turb"]},
+  metronome:{l:"Metronome",  sub:["angle"]}
 };
 
 const DEF = () => ({
   format:"post",
-  type:{ word:"גרדיאנט", alt:"", altMode:"off", font:'"Haim"', size:36, weight:800,
+  type:{ word:"Gradient", alt:"", altMode:"off", font:'"Haim"', size:36, weight:800,
          tracking:2, lineGap:1.02, stagger:.5, spacing:1, jitter:0 },
   motion:{ engine:"scroll", speed:.14, scale:1.3, angle:35, twist:.4, arms:3, count:4,
            ratio:.8, turb:.8, cx:0, cy:0, warp:.25, warpScale:1, shape:"linear", shapeAmt:6 },
-  color:{ stops:PALETTES["ניאון"].map(s=>({...s})), space:"oklab", cyclic:true,
+  color:{ stops:PALETTES["Neon"].map(s=>({...s})), space:"oklab", cyclic:true,
           phase:0, hue:0, hueDrift:0, sat:1, light:1, posterize:1 },
   material:{ style:"fill", blend:"source-over", stroke:1.4, misprint:.5, glow:0,
              glowMode:"self", alpha:1, layers:1, depth:0, trail:0 },
@@ -836,30 +953,30 @@ const DEF = () => ({
 
 /* full-look presets: deep patches over DEF() */
 const LOOKS = {
-  "ניאון":   {},
-  "לבה":     {type:{...WEAVES["צפוף"],size:26}, motion:{engine:"drift",scale:1.3,speed:.25,turb:.9,warp:0},
-              color:{stops:PALETTES["לבה"]}, material:{blend:"lighter"},
+  "Neon":   {},
+  "Lava":     {type:{...WEAVES["Dense"],size:26}, motion:{engine:"drift",scale:1.3,speed:.25,turb:.9,warp:0},
+              color:{stops:PALETTES["Lava"]}, material:{blend:"lighter"},
               mask:{on:true,threshold:.5,softness:.25,floor:.05,sizeMod:.55}, comp:{bg1:"#08040a",vignette:.3}},
-  "כרום":    {type:{...WEAVES["ענק"],size:70,weight:900,tracking:3,lineGap:.98}, motion:{engine:"metronome",angle:90,scale:1.2,speed:.2,warp:0},
-              color:{stops:PALETTES["כרום"],posterize:5}, material:{style:"outline",stroke:2.8},
+  "Chrome":    {type:{...WEAVES["Giant"],size:70,weight:900,tracking:3,lineGap:.98}, motion:{engine:"metronome",angle:90,scale:1.2,speed:.2,warp:0},
+              color:{stops:PALETTES["Chrome"],posterize:5}, material:{style:"outline",stroke:2.8},
               comp:{bg1:"#101014",vignette:.2}},
-  "אורורה":  {type:{...WEAVES["אוורירי"],size:34,tracking:5,lineGap:1.28,weight:700}, motion:{engine:"aurora",turb:.85,scale:.9,speed:.12,warp:.2},
-              color:{stops:PALETTES["אקווה"],light:1.05,sat:1.15}, material:{blend:"screen",glow:3},
+  "Aurora":  {type:{...WEAVES["Airy"],size:34,tracking:5,lineGap:1.28,weight:700}, motion:{engine:"aurora",turb:.85,scale:.9,speed:.12,warp:.2},
+              color:{stops:PALETTES["Aqua"],light:1.05,sat:1.15}, material:{blend:"screen",glow:3},
               comp:{bg1:"#02060f",bgMode:"gradient",bg2:"#0b2038",vignette:.3,grain:.1}},
-  "ריסו":    {type:{...WEAVES["לוח"],size:32,weight:900}, motion:{engine:"breathe",scale:1.4,speed:.18,warp:0,shape:"steps",shapeAmt:3},
-              color:{stops:PALETTES["ריסו"],posterize:3}, material:{style:"misprint",misprint:.7,blend:"multiply"},
+  "Riso":    {type:{...WEAVES["Table"],size:32,weight:900}, motion:{engine:"breathe",scale:1.4,speed:.18,warp:0,shape:"steps",shapeAmt:3},
+              color:{stops:PALETTES["Riso"],posterize:3}, material:{style:"misprint",misprint:.7,blend:"multiply"},
               comp:{bg1:"#f2ece1",grain:.22}},
-  "פעימה":   {type:{...WEAVES["ענק"],size:78,tracking:0,lineGap:1}, motion:{engine:"pulse",scale:1.1,speed:.3,warp:0},
-              color:{stops:PALETTES["מונוכרום"]}, mask:{on:true,threshold:.5,softness:.14,floor:.12,sizeMod:.3},
+  "Pulse":   {type:{...WEAVES["Giant"],size:78,tracking:0,lineGap:1}, motion:{engine:"pulse",scale:1.1,speed:.3,warp:0},
+              color:{stops:PALETTES["Monochrome"]}, mask:{on:true,threshold:.5,softness:.14,floor:.12,sizeMod:.3},
               comp:{bg1:"#0e0e11"}},
-  "CRT":     {type:{...WEAVES["מונו"],size:26,lineGap:1.45}, motion:{engine:"ripple",count:5,scale:1,speed:.35,warp:.1},
-              color:{stops:PALETTES["פוספור"],light:1.15}, material:{blend:"lighter",glow:4},
+  "CRT":     {type:{...WEAVES["Mono"],size:26,lineGap:1.45}, motion:{engine:"ripple",count:5,scale:1,speed:.35,warp:.1},
+              color:{stops:PALETTES["Phosphor"],light:1.15}, material:{blend:"lighter",glow:4},
               comp:{bg1:"#03070a",grain:.16,vignette:.3}},
-  "נשימה":   {type:{...WEAVES["אוורירי"],size:54,weight:500,tracking:14}, motion:{engine:"breathe",scale:.8,speed:.08,warp:.15,shape:"smooth"},
-              color:{stops:PALETTES["מונוכרום"],sat:0,light:1.3}, material:{alpha:1},
+  "Breath":   {type:{...WEAVES["Airy"],size:54,weight:500,tracking:14}, motion:{engine:"breathe",scale:.8,speed:.08,warp:.15,shape:"smooth"},
+              color:{stops:PALETTES["Monochrome"],sat:0,light:1.3}, material:{alpha:1},
               comp:{bg1:"#0c0c0e",vignette:.28}},
-  "אספרסו":  {type:{...WEAVES["מדרגות"],size:38}, motion:{engine:"spiral",arms:2,scale:1.1,speed:-.12,warp:.3},
-              color:{stops:PALETTES["אספרסו"]}, material:{style:"duo",stroke:2.2},
+  "Espresso":  {type:{...WEAVES["Steps"],size:38}, motion:{engine:"spiral",arms:2,scale:1.1,speed:-.12,warp:.3},
+              color:{stops:PALETTES["Espresso"]}, material:{style:"duo",stroke:2.2},
               comp:{bg1:"#0d0908",grain:.12,vignette:.25}}
 };
 
@@ -1385,7 +1502,7 @@ function drawGuides(){
 /* Every numeric token lives in its own dir=ltr span: an RTL paragraph would otherwise
    re-order "1080×1350" and "7.1s" on screen. Spans are built once, not per frame. */
 const meta=document.getElementById("meta"), fpsEl=document.getElementById("fps");
-meta.innerHTML = `<span dir="ltr" id="m_size"></span> · <span dir="ltr" id="m_n"></span> תווים · לופ <span dir="ltr" id="m_loop"></span>`;
+meta.innerHTML = `<span dir="ltr" id="m_size"></span> · <span dir="ltr" id="m_n"></span> chars · loop <span dir="ltr" id="m_loop"></span>`;
 fpsEl.innerHTML = `<span dir="ltr" id="m_fps"></span><span id="m_pause"></span>`;
 const mSize=document.getElementById("m_size"), mN=document.getElementById("m_n"),
       mLoop=document.getElementById("m_loop"), mFps=document.getElementById("m_fps"),
@@ -1400,7 +1517,7 @@ function loop(now){
   mSize.textContent=`${RW}×${RH}`; mN.textContent=L.n;
   mLoop.textContent = ls ? ls.toFixed(1)+"s" : "—";
   mFps.textContent = `${fps.toFixed(0)} fps`;
-  mPause.textContent = playing ? "" : " · מושהה";
+  mPause.textContent = playing ? "" : " · Paused";
 }
 requestAnimationFrame(loop);
 
@@ -1422,15 +1539,15 @@ const num = (v,d=2) => Math.abs(v)>=100 ? String(Math.round(v)) : String(+(+v).t
    generic type toy — the same word set in Rubik is a different page with the
    same controls. Uploads are gone with it: a dropped font would reintroduce
    exactly what the list did. */
-const FONTS=[['"Haim"',"חיים"]];
+const FONTS=[['"Haim"',"Haim"]];
 
 /* ---- user-supplied fonts: file picker or drag onto the artboard ---- */
 let userFontN=0, fontMsg=null;
 async function loadFontFile(file){
   if(!file) return;
-  if(!/\.(ttf|otf|woff2?)$/i.test(file.name)) throw new Error("פורמט לא נתמך");
+  if(!/\.(ttf|otf|woff2?)$/i.test(file.name)) throw new Error("Unsupported format");
   const buf=await file.arrayBuffer();
-  const fam="גופן"+(++userFontN);
+  const fam="Font"+(++userFontN);
   const ff=new FontFace(fam,buf);
   await ff.load();                                  // throws on a malformed file
   document.fonts.add(ff);
@@ -1446,88 +1563,88 @@ async function loadFontFile(file){
 }
 const eng = () => ENGINES[M().engine].sub;
 const SEC = [
-  { id:"type", nm:"טקסט", presets:WEAVES, base:"type",
+  { id:"type", nm:"Text", presets:WEAVES, base:"type",
     sum:()=>`${T().word} · ${T().size}px`,
-    macro:[ {p:"type.word",l:"מילה",t:"text"}, {p:"type.size",l:"גודל",t:"r",min:8,max:150,step:1},
-            {p:"type.weight",l:"עובי",t:"r",min:100,max:900,step:100} ],
-    det:[ {p:"type.font",l:"גופן",t:"s",o:FONTS},
-          {p:"type.spacing",l:"מרווח כללי",t:"r",min:.4,max:2.5,step:.02},
-          {p:"type.tracking",l:"מרווח אות",t:"r",min:-8,max:40,step:.5},
-          {p:"type.lineGap",l:"גובה שורה",t:"r",min:.7,max:2.8,step:.02},
-          {p:"type.stagger",l:"היסט שורות",t:"r",min:0,max:1,step:.01},
-          {p:"type.jitter",l:"רעידה",t:"r",min:0,max:1,step:.01},
-          {p:"type.alt",l:"מילה שנייה",t:"text"},
-          {p:"type.altMode",l:"שילוב",t:"s",o:[["off","כבוי"],["alt","כל שורה שנייה"],["rand","אקראי"]]} ] },
+    macro:[ {p:"type.word",l:"Word",t:"text"}, {p:"type.size",l:"Size",t:"r",min:8,max:150,step:1},
+            {p:"type.weight",l:"Weight",t:"r",min:100,max:900,step:100} ],
+    det:[ {p:"type.font",l:"Font",t:"s",o:FONTS},
+          {p:"type.spacing",l:"Overall spacing",t:"r",min:.4,max:2.5,step:.02},
+          {p:"type.tracking",l:"Letter spacing",t:"r",min:-8,max:40,step:.5},
+          {p:"type.lineGap",l:"Line height",t:"r",min:.7,max:2.8,step:.02},
+          {p:"type.stagger",l:"Row offset",t:"r",min:0,max:1,step:.01},
+          {p:"type.jitter",l:"Jitter",t:"r",min:0,max:1,step:.01},
+          {p:"type.alt",l:"Second word",t:"text"},
+          {p:"type.altMode",l:"Blend",t:"s",o:[["off","Off"],["alt","Every second line"],["rand","Random"]]} ] },
 
-  { id:"motion", nm:"תנועה", base:"motion",
+  { id:"motion", nm:"Motion", base:"motion",
     sum:()=>`${ENGINES[M().engine].l} · ${num(M().speed)}`,
-    macro:[ {p:"motion.engine",l:"מנוע",t:"s",o:Object.entries(ENGINES).map(([k,v])=>[k,v.l])},
-            {p:"motion.speed",l:"מהירות",t:"r",min:-1.2,max:1.2,step:.01},
-            {p:"motion.scale",l:"צפיפות",t:"r",min:.15,max:6,step:.05} ],
-    det:[ {p:"motion.angle",l:"זווית",t:"r",min:0,max:360,step:1,when:()=>eng().includes("angle")},
-          {p:"motion.twist",l:"פיתול",t:"r",min:-2,max:2,step:.02,when:()=>eng().includes("twist")},
-          {p:"motion.arms",l:"זרועות",t:"r",min:1,max:8,step:1,when:()=>eng().includes("arms")},
-          {p:"motion.count",l:"טבעות",t:"r",min:1,max:12,step:1,when:()=>eng().includes("count")},
-          {p:"motion.ratio",l:"יחס גלים",t:"r",min:.2,max:2.5,step:.02,when:()=>eng().includes("ratio")},
-          {p:"motion.turb",l:"טורבולנציה",t:"r",min:0,max:2,step:.02,when:()=>eng().includes("turb")},
-          {p:"motion.cx",l:"מרכז X",t:"r",min:-1,max:1,step:.02,when:()=>eng().includes("cx")},
-          {p:"motion.cy",l:"מרכז Y",t:"r",min:-1.4,max:1.4,step:.02,when:()=>eng().includes("cy")},
-          {p:"motion.warp",l:"עיוות",t:"r",min:0,max:1.5,step:.01},
-          {p:"motion.warpScale",l:"תדר עיוות",t:"r",min:.2,max:4,step:.05,when:()=>M().warp>0},
-          {p:"motion.shape",l:"עקומה",t:"s",o:[["linear","לינארי"],["smooth","חלק"],["mirror","מראה"],["steps","מדרגות"],["gamma","גמא"]]},
-          {p:"motion.shapeAmt",l:"עוצמת עקומה",t:"r",min:2,max:16,step:1,when:()=>["steps","gamma"].includes(M().shape)} ] },
+    macro:[ {p:"motion.engine",l:"Engine",t:"s",o:Object.entries(ENGINES).map(([k,v])=>[k,v.l])},
+            {p:"motion.speed",l:"Speed",t:"r",min:-1.2,max:1.2,step:.01},
+            {p:"motion.scale",l:"Density",t:"r",min:.15,max:6,step:.05} ],
+    det:[ {p:"motion.angle",l:"Angle",t:"r",min:0,max:360,step:1,when:()=>eng().includes("angle")},
+          {p:"motion.twist",l:"Twist",t:"r",min:-2,max:2,step:.02,when:()=>eng().includes("twist")},
+          {p:"motion.arms",l:"Arms",t:"r",min:1,max:8,step:1,when:()=>eng().includes("arms")},
+          {p:"motion.count",l:"Rings",t:"r",min:1,max:12,step:1,when:()=>eng().includes("count")},
+          {p:"motion.ratio",l:"Wave ratio",t:"r",min:.2,max:2.5,step:.02,when:()=>eng().includes("ratio")},
+          {p:"motion.turb",l:"Turbulence",t:"r",min:0,max:2,step:.02,when:()=>eng().includes("turb")},
+          {p:"motion.cx",l:"Centre X",t:"r",min:-1,max:1,step:.02,when:()=>eng().includes("cx")},
+          {p:"motion.cy",l:"Centre Y",t:"r",min:-1.4,max:1.4,step:.02,when:()=>eng().includes("cy")},
+          {p:"motion.warp",l:"Distortion",t:"r",min:0,max:1.5,step:.01},
+          {p:"motion.warpScale",l:"Distortion frequency",t:"r",min:.2,max:4,step:.05,when:()=>M().warp>0},
+          {p:"motion.shape",l:"Curve",t:"s",o:[["linear","Linear"],["smooth","Smooth"],["mirror","Look"],["steps","Steps"],["gamma","Gamma"]]},
+          {p:"motion.shapeAmt",l:"Curve strength",t:"r",min:2,max:16,step:1,when:()=>["steps","gamma"].includes(M().shape)} ] },
 
-  { id:"color", nm:"צבע", presets:PALETTES, base:"color", custom:"stops",
-    sum:()=>`${C().stops.length} עצירות${C().posterize>1?" · "+C().posterize+" בנדים":""}`,
+  { id:"color", nm:"Colour", presets:PALETTES, base:"color", custom:"stops",
+    sum:()=>`${C().stops.length} Stops${C().posterize>1?" · "+C().posterize+" Bands":""}`,
     macro:[], det:[
-      {p:"color.space",l:"מרחב מיזוג",t:"s",o:[["oklab","OKLab"],["srgb","sRGB"]],re:1},
-      {p:"color.cyclic",l:"מחזורי",t:"c",re:1},
-      {p:"color.phase",l:"פאזה",t:"r",min:0,max:1,step:.01},
-      {p:"color.hue",l:"גוון",t:"r",min:-180,max:180,step:1},
-      {p:"color.hueDrift",l:"סחיפת גוון",t:"s",o:[[0,"כבוי"],[1,"סבב אחד"],[2,"שני סבבים"],[-1,"הפוך"]],nu:1},
-      {p:"color.sat",l:"רוויה",t:"r",min:0,max:2,step:.02},
-      {p:"color.light",l:"בהירות",t:"r",min:.4,max:1.6,step:.02},
-      {p:"color.posterize",l:"בנדים",t:"r",min:1,max:16,step:1} ] },
+      {p:"color.space",l:"Blend space",t:"s",o:[["oklab","OKLab"],["srgb","sRGB"]],re:1},
+      {p:"color.cyclic",l:"Cyclic",t:"c",re:1},
+      {p:"color.phase",l:"Phase",t:"r",min:0,max:1,step:.01},
+      {p:"color.hue",l:"Hue",t:"r",min:-180,max:180,step:1},
+      {p:"color.hueDrift",l:"Hue drift",t:"s",o:[[0,"Off"],[1,"One pass"],[2,"Two passes"],[-1,"Reverse"]],nu:1},
+      {p:"color.sat",l:"Saturation",t:"r",min:0,max:2,step:.02},
+      {p:"color.light",l:"Brightness",t:"r",min:.4,max:1.6,step:.02},
+      {p:"color.posterize",l:"Bands",t:"r",min:1,max:16,step:1} ] },
 
-  { id:"material", nm:"חומר", base:"material",
-    sum:()=>({fill:"מלא",outline:"קווי",duo:"מעורב",misprint:"דפוס כפול"})[MA().style],
-    macro:[ {p:"material.style",l:"סגנון",t:"s",o:[["fill","מלא"],["outline","קווי"],["duo","מעורב"],["misprint","דפוס כפול"]]},
-            {p:"material.blend",l:"מיזוג",t:"s",o:[["source-over","רגיל"],["lighter","חיבור"],["screen","מסך"],
-              ["overlay","כיסוי"],["multiply","הכפלה"],["difference","הבדל"],["exclusion","החרגה"]]},
-            {p:"material.alpha",l:"אטימות",t:"r",min:.05,max:1,step:.01} ],
-    det:[ {p:"material.stroke",l:"עובי קו",t:"r",min:.2,max:6,step:.1,when:()=>["outline","duo"].includes(MA().style)},
-          {p:"material.misprint",l:"סטייה",t:"r",min:0,max:2,step:.02,when:()=>MA().style==="misprint"},
-          {p:"material.glow",l:"זוהר",t:"r",min:0,max:40,step:1},
-          {p:"material.glowMode",l:"צבע זוהר",t:"s",o:[["self","עצמי"],["white","לבן"]],when:()=>MA().glow>0},
-          {p:"material.layers",l:"שכבות עומק",t:"r",min:1,max:4,step:1},
-          {p:"material.depth",l:"עומק",t:"r",min:0,max:1,step:.01,when:()=>MA().layers>1},
-          {p:"material.trail",l:"שובל",t:"r",min:0,max:.95,step:.01} ] },
+  { id:"material", nm:"Material", base:"material",
+    sum:()=>({fill:"Solid",outline:"Linear",duo:"Mixed",misprint:"Double print"})[MA().style],
+    macro:[ {p:"material.style",l:"Style",t:"s",o:[["fill","Solid"],["outline","Linear"],["duo","Mixed"],["misprint","Double print"]]},
+            {p:"material.blend",l:"Blend",t:"s",o:[["source-over","Normal"],["lighter","Add"],["screen","Screen"],
+              ["overlay","Coverage"],["multiply","Multiply"],["difference","Difference"],["exclusion","Exclusion"]]},
+            {p:"material.alpha",l:"Opacity",t:"r",min:.05,max:1,step:.01} ],
+    det:[ {p:"material.stroke",l:"Line weight",t:"r",min:.2,max:6,step:.1,when:()=>["outline","duo"].includes(MA().style)},
+          {p:"material.misprint",l:"Deviation",t:"r",min:0,max:2,step:.02,when:()=>MA().style==="misprint"},
+          {p:"material.glow",l:"Glow",t:"r",min:0,max:40,step:1},
+          {p:"material.glowMode",l:"Glow colour",t:"s",o:[["self","Self"],["white","White"]],when:()=>MA().glow>0},
+          {p:"material.layers",l:"Depth layers",t:"r",min:1,max:4,step:1},
+          {p:"material.depth",l:"Depth",t:"r",min:0,max:1,step:.01,when:()=>MA().layers>1},
+          {p:"material.trail",l:"Trail",t:"r",min:0,max:.95,step:.01} ] },
 
-  { id:"mask", nm:"מסכה", base:"mask",
-    sum:()=>MK().on?`פעילה · ${num(MK().threshold)}`:"כבויה",
-    macro:[ {p:"mask.on",l:"הפעלה",t:"c"},
-            {p:"mask.threshold",l:"סף",t:"r",min:0,max:1,step:.01,when:()=>MK().on},
-            {p:"mask.softness",l:"ריכוך",t:"r",min:.01,max:.7,step:.01,when:()=>MK().on} ],
-    det:[ {p:"mask.src",l:"מקור",t:"s",o:[["same","אותו שדה"],["second","שדה שני"],["vignette","וינייטה"],["linear","אנכי"]],when:()=>MK().on},
-          {p:"mask.floor",l:"רצפת שקיפות",t:"r",min:0,max:1,step:.01,when:()=>MK().on},
-          {p:"mask.sizeMod",l:"שינוי גודל",t:"r",min:0,max:1,step:.01,when:()=>MK().on},
-          {p:"mask.invert",l:"היפוך",t:"c",when:()=>MK().on},
-          {p:"mask.band",l:"קצה בלבד",t:"c",when:()=>MK().on},
-          {p:"mask.s2scale",l:"קנה שדה 2",t:"r",min:.2,max:4,step:.05,when:()=>MK().on&&MK().src==="second"},
-          {p:"mask.s2speed",l:"מהירות שדה 2",t:"r",min:0,max:3,step:1,when:()=>MK().on&&MK().src==="second"} ] },
+  { id:"mask", nm:"Mask", base:"mask",
+    sum:()=>MK().on?`Active · ${num(MK().threshold)}`:"Off",
+    macro:[ {p:"mask.on",l:"On",t:"c"},
+            {p:"mask.threshold",l:"Threshold",t:"r",min:0,max:1,step:.01,when:()=>MK().on},
+            {p:"mask.softness",l:"Softness",t:"r",min:.01,max:.7,step:.01,when:()=>MK().on} ],
+    det:[ {p:"mask.src",l:"Source",t:"s",o:[["same","Same field"],["second","Second field"],["vignette","Vignette"],["linear","Vertical"]],when:()=>MK().on},
+          {p:"mask.floor",l:"Transparency floor",t:"r",min:0,max:1,step:.01,when:()=>MK().on},
+          {p:"mask.sizeMod",l:"Resize",t:"r",min:0,max:1,step:.01,when:()=>MK().on},
+          {p:"mask.invert",l:"Invert",t:"c",when:()=>MK().on},
+          {p:"mask.band",l:"Edge only",t:"c",when:()=>MK().on},
+          {p:"mask.s2scale",l:"Field 2 scale",t:"r",min:.2,max:4,step:.05,when:()=>MK().on&&MK().src==="second"},
+          {p:"mask.s2speed",l:"Field 2 speed",t:"r",min:0,max:3,step:1,when:()=>MK().on&&MK().src==="second"} ] },
 
-  { id:"comp", nm:"קומפוזיציה", base:"comp",
-    sum:()=>`${{solid:"רקע אחיד",gradient:"גרדיאנט",ramp:"מהפלטה"}[CP().bgMode]}`,
-    macro:[ {p:"comp.bgMode",l:"רקע",t:"s",o:[["solid","אחיד"],["gradient","גרדיאנט"],["ramp","מהפלטה"]]},
-            {p:"comp.bg1",l:"צבע רקע",t:"col"},
-            {p:"comp.margin",l:"שוליים",t:"r",min:0,max:.25,step:.005} ],
-    det:[ {p:"comp.bg2",l:"צבע שני",t:"col",when:()=>CP().bgMode==="gradient"},
-          {p:"comp.bgAngle",l:"זווית רקע",t:"r",min:0,max:360,step:1,when:()=>CP().bgMode!=="solid"},
-          {p:"comp.bgMotion",l:"תנועת רקע",t:"r",min:0,max:1,step:.05,when:()=>CP().bgMode!=="solid"},
-          {p:"comp.grain",l:"גריין",t:"r",min:0,max:1,step:.01},
-            {p:"comp.ink",l:"מרקם דיו",t:"r",min:0,max:1,step:.01},
-          {p:"comp.vignette",l:"וינייטה",t:"r",min:0,max:1,step:.01},
-          {p:"comp.guides",l:"קווי בטיחות",t:"c"} ] }
+  { id:"comp", nm:"Composition", base:"comp",
+    sum:()=>`${{solid:"Flat background",gradient:"Gradient",ramp:"From palette"}[CP().bgMode]}`,
+    macro:[ {p:"comp.bgMode",l:"Background",t:"s",o:[["solid","Uniform"],["gradient","Gradient"],["ramp","From palette"]]},
+            {p:"comp.bg1",l:"Background colour",t:"col"},
+            {p:"comp.margin",l:"Margin",t:"r",min:0,max:.25,step:.005} ],
+    det:[ {p:"comp.bg2",l:"Second colour",t:"col",when:()=>CP().bgMode==="gradient"},
+          {p:"comp.bgAngle",l:"Background angle",t:"r",min:0,max:360,step:1,when:()=>CP().bgMode!=="solid"},
+          {p:"comp.bgMotion",l:"Background motion",t:"r",min:0,max:1,step:.05,when:()=>CP().bgMode!=="solid"},
+          {p:"comp.grain",l:"Grain",t:"r",min:0,max:1,step:.01},
+            {p:"comp.ink",l:"Ink texture",t:"r",min:0,max:1,step:.01},
+          {p:"comp.vignette",l:"Vignette",t:"r",min:0,max:1,step:.01},
+          {p:"comp.guides",l:"Safe lines",t:"c"} ] }
 ];
 
 const locks={};
@@ -1541,15 +1658,15 @@ function control(c){
 
   if(c.t==="upload"){                               /* file picker — no state to sync back */
     const b=document.createElement("button"); b.className="b"; b.type="button"; b.id=id;
-    b.style.flex="1"; b.innerHTML=svg("down")+"בחר קובץ";
+    b.style.flex="1"; b.innerHTML=svg("down")+"Choose a file";
     const fi=document.createElement("input"); fi.type="file"; fi.accept=".ttf,.otf,.woff,.woff2";
-    fi.hidden=true; fi.setAttribute("aria-label","העלאת קובץ גופן");
+    fi.hidden=true; fi.setAttribute("aria-label","Upload a font file");
     b.onclick=()=>fi.click();
     fi.onchange=async()=>{
-      b.innerHTML="טוען…";
-      try{ const n=await loadFontFile(fi.files[0]); b.innerHTML=svg("down")+(n||"בחר קובץ"); }
-      catch(err){ b.innerHTML="נכשל: "+err.message;
-                  setTimeout(()=>b.innerHTML=svg("down")+"בחר קובץ",2200); }
+      b.innerHTML="Loading…";
+      try{ const n=await loadFontFile(fi.files[0]); b.innerHTML=svg("down")+(n||"Choose a file"); }
+      catch(err){ b.innerHTML="failed: "+err.message;
+                  setTimeout(()=>b.innerHTML=svg("down")+"Choose a file",2200); }
       fi.value="";
     };
     row.append(b,fi); fontMsg=null;
@@ -1599,14 +1716,14 @@ SEC.forEach(s=>{
   const sm=document.createElement("summary");
   sm.innerHTML=`<span class="chev"></span><span class="nm">${s.nm}</span><span class="sm" data-sum="${s.id}"></span>`;
   const lk=document.createElement("button"); lk.className="lk"; lk.type="button"; lk.setAttribute("aria-pressed","false");
-  lk.title="נעל מפני אקראי"; lk.innerHTML=svg("open");
+  lk.title="Lock against randomise"; lk.innerHTML=svg("open");
   lk.onclick=e=>{ e.preventDefault(); locks[s.id]=!locks[s.id];
     lk.setAttribute("aria-pressed",String(!!locks[s.id])); lk.innerHTML=svg(locks[s.id]?"lock":"open"); };
   sm.appendChild(lk); d.appendChild(sm);
 
   const body=document.createElement("div"); body.className="body";
   if(s.presets){
-    body.appendChild(labeled(s.id==="color"?"פלטות":"אריגות"));
+    body.appendChild(labeled(s.id==="color"?"Palettes":"Weaves"));
     const ch=document.createElement("div"); ch.className="chips";
     Object.keys(s.presets).forEach(k=>{
       const b=document.createElement("button"); b.className="chip"; b.type="button"; b.textContent=k;
@@ -1626,15 +1743,15 @@ SEC.forEach(s=>{
     const il=document.createElement("div"); il.id="inkline"; body.appendChild(il);
     const st=document.createElement("div"); st.id="stops"; body.appendChild(st);
     const g=document.createElement("div"); g.className="grid2";
-    const add=document.createElement("button"); add.className="b"; add.type="button"; add.textContent="הוסף עצירה";
+    const add=document.createElement("button"); add.className="b"; add.type="button"; add.textContent="Add stop";
     add.onclick=()=>{ C().stops.push({p:+Math.random().toFixed(2),c:randHex()}); buildRamp(); renderStops(); };
-    const srt=document.createElement("button"); srt.className="b"; srt.type="button"; srt.textContent="פרוס שווה";
+    const srt=document.createElement("button"); srt.className="b"; srt.type="button"; srt.textContent="Distribute evenly";
     srt.onclick=()=>{ const a=C().stops.slice().sort((x,y)=>x.p-y.p);
       a.forEach((x,i)=>x.p=+(i/(a.length-1||1)).toFixed(3)); C().stops=a; buildRamp(); renderStops(); };
     g.append(add,srt); body.appendChild(g);
   }
-  if(s.macro.length){ body.appendChild(labeled("ראשי")); s.macro.forEach(c=>body.appendChild(control(c))); }
-  if(s.det.length){ body.appendChild(labeled("פירוט")); s.det.forEach(c=>body.appendChild(control(c))); }
+  if(s.macro.length){ body.appendChild(labeled("Primary")); s.macro.forEach(c=>body.appendChild(control(c))); }
+  if(s.det.length){ body.appendChild(labeled("Detail")); s.det.forEach(c=>body.appendChild(control(c))); }
   d.appendChild(body); secWrap.appendChild(d);
 });
 
@@ -1646,10 +1763,10 @@ function renderStops(){
   box.innerHTML="";
   C().stops.forEach((st,i)=>{
     const r=document.createElement("div"); r.className="stop";
-    const col=document.createElement("input"); col.type="color"; col.value=st.c; col.setAttribute("aria-label","צבע עצירה "+(i+1));
+    const col=document.createElement("input"); col.type="color"; col.value=st.c; col.setAttribute("aria-label","Stop colour "+(i+1));
     const pos=document.createElement("input"); pos.type="range"; pos.min=0; pos.max=1; pos.step=.01; pos.value=st.p;
-    pos.setAttribute("aria-label","מקום עצירה "+(i+1));
-    const x=document.createElement("button"); x.className="x"; x.type="button"; x.innerHTML=svg("x"); x.title="מחק";
+    pos.setAttribute("aria-label","Stop position "+(i+1));
+    const x=document.createElement("button"); x.className="x"; x.type="button"; x.innerHTML=svg("x"); x.title="Delete";
     col.oninput=()=>{st.c=col.value; buildRamp();};
     pos.oninput=()=>{st.p=parseFloat(pos.value); buildRamp();};
     x.onclick=()=>{ if(C().stops.length>2){ C().stops.splice(i,1); buildRamp(); renderStops(); refreshSummaries(); } };
@@ -1661,7 +1778,7 @@ function renderStops(){
 const looksEl=document.getElementById("looks");
 Object.keys(LOOKS).forEach(k=>{
   const b=document.createElement("button"); b.className="chip"; b.type="button"; b.textContent=k;
-  b.setAttribute("aria-pressed", k==="ניאון"?"true":"false");
+  b.setAttribute("aria-pressed", k==="Neon"?"true":"false");
   b.onclick=()=>{ applyLook(k); [...looksEl.children].forEach(c=>c.setAttribute("aria-pressed","false"));
                   b.setAttribute("aria-pressed","true"); };
   looksEl.appendChild(b);
@@ -1717,35 +1834,35 @@ fp.onclick=()=>setFormat("post"); fs.onclick=()=>setFormat("story");
    8. EXPORT
    ═══════════════════════════════════════════════════════════════════ */
 const exp=document.createElement("details"); exp.className="sec"; exp.open=true;
-exp.innerHTML=`<summary><span class="chev"></span><span class="nm">ייצוא</span><span class="sm" id="exsum"></span></summary>`;
+exp.innerHTML=`<summary><span class="chev"></span><span class="nm">Export</span><span class="sm" id="exsum"></span></summary>`;
 const eb=document.createElement("div"); eb.className="body";
 eb.innerHTML=`
   <div class="grid3">
     <button class="b" id="b_play"></button>
-    <button class="b" id="b_rand">${svg("dice")}אקראי</button>
+    <button class="b" id="b_rand">${svg("dice")}Random</button>
     <button class="b solid" id="b_png">${svg("down")}PNG</button>
   </div>
-  <div class="lab">וידאו</div>
-  <div class="r"><label for="e_len">אורך</label>
-    <select id="e_len"><option value="loop">לופ מלא</option><option value="2">×2 לופים</option>
-      <option value="3">3 שניות</option><option value="6">6 שניות</option><option value="10">10 שניות</option></select></div>
-  <div class="r"><label for="e_vfmt">פורמט</label>
+  <div class="lab">Video</div>
+  <div class="r"><label for="e_len">Length</label>
+    <select id="e_len"><option value="loop">Full loop</option><option value="2">×2 loops</option>
+      <option value="3">3 seconds</option><option value="6">6 seconds</option><option value="10">10 seconds</option></select></div>
+  <div class="r"><label for="e_vfmt">Format</label>
     <select id="e_vfmt"><option value="mp4">MP4 (H.264)</option><option value="webm">WebM (VP9)</option></select></div>
-  <div class="r"><label for="e_scale">רזולוציית PNG</label>
+  <div class="r"><label for="e_scale">Resolution PNG</label>
     <select id="e_scale"><option value="1">1× (1080)</option><option value="2">2× (2160)</option></select></div>
-  <button class="b rec" id="b_rec" style="width:100%;margin-block-start:8px">${svg("rec")}הקלט וידאו</button>
-  <div class="lab">הגדרות</div>
+  <button class="b rec" id="b_rec" style="width:100%;margin-block-start:8px">${svg("rec")}Record video</button>
+  <div class="lab">Settings</div>
   <div class="grid2">
-    <button class="b" id="b_copy">${svg("copy")}העתק</button>
-    <button class="b" id="b_load">טען</button>
+    <button class="b" id="b_copy">${svg("copy")}Copy</button>
+    <button class="b" id="b_load">Load</button>
   </div>
-  <textarea id="e_json" spellcheck="false" aria-label="JSON הגדרות"></textarea>
-  <div class="note"><kbd>רווח</kbd> הפעל/עצור · <kbd>S</kbd> PNG · <kbd>R</kbd> אקראי · <kbd>1</kbd>/<kbd>2</kbd> פורמט<br>
-  הלופ נסגר בדיוק על מחזור אחד — כל המנועים מחזוריים בזמן.</div>`;
+  <textarea id="e_json" spellcheck="false" aria-label="JSON Settings"></textarea>
+  <div class="note"><kbd>Space</kbd> Play / stop · <kbd>S</kbd> PNG · <kbd>R</kbd> Random · <kbd>1</kbd>/<kbd>2</kbd> Format<br>
+  The loop closes on exactly one cycle — every engine is periodic in time.</div>`;
 exp.appendChild(eb); secWrap.appendChild(exp);
 
 const $=id=>document.getElementById(id);
-function playIcon(){ $("b_play").innerHTML = svg(playing?"pause":"play") + (playing?"עצור":"הפעל"); }
+function playIcon(){ $("b_play").innerHTML = svg(playing?"pause":"play") + (playing?"Stop":"Play"); }
 $("b_play").onclick=()=>{ playing=!playing; playIcon();
   if(window.syncDock) syncDock(); }; playIcon();
 $("b_rand").onclick=randomize;
@@ -1760,7 +1877,7 @@ $("b_rand").onclick=randomize;
   link("d_png","b_png"); link("d_rec","b_rec");
   $("d_play").onclick=()=>{ $("b_play").click(); syncDock(); };
   window.syncDock=function(){
-    $("d_play").textContent = playing ? "עצור" : "הפעל";
+    $("d_play").textContent = playing ? "Stop" : "Play";
     const rec=$("b_rec");
     $("d_rec").disabled = !!(rec && rec.disabled);
     $("d_png").disabled = !!($("b_png") && $("b_png").disabled);
@@ -1823,7 +1940,7 @@ function pressToggle(on){
   const f=document.createElement("iframe");
   f.id="pressframe";
   f.src="../?embed=1";
-  f.setAttribute("title","מכבש הריזו");
+  f.setAttribute("title","The Riso press");
   f.style.cssText="width:100%;height:100%;border:0;display:block;background:#0c0c0e";
   stage.appendChild(f);
   pressFrame=f;
@@ -1878,7 +1995,7 @@ $("b_rec").onclick=()=>{
   const want=$("e_vfmt").value==="mp4" ? MP4 : WEBM;
   // asked-for container first, the other one only if this browser cannot do it
   const mime=want.find(ok) || [...MP4,...WEBM].find(ok);
-  if(!mime){ alert("הדפדפן לא תומך בהקלטת וידאו"); return; }
+  if(!mime){ alert("This browser cannot record video"); return; }
   const ext=mime.startsWith("video/mp4") ? "mp4" : "webm";
   if(ext!==$("e_vfmt").value) $("e_vfmt").value=ext;   // tell the truth about what came out
   const chunks=[];
@@ -1887,12 +2004,12 @@ $("b_rec").onclick=()=>{
   rec.onstop=()=>{
     download(new Blob(chunks,{type:mime}),`gradient-${ST.format}-${stamp()}.${ext}`);
     rec=null; clearInterval(recT);
-    $("recdot").style.display="none"; $("b_rec").innerHTML=svg("rec")+"הקלט וידאו"; $("b_rec").classList.add("rec");
+    $("recdot").style.display="none"; $("b_rec").innerHTML=svg("rec")+"Record video"; $("b_rec").classList.add("rec");
   };
   if(!playing){ playing=true; playIcon(); }
   rec.start();
   const t0=performance.now();
-  $("recdot").style.display="flex"; $("b_rec").innerHTML=svg("stop")+"עצור הקלטה"; $("b_rec").classList.remove("rec");
+  $("recdot").style.display="flex"; $("b_rec").innerHTML=svg("stop")+"Stop recording"; $("b_rec").classList.remove("rec");
   recT=setInterval(()=>{
     const el=(performance.now()-t0)/1000;
     $("rect").textContent=el.toFixed(1)+" / "+dur.toFixed(1);
@@ -1902,15 +2019,15 @@ $("b_rec").onclick=()=>{
 
 $("b_copy").onclick=async()=>{
   const s=JSON.stringify(ST); $("e_json").value=s;
-  try{ await navigator.clipboard.writeText(s); $("b_copy").innerHTML=svg("copy")+"הועתק"; }
-  catch{ $("b_copy").innerHTML=svg("copy")+"בתיבה"; }
-  setTimeout(()=>$("b_copy").innerHTML=svg("copy")+"העתק",1400);
+  try{ await navigator.clipboard.writeText(s); $("b_copy").innerHTML=svg("copy")+"Copied"; }
+  catch{ $("b_copy").innerHTML=svg("copy")+"In box"; }
+  setTimeout(()=>$("b_copy").innerHTML=svg("copy")+"Copy",1400);
 };
 $("b_load").onclick=()=>{
   try{
     const o=JSON.parse($("e_json").value); ST=DEF(); patch(ST,o);
     setFormat(ST.format); buildRamp(); renderStops(); layoutDirty=true; vgrad=null; syncAll();
-  }catch(e){ $("b_load").textContent="JSON לא תקין"; setTimeout(()=>$("b_load").textContent="טען",1500); }
+  }catch(e){ $("b_load").textContent="JSON not valid"; setTimeout(()=>$("b_load").textContent="Load",1500); }
 };
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -1931,7 +2048,7 @@ stage.addEventListener("dragleave",()=>{ stage.style.outline=""; });
 stage.addEventListener("drop",async e=>{
   e.preventDefault(); stage.style.outline="";
   try{ await loadFontFile(e.dataTransfer.files[0]); }
-  catch(err){ const m=document.getElementById("meta"); if(m) m.title="טעינת גופן נכשלה: "+err.message; }
+  catch(err){ const m=document.getElementById("meta"); if(m) m.title="Font failed to load: "+err.message; }
 });
 
 addEventListener("keydown",e=>{
@@ -1982,28 +2099,53 @@ $("exsum").textContent = FORMATS[ST.format].l;
 </script>
 
 <script>
-/* A code on a static page is a curtain, not a lock: this whole file reaches the visitor's
-   browser, so anyone who opens the source walks straight past it. It keeps passers-by out,
-   and that is all it does. One key for both tools, so the code is asked once. */
+/* A code on a static page is a curtain, not a lock: this whole file reaches the
+   visitor's browser, so anyone who opens the source walks straight past it. It
+   keeps passers-by out, and that is all it does. One key for both tools, so the
+   code is asked once.
+
+   The keypad is the input rather than a decoration over one: a key appends a
+   digit and START commits. Drawing a machine and then asking people to type
+   into a text field would be the costume without the object. */
 (function(){
   var CODE="1111", KEY="risomitus.entered";
   var gate=document.getElementById("gate"), inp=document.getElementById("code"),
       btn=document.getElementById("enter"), msg=document.getElementById("gatemsg"),
-      card=document.getElementById("gatecard");
+      card=document.getElementById("gatecard"), pad=document.getElementById("pad"),
+      clr=document.getElementById("clr");
   function open(){
     gate.classList.add("open"); document.body.classList.add("unlocked");
     try{ localStorage.setItem(KEY,"1"); }catch(e){}
     window.dispatchEvent(new Event("resize"));
   }
-  function tryCode(){
-    if(inp.value.trim()===CODE){ open(); return; }
-    msg.textContent="קוד שגוי";
+  function bad(){
+    msg.textContent="WRONG CODE";
+    gate.classList.add("bad");
     card.classList.remove("shake"); void card.offsetWidth; card.classList.add("shake");
     inp.select();
   }
+  function tryCode(){
+    if(inp.value.trim()===CODE){ open(); return; }
+    bad();
+  }
+  function press(d){
+    if(inp.value.length>=8) return;
+    inp.value+=d; msg.textContent=""; gate.classList.remove("bad");
+    if(inp.value.trim()===CODE) tryCode();
+  }
+  pad.addEventListener("click",function(e){
+    var b=e.target.closest("button[data-d]");
+    if(b) press(b.getAttribute("data-d"));
+  });
+  clr.addEventListener("click",function(){
+    inp.value=""; msg.textContent=""; gate.classList.remove("bad"); inp.focus();
+  });
   btn.addEventListener("click",tryCode);
   inp.addEventListener("keydown",function(e){ if(e.key==="Enter") tryCode(); });
-  inp.addEventListener("input",function(){ msg.textContent=""; if(inp.value.trim()===CODE) tryCode(); });
+  inp.addEventListener("input",function(){
+    msg.textContent=""; gate.classList.remove("bad");
+    if(inp.value.trim()===CODE) tryCode();
+  });
   var seen=false; try{ seen=localStorage.getItem(KEY)==="1"; }catch(e){}
   if(seen) open(); else setTimeout(function(){ inp.focus(); },60);
 })();
