@@ -793,7 +793,7 @@ body.onlychanged label.f:not(.changed){display:none}
   <div id="ticket">
     <div id="masthead">
       <h1>RISOMITUS</h1>
-      <nav class="tabs" aria-label="Systems"><a href="./" aria-current="page">Riso<small>Printing press</small></a><a href="./gradient/?v=2d08989">Gradient<small>Typography</small></a></nav><div class="build" title="Build version">27.08 11:37 · 2d08989</div>
+      <nav class="tabs" aria-label="Systems"><a href="./" aria-current="page">Riso<small>Printing press</small></a><a href="./gradient/?v=55e32f1">Gradient<small>Typography</small></a></nav><div class="build" title="Build version">27.08 12:17 · 55e32f1</div>
       <div id="sub"><span>Separations · screen · paper</span><span id="stat">—</span></div>
     </div>
 
@@ -959,6 +959,57 @@ body.onlychanged label.f:not(.changed){display:none}
           <optgroup label="Other">
             <option value="shot">From the photo (sampled, not real ink)</option>
           </optgroup>
+        
+<option value="fp_trio">Fluoro Pink · Yellow · Blue</option>
+<option value="fp_quad">Fluoro Pink · Yellow · Blue · Black</option>
+<option value="fluoro_riot">Fluoro riot</option>
+<option value="fluoro_heat">Fluoro heat</option>
+<option value="fluoro_cool">Fluoro cool</option>
+<option value="neon_night">Neon night</option>
+<option value="acid_pop">Acid pop</option>
+<option value="sunset_three">Sunset</option>
+<option value="dusk_four">Dusk</option>
+<option value="citrus">Citrus</option>
+<option value="melon_stand">Melon stand</option>
+<option value="coral_reef">Coral reef</option>
+<option value="orchard">Orchard</option>
+<option value="botanic">Botanic</option>
+<option value="forest_floor">Forest floor</option>
+<option value="moss_ink">Moss and ink</option>
+<option value="pine_dusk">Pine dusk</option>
+<option value="sea_air">Sea air</option>
+<option value="harbour">Harbour</option>
+<option value="deep_water">Deep water</option>
+<option value="storm">Storm</option>
+<option value="granite_set">Granite</option>
+<option value="smoke_rose">Smoke and rose</option>
+<option value="plum_three">Plum</option>
+<option value="violet_hour">Violet hour</option>
+<option value="orchid_set">Orchid</option>
+<option value="berry">Berry</option>
+<option value="wine_gold">Wine and gold</option>
+<option value="gilded">Gilded</option>
+<option value="gold_rush">Gold rush</option>
+<option value="brass">Brass</option>
+<option value="olive_press">Olive press</option>
+<option value="paprika_set">Paprika</option>
+<option value="pumpkin_patch">Pumpkin patch</option>
+<option value="brick">Brick</option>
+<option value="clay">Clay</option>
+<option value="ash_rose">Ash rose</option>
+<option value="cool_grey">Cool grey</option>
+<option value="blueprint">Blueprint</option>
+<option value="cyanotype">Cyanotype</option>
+<option value="kelly_set">Kelly</option>
+<option value="emerald_city">Emerald city</option>
+<option value="ivy_league">Ivy</option>
+<option value="teal_coral">Teal and coral</option>
+<option value="aqua_pink">Aqua and pink</option>
+<option value="five_bright">Five bright</option>
+<option value="five_muted">Five muted</option>
+<option value="six_full">Six drums</option>
+<option value="kraft_three">On Kraft</option>
+<option value="black_stock">On black stock</option>
         </select>
       </div>
       <div id="inkpanel">
@@ -1073,6 +1124,8 @@ body.onlychanged label.f:not(.changed){display:none}
         <input type="range" id="sl" min="2" max="80" step="1" value="18"></label>
       <label class="f"><span>Drum mottle<b id="v_mo"></b></span>
         <input type="range" id="mo" min="0" max="70" step="1" value="18"></label>
+      <label class="f"><span>Layer drift<b id="v_ldrift"></b></span>
+        <input type="range" id="ldrift" min="0" max="40" step="1" value="0"></label>
       <label class="f"><span>Ink starvation<b id="v_starve"></b></span>
         <input type="range" id="starve" min="0" max="70" step="1" value="14"></label>
       <label class="f"><span>Drum banding<b id="v_sk"></b></span>
@@ -1102,6 +1155,35 @@ body.onlychanged label.f:not(.changed){display:none}
       <p class="note">Master irregularity varies each screen cell on its own — without it the dots are too perfect and it reads as digital.</p>
     </section>
 
+
+    <section>
+      <h2><em>5</em>Paper</h2>
+      <label class="f"><span>Type</span>
+        <select id="pap">
+          <option value="rough">Absorbent · fibrous</option>
+          <option value="smooth">Smooth</option>
+          <option value="laid">Dashed · laid</option>
+          <option value="fabric">Cloth / weave</option>
+        </select></label>
+      <label class="f"><span>Texture depth<b id="v_pd"></b></span>
+        <input type="range" id="pd" min="0" max="60" step="1" value="20"></label>
+      <label class="f"><span>Fibre size<b id="v_ps"></b></span>
+        <input type="range" id="ps" min="0.5" max="8" step="0.25" value="1.5"></label>
+      <label class="f"><span>Absorption<b id="v_ab"></b></span>
+        <input type="range" id="ab" min="0" max="80" step="1" value="24"></label>
+      <label class="f"><span>Torn edge · deckle<b id="v_deckle"></b></span>
+        <input type="range" id="deckle" min="0" max="100" step="1" value="0"></label>
+      <label class="f"><span>Copy from the stack · set-off<b id="v_setoff"></b></span>
+        <input type="range" id="setoff" min="0" max="60" step="1" value="0"></label>
+      <label class="f"><span>Porosity<b id="v_sp"></b></span>
+        <input type="range" id="sp" min="0" max="40" step="1" value="12"></label>
+      <label class="f"><span>Cockle from wet ink<b id="v_cockle"></b></span>
+        <input type="range" id="cockle" min="0" max="60" step="1" value="16"></label>
+      <label class="f"><span>Sheet stretch between drums<b id="v_stretch"></b></span>
+        <input type="range" id="stretch" min="0" max="60" step="1" value="18"></label>
+      <p class="note">Wet ink cockles the paper and the sheet stretches a little between passes —
+      which is why misregistration grows the further you get from the centre.</p>
+    </section>
     <section>
       <h2><em>6</em>Frame by frame</h2>
       <label class="f"><span>Show on every<b id="v_shoot"></b></span>
@@ -1146,35 +1228,6 @@ body.onlychanged label.f:not(.changed){display:none}
       <p class="note">The number is burned into one drum's master, so it takes the same screen, the same misregistration and the same boil as everything else.</p>
       <p class="note">Every frame is a separate print: another sheet, another registration, a drum running a little dry.
       <b>Show on every 2</b> = Each print is held for two frames, like animation on twos. Video only.</p>
-    </section>
-
-    <section>
-      <h2><em>5</em>Paper</h2>
-      <label class="f"><span>Type</span>
-        <select id="pap">
-          <option value="rough">Absorbent · fibrous</option>
-          <option value="smooth">Smooth</option>
-          <option value="laid">Dashed · laid</option>
-          <option value="fabric">Cloth / weave</option>
-        </select></label>
-      <label class="f"><span>Texture depth<b id="v_pd"></b></span>
-        <input type="range" id="pd" min="0" max="60" step="1" value="20"></label>
-      <label class="f"><span>Fibre size<b id="v_ps"></b></span>
-        <input type="range" id="ps" min="0.5" max="8" step="0.25" value="1.5"></label>
-      <label class="f"><span>Absorption<b id="v_ab"></b></span>
-        <input type="range" id="ab" min="0" max="80" step="1" value="24"></label>
-      <label class="f"><span>Torn edge · deckle<b id="v_deckle"></b></span>
-        <input type="range" id="deckle" min="0" max="100" step="1" value="0"></label>
-      <label class="f"><span>Copy from the stack · set-off<b id="v_setoff"></b></span>
-        <input type="range" id="setoff" min="0" max="60" step="1" value="0"></label>
-      <label class="f"><span>Porosity<b id="v_sp"></b></span>
-        <input type="range" id="sp" min="0" max="40" step="1" value="12"></label>
-      <label class="f"><span>Cockle from wet ink<b id="v_cockle"></b></span>
-        <input type="range" id="cockle" min="0" max="60" step="1" value="16"></label>
-      <label class="f"><span>Sheet stretch between drums<b id="v_stretch"></b></span>
-        <input type="range" id="stretch" min="0" max="60" step="1" value="18"></label>
-      <p class="note">Wet ink cockles the paper and the sheet stretches a little between passes —
-      which is why misregistration grows the further you get from the centre.</p>
     </section>
   </div>
 </div>
@@ -1234,7 +1287,62 @@ const PRESETS={
   kraft:["#C9AC85","#000000","#FF48B0","#FFE800"],
   onblack:["#1A1A1A","#FF48B0","#44D62C","#FFE900"],
   mono:["#F2EDE1","#000000"],
-  shot:["#EE2A7B","#12203F","#29A8E0","#F3E842","#3DBE4E","#FDFBF0"]
+  shot:["#EE2A7B","#12203F","#29A8E0","#F3E842","#3DBE4E","#FDFBF0"],
+
+  /* ---- 50 more, every colour a real catalogue ink ----
+     Written by ink NAME and resolved to hex at build time, so a mistyped
+     digit cannot quietly invent a colour no Riso stocks. Mostly three drums
+     and up, which is where the overprints start doing the work. */
+  fp_trio:["#F8F8F4","#FFE800","#FF48B0","#0078BF"],
+  fp_quad:["#F8F8F4","#FFE800","#FF48B0","#0078BF","#000000"],
+  fluoro_riot:["#F8F8F4","#FFE900","#FF48B0","#44D62C"],
+  fluoro_heat:["#F2EDE1","#FFE900","#FF7477","#FF4C65"],
+  fluoro_cool:["#DCE6EE","#44D62C","#5EC8E5","#FF48B0"],
+  neon_night:["#1A1A1A","#FF48B0","#44D62C","#FFE900"],
+  acid_pop:["#F8F8F4","#E3ED55","#FF48B0","#00AAA0"],
+  sunset_three:["#F4E9C4","#FFB511","#FF8D8F","#E45D50"],
+  dusk_four:["#DCE6EE","#F6A04D","#AE4A84","#484D7A","#000000"],
+  citrus:["#F8F8F4","#FFB511","#FF6C2F","#397E58"],
+  melon_stand:["#F2EDE1","#FFAE3B","#62C2B1","#70747C"],
+  coral_reef:["#F8F8F4","#FF8D8F","#00AAA0","#2F6165"],
+  orchard:["#F5EFE0","#F6A04D","#68724D","#914E72"],
+  botanic:["#F2EDE1","#397E58","#4A6941","#BB8B41"],
+  forest_floor:["#C9AC85","#68724D","#925F52","#FFB511"],
+  moss_ink:["#F5EFE0","#68724D","#70747C","#D2515E"],
+  pine_dusk:["#DCE6EE","#237E74","#5E695E","#FFAE3B"],
+  sea_air:["#F8F8F4","#0074A2","#62C2B1","#009DA5"],
+  harbour:["#DCE6EE","#3D5588","#2F6165","#F6A04D"],
+  deep_water:["#F8F8F4","#2F6165","#435060","#5EC8E5"],
+  storm:["#CFCEC8","#5E695E","#375E77","#FF7477"],
+  granite_set:["#F2EDE1","#A5AAA8","#70747C","#F2484B"],
+  smoke_rose:["#F4DCE0","#5F8289","#AE4A84","#775D7A"],
+  plum_three:["#F5EFE0","#6C5D80","#775D7A","#F6A04D"],
+  violet_hour:["#DCE6EE","#9D7AD2","#484D7A","#F984CA"],
+  orchid_set:["#F8F8F4","#AE4A84","#9D7AD2","#E3ED55"],
+  berry:["#F2EDE1","#914E72","#E45D50","#F984CA"],
+  wine_gold:["#F5EFE0","#914E72","#BB8B41","#70747C"],
+  gilded:["#1A1A1A","#AC936E","#E45D50","#435060"],
+  gold_rush:["#C9AC85","#AC936E","#EE7F4B","#000000"],
+  brass:["#F5EFE0","#BB8B41","#B49F29","#925F52"],
+  olive_press:["#F4E9C4","#B49F29","#68724D","#D2515E"],
+  paprika_set:["#F2EDE1","#EE7F4B","#FF6F4C","#407060"],
+  pumpkin_patch:["#F4E9C4","#FF6F4C","#FFB511","#4A6941"],
+  brick:["#F2EDE1","#D2515E","#925F52","#D5E4C0"],
+  clay:["#F5EFE0","#F6A04D","#925F52","#5F8289"],
+  ash_rose:["#F4DCE0","#D5E4C0","#775D7A","#375E77"],
+  cool_grey:["#CFCEC8","#88898A","#70747C","#0097DE"],
+  blueprint:["#F8F8F4","#62A8E5","#3D5588","#000000"],
+  cyanotype:["#F2EDE1","#0097DE","#484D7A","#D5E4C0"],
+  kelly_set:["#F8F8F4","#67B346","#19975D","#FFB511"],
+  emerald_city:["#DCE6EE","#19975D","#00AAA0","#9D7AD2"],
+  ivy_league:["#F5EFE0","#169B62","#407060","#BB8B41"],
+  teal_coral:["#F8F8F4","#00838A","#FF8D8F","#70747C"],
+  aqua_pink:["#F8F8F4","#5EC8E5","#FF48B0","#435060"],
+  five_bright:["#F8F8F4","#FFE800","#FF48B0","#0097DE","#67B346","#000000"],
+  five_muted:["#F5EFE0","#BB8B41","#D2515E","#5F8289","#5E695E","#70747C"],
+  six_full:["#F8F8F4","#FFE900","#FF6C2F","#FF665E","#765BA7","#0078BF","#000000"],
+  kraft_three:["#C9AC85","#FF48B0","#00AAA0","#000000"],
+  black_stock:["#1A1A1A","#FF7477","#5EC8E5","#AC936E"]
 };
 
 const DEFANG=[15,75,0,45,30,60,7,52];
@@ -1405,6 +1513,7 @@ uniform float uPapDepth,uPapScale,uSpecks,uSmudge,uSmudgeLen,uSeed;
 uniform float uGrit,uDotJit,uPool,uThrough,uPress,uBleed,uFrameSeed;
 uniform float uMlo,uMhi,uCockle,uUnder,uHickey,uCrease;
 uniform float uStarve;
+uniform float uDrift,uDriftT;
 uniform vec3 uSlip;            // y position, x offset, on/off
 uniform vec3 uInk2[8];         // split-fountain second ink, linear
 uniform vec2 uFount[8];        // x = on/off, y = angle
@@ -1498,6 +1607,23 @@ void main(){
     vec2 d=ip-ctr;
     vec2 q=vec2(d.x*cos(rt)-d.y*sin(rt), d.x*sin(rt)+d.y*cos(rt))*uInkQ[i].z+ctr;
     q+=uInkP[i].zw*(uRes/uCovRes);
+
+    /* Every plate drifts on its own heading. A press that is out of register is
+       not out of register by the same amount in the same direction on every
+       drum — each one is fed and gripped separately, so each wanders its own
+       way, and that independence is what makes the colours breathe against each
+       other rather than sliding about as one locked block.
+
+       The heading comes from the drum index through an irrational turn, so the
+       plates never share a direction and never line up again; the walk itself
+       is a circle in time, which keeps a loop closing exactly where it began. */
+    if(uDrift>0.0){
+      float head=float(i)*2.39996323 + uInkP[i].y;      /* golden angle apart */
+      float ph=uDriftT*6.2831853 + float(i)*1.7;
+      vec2 dir=vec2(cos(head),sin(head));
+      vec2 orth=vec2(-dir.y,dir.x);
+      q+=(dir*cos(ph) + orth*sin(ph)*0.45)*uDrift*(0.6+0.4*float(i&1));
+    }
     vec2 uv=vec2(q.x/uRes.x, 1.0-q.y/uRes.y);
 
     float a=covOf(i,uv);
@@ -2192,6 +2318,15 @@ function render(){
   gl.uniform1f(P.uTrans,+$("tr").value/100);
   gl.uniform1f(P.uMottleAmt,+$("mo").value/100);
   gl.uniform1f(P.uStarve,+$("starve").value/100);
+  gl.uniform1f(P.uDrift,+$("ldrift").value);
+  /* One turn across the source, so the drift returns to where it started when
+     the clip does. FR has no frame count, and dividing by 1 made uDriftT the raw
+     frame index — which the shader multiplies by 2*PI, so every whole frame
+     landed on the same phase and the drift never moved at all. A still has no
+     time axis and sits at phase 0, which still gives each drum its own fixed
+     heading. */
+  gl.uniform1f(P.uDriftT,
+    (isVideo && vid && vid.duration) ? (vid.currentTime/vid.duration) : 0);
   gl.uniform1f(P.uStreak,+$("sk").value/100);
   gl.uniform1f(P.uAbsorb,+$("ab").value/100);
   gl.uniform1f(P.uDotGain,+$("dg").value/100);
@@ -2310,7 +2445,7 @@ function schedule(){ if(raf) return; raf=requestAnimationFrame(()=>{
   if(typeof abOn!=="undefined" && abOn){ slotB=cfgObject(); renderAB(); } else render();
 }); }
 const RO={cmp:"%",br:"",ct:"",st:"%",px:"",ow:"px",ss:"×",mg:"%",cell:"px",dg:"%",yn:"%",tr:"%",
-          mr:"px",rt:"%",sm:"%",sl:"px",mo:"%",starve:"%",sk:"%",grit:"%",djit:"%",pool:"%",bleed:"%",
+          mr:"px",rt:"%",sm:"%",sl:"px",mo:"%",ldrift:"px",starve:"%",sk:"%",grit:"%",djit:"%",pool:"%",bleed:"%",
           press:"%",thru:"%",mlo:"%",mhi:"%",under:"%",glow:"%",
           dpi:"",lpi:"",tac:"%",hick:"%",crease:"%",slipy:"%",slipx:"px",trap:"px",dhit:"%",dhx:"px",
           deckle:"%",setoff:"%",holdvar:" per'",flick:"%",dust:"%",ptone:"%",blank:"%",numsz:"px",
@@ -2668,7 +2803,7 @@ $("rnd").onclick=()=>{
   const R=(a,b)=>a+Math.random()*(b-a), S=(k,v)=>$(k).value=Math.round(v);
   S("cell",R(3,9)); S("dg",R(10,60)); S("tr",R(10,80));
   S("mr",R(0,4)); S("rt",R(0,60)); S("sm",R(0,70)); S("sl",R(6,40));
-  S("mo",R(5,45)); S("starve",R(0,45)); S("sk",R(0,30)); S("sd",R(0,30));
+  S("mo",R(5,45)); S("ldrift",R(0,14)); S("starve",R(0,45)); S("sk",R(0,30)); S("sd",R(0,30));
   S("pd",R(8,45)); S("ab",R(5,55)); S("sp",R(0,30)); S("mg",R(0,4));
   S("grit",R(4,35)); S("djit",R(5,55)); S("pool",R(0,80)); S("bleed",R(0,60));
   S("press",R(0,35)); S("thru",R(0,30));
@@ -3398,7 +3533,7 @@ input[type=range]:active::-webkit-slider-thumb{
 
 /* ---------------------------------------------------------------- wells --- */
 
-input[type=text],textarea,select,#c_recipe,#find,.chip input{
+input[type=text],textarea,select,#c_recipe,#find{
   background:linear-gradient(180deg,#efeade 0,#fbf8f0 100%);
   color:var(--m-ink);
   border:1px solid var(--m-edge-lo);
@@ -3607,7 +3742,12 @@ details.sec>summary:hover{background:#00000008}
   box-shadow:0 1px 2px #00000059;
 }
 .chip .x:hover{background:linear-gradient(180deg,#e0654f,#c44a37)}
-.chip input{inset:-6px;width:64px;height:76px;z-index:5}
+/* The colour picker is a hit area, not a surface. It sits above the drum so the
+   whole thing is clickable, which means anything that gives it a background
+   hides the drum completely — which is exactly what happened when it was
+   swept into the input styling above. */
+.chip input{inset:-6px;width:64px;height:76px;z-index:5;
+  background:none;border:0;padding:0;opacity:0;-webkit-appearance:none;appearance:none}
 .inks{gap:9px;flex-wrap:wrap}
 
 /* the catalogue as a rack of drums rather than a dropdown */
