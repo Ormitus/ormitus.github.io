@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ALMA Rebrand — Brand & Website Proposal</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="brand/favicon-32x32.png" sizes="32x32">
+<link rel="icon" href="brand/favicon-192x192.png" sizes="192x192">
+<link rel="apple-touch-icon" href="brand/favicon-180x180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@125,400;125,500;125,600&family=Heebo:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/alma.css?v=4">
+<style>
+  .doc { padding-block: 72px 120px; }
+  .doc section { padding-block: 72px; border-top: 1px solid var(--line); }
+  .doc h2 { font-size: clamp(2rem, 4vw, 3.4rem); margin: 12px 0 28px; }
+  .doc h3 { font-size: 1.35rem; margin: 32px 0 10px; }
+  .doc p, .doc li { max-width: 74ch; }
+  .doc ul, .doc ol { padding-inline-start: 1.2em; }
+  .doc li { margin-bottom: .4em; }
+  .toc { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px 24px; list-style: none; padding: 0; margin: 32px 0 0; counter-reset: t; }
+  .toc a { display: flex; gap: 10px; padding: 10px 0; border-top: 1px solid var(--ink); text-decoration: none; font-weight: 500; }
+  .toc a span { font-family: var(--f-mono); font-size: .75rem; color: var(--stone); padding-top: 4px; }
+  .cover h1 { font-size: clamp(3rem, 8vw, 7rem); font-weight: 800; margin: 24px 0; }
+  .he { direction: rtl; unicode-bidi: isolate; font-family: var(--f-text); }
+  .he-d { direction: rtl; unicode-bidi: isolate; font-family: var(--f-display); }
+  .cols-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  .cols-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 32px; }
+  @media (max-width: 900px) { .cols-3, .cols-2 { grid-template-columns: 1fr; } }
+  .dir { border-top: 2px solid var(--ink); padding-top: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .dir.win { border-top-color: var(--tally); }
+  .dir .tag { font-family: var(--f-mono); font-size: .75rem; color: var(--stone); letter-spacing: .06em; }
+  .dir.win .tag { color: var(--tally); }
+  .dir h3 { margin: 0; font-size: 1.6rem; }
+  .dir dl { margin: 0; display: grid; gap: 8px; }
+  .dir dt { font-family: var(--f-mono); font-size: .72rem; color: var(--stone); letter-spacing: .06em; text-transform: uppercase; }
+  .dir dd { margin: 0; }
+  .dir .hl { font-family: var(--f-display); font-size: 1.5rem; line-height: 1.2; direction: rtl; text-align: right; padding: 16px 0; border-block: 1px dashed var(--line); }
+  .dir figure { margin: 0; }
+  .swatches { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 16px; }
+  .sw { border: 1px solid var(--line); }
+  .sw .chip { height: 110px; display: flex; align-items: flex-end; padding: 10px; font-family: var(--f-mono); font-size: .75rem; }
+  .sw .info { padding: 10px; font-size: .88rem; line-height: 1.45; }
+  .sw .info b { display: block; font-family: var(--f-display); font-size: 1.1rem; }
+  table { width: 100%; border-collapse: collapse; font-size: .92rem; margin-top: 16px; }
+  th, td { text-align: start; vertical-align: top; padding: 10px 12px 10px 0; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--f-mono); font-size: .72rem; letter-spacing: .06em; text-transform: uppercase; color: var(--stone); font-weight: 500; }
+  td.he { text-align: right; font-size: 1rem; }
+  .tablewrap { overflow-x: auto; }
+  .st { font-family: var(--f-mono); font-size: .7rem; padding: 2px 6px; white-space: nowrap; border: 1px solid currentColor; }
+  .st.v { color: #2d6a3e; } .st.p { color: #8a5a00; } .st.m { color: var(--tally); }
+  .shot { margin: 24px 0 0; }
+  .shot img { width: 100%; border: 1px solid var(--line); }
+  .shot figcaption { font-size: .85rem; }
+  .wm-stage { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 16px; margin-top: 16px; }
+  .wm-stage > div { min-height: 220px; display: grid; place-items: center; border: 1px solid var(--line); padding: 24px; }
+  .wm-stage .ink { background: var(--ink); color: var(--paper); }
+  .wm-stage .grey { background: var(--sand); color: #292927; }
+  @media (max-width: 900px) { .wm-stage { grid-template-columns: 1fr; } }
+  .spec { display: grid; grid-template-columns: 180px 1fr; gap: 12px 24px; align-items: baseline; border-top: 1px solid var(--line); padding-top: 16px; margin-top: 16px; }
+  .spec .k { font-family: var(--f-mono); font-size: .72rem; color: var(--stone); letter-spacing: .04em; }
+  @media (max-width: 700px) { .spec { grid-template-columns: 1fr; } }
+  .motif-demo { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; margin-top: 24px; }
+  .motif-demo > div { border: 1px solid var(--line); padding: 20px; min-height: 260px; display: flex; flex-direction: column; justify-content: flex-end; gap: 12px; }
+  @media (max-width: 900px) { .motif-demo { grid-template-columns: 1fr; } }
+  .callout { border-inline-start: 3px solid var(--ink); padding: 12px 18px; background: #F2F2F2; margin: 24px 0; }
+  .no { color: #A3260F !important; }
+  .st.m { color: #A3260F !important; }
+  .ok { color: #2d6a3e; font-weight: 600; } .no { color: var(--tally); font-weight: 600; }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="review-bar">
+  <div class="wrap">
+    <span>Proposal document · not for publication · the live site is untouched</span>
+    <span style="display:flex;gap:16px"><a href="index.html">Homepage prototype →</a><a href="work-mess.html">Project page →</a></span>
+  </div>
+</div>
+
+<main id="main" class="doc">
+<div class="wrap">
+
+<!-- COVER -->
+<header class="cover">
+  <span class="cue">Brand &amp; website proposal · October 2026</span>
+  <p class="callout" style="margin-top:16px"><strong>Revisions, 10 Oct 2026.</strong> (1) Per ALMA, the original logo and identity are kept unchanged: the stencil ALMA/<span class="he">עלמא</span> logo, black/white/grey, the ✦ sparkle and their tagline strip. The earlier proposed wordmark, red accent and serif typography were removed. (2) The layout is now <strong>built in a Bauhaus construction</strong>, in ALMA’s colours: thick black borders, hard offset shadows, colour-blocked sections and compositions of circles, squares and triangles. See “Construction” in section 03. The concept, site structure and copy are unchanged.</p>
+  <h1><span class="he-d">עלמא</span> · ALMA</h1>
+  <p class="lead">In Aramaic, <em>alma</em> means <em>world</em>. Every event ALMA produces is a world that exists for one evening. This proposal builds the brand on that idea. The line is <span class="he-d" style="font-size:1.2em">עולם שלם. עד הדקה.</span> (“A whole world. To the minute.”)</p>
+  <ol class="toc">
+    <li><a href="#diagnosis"><span>01</span>Diagnosis</a></li>
+    <li><a href="#directions"><span>02</span>Three directions</a></li>
+    <li><a href="#system"><span>03</span>Brand system</a></li>
+    <li><a href="#site"><span>04</span>Architecture &amp; copy</a></li>
+    <li><a href="#designs"><span>05</span>Designs</a></li>
+    <li><a href="#build"><span>06</span>Build &amp; handoff</a></li>
+    <li><a href="#gaps"><span>07</span>Missing assets &amp; checks</a></li>
+  </ol>
+</header>
+
+<!-- 01 DIAGNOSIS -->
+<section id="diagnosis" aria-labelledby="h1d">
+  <span class="cue"><span class="n">01</span> · Diagnosis</span>
+  <h2 id="h1d">The work is stronger than the website.</h2>
+
+  <h3>What exists (verified on almapro.co.il, 5 Oct 2026)</h3>
+  <ul>
+    <li>One-page WordPress/Elementor site (last modified 30 Nov 2025). About 60 words of copy in total.</li>
+    <li>Copy themes: <span class="he">״מפיקים אחרת״</span> (“producers, differently”); a group bringing “a new spirit” to production; doing it “more right, more precise, more contemporary”; a “healthy, pleasant, professional” process. Seven event types: corporate, promotional, retreats, international, parties, conferences, exhibitions.</li>
+    <li>English lines: “TURNING VISIONS INTO MOMENTS OF STILLNESS”, “LET’S STAY CONNECTED”, “CREATIVE · PRODUCTION · EXPERIENCE · LOCATION”.</li>
+    <li>Media: 17 photographs and 4 Vimeo films (48–77s). From titles and visible branding, the identifiable projects are <strong>Discount Bank’s Purim 2025 event “המשתה”</strong> (video title + LED screens), <strong>Avène Soleil Retreat</strong>, <strong>MESS</strong> and <strong>MESS Gala</strong>, <strong>Orca Autumn Getaway</strong> and <strong>Remitly Spot the Summer</strong>.</li>
+    <li>Also shown, unlabelled: desert aerial, yoga hall, pool cabanas, concerts, an exhibition about the hostages, and President Herzog speaking at an event.</li>
+    <li>Contact: phone/WhatsApp 052-539-2032, Instagram @weralmapro, and a 3-field form (name, email, phone).</li>
+    <li>Logo: a constructed, stencil-like bilingual wordmark, ALMA stacked over <span class="he">עלמא</span>, in black and white. One version sits in a half-stadium (arch) container.</li>
+  </ul>
+
+  <h3>What’s wrong</h3>
+  <ol>
+    <li><strong>The evidence is unlabelled.</strong> The photography is varied and high quality, but nothing says what the project was, who the client was, or what ALMA did. A planner can’t tell a production from a venue shot.</li>
+    <li><strong>The copy describes an attitude, not an offer.</strong> “New spirit” and “healthy process” don’t say what a client receives.</li>
+    <li><strong>The headline line works against the work.</strong> “Moments of stillness” sits on top of lasers and festivals, in English, on a Hebrew site.</li>
+    <li><strong>It claims people but shows none.</strong> The copy says “we are people who…”, yet there are no names and no faces.</li>
+    <li><strong>There is no path to a decision.</strong> No services structure, no process, one generic form.</li>
+    <li><strong>The logo is strong but under-used</strong> (judgement). The stencil ALMA/<span class="he">עלמא</span> mark is distinctive, but the site gives it nothing to stand on: with no system around it, it reads closer to nightlife than to a company conference. <strong>Decision (per ALMA): the logo and original identity stay exactly as they are.</strong> The new system is built around them to widen their register, not to replace them.</li>
+  </ol>
+
+  <h3>Audience check</h3>
+  <p>The brief assumes marketing, HR and executive decision-makers. The material supports <strong>HR / people teams</strong> (a bank’s holiday event, retreats) and <strong>marketing / brand teams</strong> (Avène, Remitly). <strong>Executive leadership</strong> is plausible: the conference photo and the exhibition point that way. But there is no labelled project to prove it, so it stays an assumption. A fourth group shows up too: <strong>culture and nightlife brands</strong> (MESS). The site uses them as proof of creative ambition rather than as a primary audience.</p>
+
+  <div class="callout"><strong>Opportunity.</strong> ALMA already has two things competitors can’t copy: a name that means <em>world</em>, and real work across corporate, brand and culture. The rebrand turns the name into the idea and the gallery into evidence.</div>
+
+  <h3>Excluded on purpose</h3>
+  <ul>
+    <li><strong>A different company.</strong> A web search returned <em>אלמה הפקות</em> (elmapro.co.il), a separate event company with its own founder and client list (banks, Amdocs and others). The search tool’s summary merged the two companies. None of that information is used anywhere.</li>
+    <li><strong>The President Herzog photograph.</strong> Using a head of state in marketing implies endorsement. It needs ALMA’s context and permission first.</li>
+    <li><strong>The hostages exhibition.</strong> It shows real people’s faces in a national tragedy. It must not be used as portfolio decoration. Whether and how to present it is ALMA’s decision, ideally with the organisers.</li>
+  </ul>
+</section>
+
+<!-- 02 DIRECTIONS -->
+<section id="directions" aria-labelledby="h2d">
+  <span class="cue"><span class="n">02</span> · Three creative directions</span>
+  <h2 id="h2d">Three ideas. One is owned.</h2>
+  <div class="cols-3">
+    <article class="dir win">
+      <span class="tag">A · SELECTED</span>
+      <h3>World-building</h3>
+      <figure class="arch" style="aspect-ratio:4/3"><img src="media/archive-desert-aerial-800.webp" alt="" loading="lazy"></figure>
+      <dl>
+        <dt>Idea</dt><dd><em>Alma</em> is Aramaic for <em>world</em>. An event is a complete world, built for hours and gone by morning.</dd>
+        <dt>Client promise</dt><dd>One team builds your whole world: idea, production, experience and location.</dd>
+        <dt>Visual language</dt><dd>The arch, already in ALMA’s identity (the rounded logo container and the arch-cropped black-and-white photos in their one-pager): the dome of a world, sitting on a horizon. White, black, grey.</dd>
+      </dl>
+      <p class="hl">כל אירוע הוא עולם.<br>אנחנו בונים אותו.</p>
+    </article>
+    <article class="dir">
+      <span class="tag">B</span>
+      <h3>Two sides of the moment</h3>
+      <figure class="crop-wide"><img src="media/mess-live-art-wall-800.webp" alt="" loading="lazy"></figure>
+      <dl>
+        <dt>Idea</dt><dd>The brief’s hypothesis. Guests remember a moment; ALMA remembers every minute that led to it.</dd>
+        <dt>Client promise</dt><dd>You see the moment. We see the minute.</dd>
+        <dt>Visual language</dt><dd>Split frames (photo beside run-of-show sheet), mono timecodes, a red “tally” cue light.</dd>
+      </dl>
+      <p class="hl">האורחים זוכרים רגע.<br>אנחנו זוכרים כל דקה שהובילה אליו.</p>
+    </article>
+    <article class="dir">
+      <span class="tag">C</span>
+      <h3>The calm producer</h3>
+      <figure class="crop-wide"><img src="media/archive-yoga-hall-800.webp" alt="" loading="lazy"></figure>
+      <dl>
+        <dt>Idea</dt><dd>Builds on ALMA’s own “healthy, pleasant process” and “moments of stillness”. The real luxury is calm.</dd>
+        <dt>Client promise</dt><dd>A big production with a quiet process.</dd>
+        <dt>Visual language</dt><dd>Wide, still frames, generous whitespace, slow fades, soft neutrals.</dd>
+      </dl>
+      <p class="hl">הפקה גדולה.<br>תהליך שקט.</p>
+    </article>
+  </div>
+
+  <h3>Why A, carrying B</h3>
+  <ol>
+    <li><strong>A passes the logo-swap test; B fails it.</strong> Every producer claims precision, so B on its own could belong to anyone. Only ALMA is called “world”.</li>
+    <li><strong>A covers ALMA’s whole range.</strong> A bank’s Purim, a skincare retreat and a festival are all worlds. C suits retreats but argues with the laser photography.</li>
+    <li><strong>A’s visual is inherited, not imposed.</strong> The arch already exists in ALMA’s logo container.</li>
+    <li><strong>B’s best insight becomes A’s operating layer.</strong> The minute completes the line, <span class="he-d">עולם שלם. עד הדקה.</span>, and drives the system: minute-tick horizons and cue numbering, marked with ALMA’s own ✦ sparkle. C survives in the tone: “you are present in your evening, not managing it.”</li>
+  </ol>
+</section>
+
+<!-- 03 SYSTEM -->
+<section id="system" aria-labelledby="h3d">
+  <span class="cue"><span class="n">03</span> · Brand system</span>
+  <h2 id="h3d">The world, and the minute.</h2>
+  <p class="lead">The signature is <strong>the Horizon</strong>: an arch (the world the audience sees) resting on a ruled line marked in minutes (the run of show the team sees). It is recognisable without the logo.</p>
+
+  <h3>Logo: ALMA’s original, unchanged</h3>
+  <p>The stencil ALMA/<span class="he">עלמא</span> logo stays exactly as ALMA designed it: same artwork, same two versions (flat, and inside the rounded container). Nothing is redrawn. On the site, the original PNG is used as a mask, so the same artwork can be black on light, white on dark, or dark on their grey.</p>
+  <div class="wm-stage">
+    <div><span class="logo-mark" role="img" aria-label="ALMA logo, flat version, black" style="height:120px"></span></div>
+    <div class="ink"><span class="logo-pill" role="img" aria-label="ALMA logo, container version, white" style="height:110px"></span></div>
+    <div class="grey"><span class="logo-mark" role="img" aria-label="ALMA logo on ALMA grey" style="height:80px"></span></div>
+  </div>
+  <ul style="margin-top:16px">
+    <li><strong>Flat version</strong> in the header (50px tall on desktop, 38px on mobile). <strong>Container version</strong> large in the footer. Their own favicon is kept.</li>
+    <li><strong>Clear space:</strong> at least the height of one letter row on every side. Never on a busy part of a photograph, never recoloured outside black, white and #292927.</li>
+    <li><strong>Still needed from ALMA:</strong> the vector source (SVG/AI/PDF). Only PNGs exist on the current site (2000px wide, sharp enough for screens, not for large print).</li>
+  </ul>
+
+  <h3>Colour: ALMA’s own monochrome</h3>
+  <p>Kept from ALMA’s identity: white, black and the grey of their tagline strip. No accent colour is added. Their photographs carry all the colour, and black-and-white is used for the arch crops, exactly as in their one-pager. Every value below is either taken from their files or a neutral grey step needed for readable small text.</p>
+  <div class="swatches">
+    <div class="sw"><div class="chip" style="background:#FFFFFF">#FFFFFF</div><div class="info"><b>White</b>The logo’s letters. Light sections.</div></div>
+    <div class="sw"><div class="chip" style="background:#161616;color:#fff">#161616</div><div class="info"><b>Black</b>Their site background. Text, buttons, night sections. 18.1:1 on white.</div></div>
+    <div class="sw"><div class="chip" style="background:#1D1D1B;color:#fff">#1D1D1B</div><div class="info"><b>Logo black</b>The ground of their logo file. Raised surfaces on dark.</div></div>
+    <div class="sw"><div class="chip" style="background:#BFBFBF;color:#292927">#BFBFBF</div><div class="info"><b>Strip grey</b>From their tagline strip, with its text colour #292927 (7.9:1). Bands, placeholders.</div></div>
+    <div class="sw"><div class="chip" style="background:#666666;color:#fff">#666666</div><div class="info"><b>Meta grey</b>Added step: small text on white. 5.74:1.</div></div>
+    <div class="sw"><div class="chip" style="background:#A3A3A3">#A3A3A3</div><div class="info"><b>Meta grey (dark)</b>Added step: small text on black. 7.17:1.</div></div>
+  </div>
+  <p class="meta" style="margin-top:12px">Buttons and focus states work by inversion: black on light sections, white on dark ones. Nothing relies on colour alone to signal state.</p>
+
+  <h3>Typography: matched to the logo (both families verified OFL 1.1)</h3>
+  <p>The current site’s only web fonts are Elementor defaults (Roboto, Roboto Slab), not a brand choice. ALMA’s real typographic voice is the wide grotesk in their tagline strip, so the system follows that.</p>
+  <div class="spec"><span class="k">HEBREW</span><div><span class="he-d" style="font-size:2.6rem;font-weight:800">כל אירוע הוא עולם.</span><br><strong>Heebo</strong> (Hebrew + Latin, 100–900). Geometric and even, so it sits next to the constructed stencil logo instead of competing with it. Headlines run at Black 900 with tight tracking, the Bauhaus poster weight; one Light 300 line in the hero gives contrast.</div></div>
+  <div class="spec"><span class="k">LATIN LABELS</span><div><span style="font-family:var(--f-mono);font-stretch:125%;font-weight:500;font-size:1.3rem;text-transform:uppercase">Creative <span class="spark"></span> Production</span><br><strong>Archivo, expanded (125% width)</strong>: the closest free match to the font in ALMA’s strip, chosen by side-by-side comparison against eight wide grotesks. <strong>Replace it with the original font file</strong> if ALMA has it.</div></div>
+  <div class="spec"><span class="k">SEPARATOR</span><div><span class="spark" style="font-size:2rem"></span><br>ALMA’s slanted four-point sparkle, redrawn as a small SVG from their strip. It marks cue labels and separates the strip words.</div></div>
+
+  <h3>Type hierarchy</h3>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Role</th><th>Family / weight</th><th>Size (mobile → desktop)</th><th>Line height</th></tr></thead>
+    <tbody>
+      <tr><td>Hero</td><td>Heebo 900 (first line 300), tracking −3.5%</td><td>42 → 90px (clamp 5.4vw)</td><td>0.95</td></tr>
+      <tr><td>Section title</td><td>Heebo 900, tracking −3.5%</td><td>34 → 77px</td><td>0.95</td></tr>
+      <tr><td>Card title</td><td>Heebo 600</td><td>22 → 30px</td><td>1.15</td></tr>
+      <tr><td>Lead</td><td>Heebo 400</td><td>18 → 22px</td><td>1.55</td></tr>
+      <tr><td>Body</td><td>Heebo 400</td><td>17px</td><td>1.65</td></tr>
+      <tr><td>Meta</td><td>Heebo 400</td><td>14px</td><td>1.5</td></tr>
+      <tr><td>Cue label / strip</td><td>Archivo Expanded 500 (Latin) / Heebo (Hebrew)</td><td>12px / 14–30px</td><td>1.2</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Construction: Bauhaus, in ALMA’s colours</h3>
+  <p>Every element is built rather than decorated, from three shapes (circle, square, triangle) and thick black lines. ALMA’s stencil logo is itself constructed from straight cuts and quarter-circles, so the construction extends the logo’s own logic instead of fighting it. Primary colours are not used: the three Bauhaus colour roles are carried by ALMA’s palette.</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Bauhaus rule</th><th>ALMA version</th><th>Where</th></tr></thead>
+    <tbody>
+      <tr><td>Red / blue / yellow colour blocks</td><td>Black #161616 / strip grey #BFBFBF / white with a dot grid</td><td>Work, people, footer: black. Hero panel, services, contact: grey. Name, process: white.</td></tr>
+      <tr><td>Thick borders</td><td>2px on mobile → 4px from 1024px, always black (white on black blocks)</td><td>Header rule, every section edge, frames, cards, inputs</td></tr>
+      <tr><td>Hard offset shadows</td><td>3/4 → 4/6/8px, no blur. They fall <strong>down-left</strong>, mirroring the usual down-right because the page reads right-to-left. Grey on black blocks.</td><td>Buttons (4px), cards (6px), hero arch, video frames, the form (8px)</td></tr>
+      <tr><td>Binary radius</td><td>0 or full. The arch is the one combined shape: a circle standing on a square.</td><td>Squares everywhere; circles for form chips, service numbers 01 and 04, the middle archive crop and one team slot</td></tr>
+      <tr><td>Geometric compositions</td><td>Hero: black circle behind the B/W arch, an outlined square rotated 45°, a triangle, a small white square. Name: grey circle behind <span class="he">עָלְמָא</span>. Contact: faint circle and rotated square.</td><td>Hero panel, name section, contact block</td></tr>
+      <tr><td>Rotated elements</td><td>Process numbers sit in black squares rotated 45° with the numbers counter-rotated. Every third service number and type marker is rotated.</td><td>Process, services, event-type list</td></tr>
+      <tr><td>Accordion</td><td>Closed: white card, black border, shadow. Open: black header, white text, chevron flipped 180°.</td><td>Services</td></tr>
+      <tr><td>Images grayscale, colour on hover</td><td>Applies only on devices with hover; touch screens see colour. Arch crops stay B/W always, as in ALMA’s one-pager.</td><td>Work frames, videos, archive</td></tr>
+      <tr><td>Button press</td><td>Shifts 2px into its shadow, and the shadow disappears</td><td>All buttons, video posters, menu button</td></tr>
+      <tr><td>Outfit typeface</td><td><strong>Not used:</strong> it has no Hebrew. Heebo 900 with tight tracking and leading plays the same role.</td><td>All headlines</td></tr>
+      <tr><td>Geometric shapes as the logo</td><td><strong>Not used:</strong> ALMA’s own logo stays. The shapes live in the compositions instead.</td><td>Header, footer</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Grid and spacing</h3>
+  <ul>
+    <li>12 columns, max width 1440px. Outer margin clamps from 16px to 56px; column gap from 16px to 32px. Mobile collapses to a single column with 16px margins.</li>
+    <li>8-point rhythm: 4 · 8 · 16 · 24 · 32 · 48 · 72 · 112 · 160. Sections breathe at 72–160px. Rhythm alternates energy (dark, image-led <em>night</em> sections) with stillness (white, type-led sections).</li>
+    <li>Asymmetry by default: text takes 4–7 columns and media 5–8. Content never sits centred in a box.</li>
+  </ul>
+
+  <h3>Image cropping principles</h3>
+  <ol>
+    <li><strong>One arch per view.</strong> Reserve it for the frame that defines that world. Keep the photo’s horizon in the lower third so it lands on the arch base, and never cut a face at the curve.</li>
+    <li><strong>21:9 panorama</strong> for scale and place: venues, crowds, landscapes.</li>
+    <li><strong>3:2</strong> for action: artists, stage, set-up.</li>
+    <li><strong>4:5</strong> for craft: hands, signage, set details.</li>
+    <li><strong>Arch crops are black-and-white</strong>, as in ALMA’s one-pager. Every other crop keeps its real colour, with no filters or tints.</li>
+    <li><strong>No caption, no publish.</strong> Every live image needs a project name and a photographer credit.</li>
+  </ol>
+
+  <h3>The motif in use</h3>
+  <div class="motif-demo">
+    <div><div class="arch" style="aspect-ratio:3/2"><img src="media/archive-pool-cabanas-800.webp" alt="" loading="lazy" style="height:100%"></div><div class="horizon"></div><span class="cue">Website: hero, section dividers, process track</span></div>
+    <div style="background:var(--ink);color:var(--paper)"><span class="he-d" style="font-size:1.6rem;text-align:right">סדר הערב</span><div class="horizon" style="--tick:var(--paper)"></div><span style="font-family:var(--f-mono);font-size:.8rem;line-height:2;color:var(--fog)">Q.1 18:00 ✦ Q.2 19:30 ✦ Q.3 20:15 ✦ Q.4 22:00</span><span class="cue" style="color:var(--fog)">Presentations and run-of-show (illustrative times)</span></div>
+    <div><div style="display:flex;gap:12px;align-items:flex-end"><div style="flex:1;border:1px solid var(--ink);padding:14px 10px;text-align:right" class="he"><b style="font-family:var(--f-display);font-size:1.4rem">במה ←</b><div class="horizon" style="margin-top:10px"></div></div><span class="logo-mark" role="img" aria-label="ALMA logo" style="height:34px"></span></div><span class="cue">Event materials: wayfinding, badges, staff wear</span></div>
+  </div>
+
+  <h3>Motion: mechanical</h3>
+  <p>Pieces are set in place, not floated in. Every transition is 200–300ms with ease-out; the longest entrance is 600ms.</p>
+  <ul>
+    <li>Arches open bottom-up (600ms clip). The hero’s shapes pop in one after another, like pieces placed on a board (scale 0→1, 120ms apart). Text rises 16px. Horizons draw in the reading direction.</li>
+    <li>Buttons press into their shadow. Cards and video frames lift 4px on hover. Photos turn from grayscale to colour on hover. The accordion chevron flips 180°.</li>
+    <li>Each element animates once, on entering the viewport. Nothing loops, background patterns are static, there is no scroll-jacking, and nothing delays access to content.</li>
+    <li>With <code>prefers-reduced-motion</code> everything appears instantly. Without JavaScript nothing is hidden.</li>
+  </ul>
+</section>
+
+<!-- 04 SITE -->
+<section id="site" aria-labelledby="h4d">
+  <span class="cue"><span class="n">04</span> · Architecture &amp; homepage copy</span>
+  <h2 id="h4d">From first impression to a conversation.</h2>
+  <h3>Sitemap</h3>
+  <ul>
+    <li><strong>/</strong> Home: Opening → The name → Selected work → Services → Process → People → Contact</li>
+    <li><strong>/work/&lt;project&gt;</strong>: Brief → Idea → Execution → Outcome → Credits. Sample: <a href="work-mess.html">MESS</a></li>
+    <li><strong>/work</strong> index: add once more than six projects are documented. Until then, work lives on the homepage.</li>
+    <li><strong>/team</strong>: only once real team content exists (homepage section until then).</li>
+    <li><strong>/accessibility</strong> (<span class="he">הצהרת נגישות</span>) and <strong>/privacy</strong>: required before launch. From memory, not checked here: Israeli accessibility regulations require a published accessibility statement for business websites.</li>
+  </ul>
+  <p>Navigation: <span class="he">עבודות · מה אנחנו מפיקים · איך זה עובד · מי אנחנו · [בואו נדבר]</span>. On mobile, a sticky call/WhatsApp bar appears after the hero.</p>
+
+  <h3>Homepage copy (Hebrew, as built)</h3>
+  <p class="meta"><span class="st v">VERIFIED</span> taken from ALMA’s site or media · <span class="st p">PROPOSED</span> new copy that needs ALMA’s sign-off · <span class="st m">MISSING</span> placeholder that will not ship</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Section</th><th style="text-align:right">Hebrew</th><th>English gloss</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td>Hero H1</td><td class="he">כל אירוע הוא עולם. אנחנו בונים אותו עד הדקה.</td><td>Every event is a world. We build it, to the minute.</td><td><span class="st p">PROPOSED</span></td></tr>
+      <tr><td>Hero sub</td><td class="he">עלמא מפיקה אירועי חברה, כנסים, נופשים, הפעלות מותג ומסיבות, בארץ ובחו״ל. רעיון, הפקה, חוויה ולוקיישן — אצל צוות אחד שמחזיק את כל הפרטים.</td><td>Services and scope restate ALMA’s own lists; “one team holding every detail” is new.</td><td><span class="st v">VERIFIED</span> scope · <span class="st p">PROPOSED</span> claim</td></tr>
+      <tr><td>CTAs</td><td class="he">ספרו לנו על האירוע · לעבודות שלנו</td><td>Tell us about the event · Our work</td><td><span class="st p">PROPOSED</span></td></tr>
+      <tr><td>Event types</td><td class="he">אירועים עסקיים · אירועי קד״מ · נופשים · אירועי חו״ל · מסיבות · כנסים · תערוכות</td><td>ALMA’s own seven categories</td><td><span class="st v">VERIFIED</span></td></tr>
+      <tr><td>Q.01 Name</td><td class="he">בארמית, עלמא פירושו עולם. וזה בדיוק מה שאירוע טוב הוא: מקום שקם לכמה שעות, עם אור, צליל, שפה ואנשים משלו — ובבוקר שאחרי נשאר רק במה שאנשים זוכרים.</td><td>The Aramaic meaning is a fact. We don’t know why ALMA chose the name, and the copy doesn’t claim to.</td><td><span class="st v">VERIFIED</span> meaning · <span class="st p">PROPOSED</span></td></tr>
+      <tr><td>Two sides</td><td class="he">מה הקהל רואה: עולם אחד, שלם… / מה אנחנו רואים: לוח זמנים לפי דקות, ספקים, חשמל, הסעות, אישורים — ותוכנית ב׳ לכל אחד מהם.</td><td>What the audience sees / what we see</td><td><span class="st p">PROPOSED</span></td></tr>
+      <tr><td>Q.02 Work</td><td class="he">עולמות שבנינו. · המשתה · פורים 2025 (בנק דיסקונט) · Avène Soleil Retreat · MESS · Orca · Remitly</td><td>Project names come from Vimeo titles and branding visible in the photos. Project descriptions only describe what is visible.</td><td><span class="st v">VERIFIED</span> names · <span class="st m">MISSING</span> roles and years</td></tr>
+      <tr><td>Q.03 Services</td><td class="he">מה אתם צריכים שיקרה? · ערב לעובדים · רגע למותג · כנס, תערוכה, במה · מסיבה, פסטיבל, חו״ל</td><td>Organised by the visitor’s need (HR / marketing / exec / culture), not by ALMA’s internal categories.</td><td><span class="st p">PROPOSED</span></td></tr>
+      <tr><td>Q.04 Process</td><td class="he">מרעיון לאירוע, בחמישה קיוז. · שיחה · רעיון · תכנון · הערב · אחרי — כל שלב עם ״אתם מקבלים״</td><td>Each step names a concrete deliverable, e.g. a one-page brief, a closed budget and run-of-show.</td><td><span class="st p">PROPOSED</span> must match how ALMA actually works</td></tr>
+      <tr><td>Q.05 People</td><td class="he">״אנחנו אנשים שרוצים לעשות את זה נכון יותר, מדויק יותר, עכשווי יותר.״</td><td>ALMA’s own sentence</td><td><span class="st v">VERIFIED</span> quote · <span class="st m">MISSING</span> team</td></tr>
+      <tr><td>Q.06 Contact</td><td class="he">יש לכם אירוע בראש? ספרו לנו עליו.</td><td>Have an event in mind? Tell us about it.</td><td><span class="st p">PROPOSED</span></td></tr>
+      <tr><td>Footer line</td><td class="he">עולם שלם. עד הדקה.</td><td>A whole world. To the minute.</td><td><span class="st p">PROPOSED</span></td></tr>
+    </tbody>
+  </table></div>
+  <p class="meta" style="margin-top:12px">Voice rules: short sentences, each with something in it. Promise deliverables, not feelings. No “unforgettable”, “magical” or “dream event”. English appears only where it’s production language (run of show, cue) or a client’s own brand name.</p>
+</section>
+
+<!-- 05 DESIGNS -->
+<section id="designs" aria-labelledby="h5d">
+  <span class="cue"><span class="n">05</span> · Designs</span>
+  <h2 id="h5d">Desktop and mobile, built and rendered.</h2>
+  <p>These are renders of the working prototype, not mock-ups. Open the <a href="index.html">homepage</a> and the <a href="work-mess.html">project page</a> to use them live; “הצגת סימוני אימות” in the top bar highlights every unverified line.</p>
+  <div class="cols-2">
+    <figure class="shot"><img src="shots/d-hero.webp" alt="Desktop homepage opening: ALMA logo, Heebo Black headline, and a grey panel where a black circle, a rotated outlined square and a triangle are composed around a black-and-white arch photo" loading="lazy"><figcaption>Desktop · opening</figcaption></figure>
+    <figure class="shot"><img src="shots/d-name.webp" alt="Desktop section explaining the Aramaic meaning of the name" loading="lazy"><figcaption>Desktop · the name</figcaption></figure>
+    <figure class="shot"><img src="shots/d-work.webp" alt="Desktop selected work on a dark background with the Discount Bank Purim project and video poster" loading="lazy"><figcaption>Desktop · selected work</figcaption></figure>
+    <figure class="shot"><img src="shots/d-services.webp" alt="Desktop services accordion organised by visitor need" loading="lazy"><figcaption>Desktop · services</figcaption></figure>
+    <figure class="shot"><img src="shots/d-process.webp" alt="Desktop five-step process on a minute-tick track" loading="lazy"><figcaption>Desktop · process</figcaption></figure>
+    <figure class="shot"><img src="shots/d-contact.webp" alt="Desktop contact section with direct channels and short brief form" loading="lazy"><figcaption>Desktop · contact</figcaption></figure>
+    <figure class="shot"><img src="shots/d-project.webp" alt="Desktop MESS project page opening with arch-cropped signpost photo" loading="lazy"><figcaption>Desktop · project page</figcaption></figure>
+    <figure class="shot"><img src="shots/d-project-exec.webp" alt="Desktop MESS project execution chapter with square and vertical video posters" loading="lazy"><figcaption>Desktop · project, execution chapter</figcaption></figure>
+  </div>
+  <figure class="shot"><img src="shots/mobile-home-a.webp" alt="Four mobile screens: opening, work, services, process" loading="lazy"><figcaption>Mobile (390px) · opening, work, services, process</figcaption></figure>
+  <figure class="shot"><img src="shots/mobile-home-b.webp" alt="Four mobile screens: the name, people, contact, form" loading="lazy"><figcaption>Mobile · name, people, contact, form</figcaption></figure>
+  <figure class="shot"><img src="shots/mobile-project.webp" alt="Four mobile screens of the MESS project page" loading="lazy"><figcaption>Mobile · project page</figcaption></figure>
+</section>
+
+<!-- 06 BUILD -->
+<section id="build" aria-labelledby="h6d">
+  <span class="cue"><span class="n">06</span> · Implementation &amp; handoff</span>
+  <h2 id="h6d">A working build, ready to port.</h2>
+  <ul>
+    <li><strong>Stack:</strong> static HTML, one CSS file of tokens and components, and 6.5KB of unminified vanilla JS. No frameworks. It is RTL-native and uses logical CSS properties throughout.</li>
+    <li><strong>Media:</strong> 17 images re-encoded to WebP at 800/1600px using <code>srcset</code>, 2.4MB on disk across both sizes; each visitor downloads only one size per image. Images below the fold load lazily, and the hero image is preloaded.</li>
+    <li><strong>Video:</strong> a facade pattern. A poster and play button show until the visitor clicks; only then does the Vimeo player load, with sound. There’s no autoplay, and a plain Vimeo link is always present as a fallback. Recommended: a self-hosted, muted 6–8s hero loop (MP4/WebM with a poster) once ALMA supplies source files.</li>
+    <li><strong>Form:</strong> <span class="no">not connected to a server.</span> It validates (name and phone required), then opens WhatsApp with the brief pre-written; the visitor still presses send. The page never claims a message was sent, and a disclosure sits under the button. Before launch: connect it to a form service or WordPress endpoint, add email delivery, a privacy notice and spam protection.</li>
+    <li><strong>CMS:</strong> the current site runs on WordPress/Elementor. Recommended path: a light custom WordPress theme using these templates, with a <em>Project</em> post type whose fields are brief, idea, execution, outcome, year, role, credits and media. That way a project can’t be published without its facts.</li>
+    <li><strong>Fonts:</strong> loaded from Google Fonts in the prototype. Self-host them in production for privacy and speed.</li>
+    <li><strong>Review layer:</strong> the dark top bar and the dashed “missing” blocks belong to the prototype. Remove them, together with any section still empty, before launch.</li>
+  </ul>
+  <h3>Files</h3>
+  <p><code>index.html</code> · <code>work-mess.html</code> · <code>brand.html</code> · <code>assets/alma.css</code> · <code>assets/alma.js</code> · <code>media/</code> · <code>shots/</code> · originals in <code>../source/</code></p>
+</section>
+
+<!-- 07 GAPS -->
+<section id="gaps" aria-labelledby="h7d">
+  <span class="cue"><span class="n">07</span> · Missing assets, checks performed, self-critique</span>
+  <h2 id="h7d">What’s still needed from ALMA.</h2>
+  <ol>
+    <li><strong>For each project:</strong> ALMA’s role, year, location, the brief, the idea in the team’s words, the outcome, any figures with a source, and the client’s permission to be named.</li>
+    <li><strong>Credits:</strong> photographers and videographers. The Vimeo films are uploaded under the name “Amir Sonnenberg”, whose role is unconfirmed. One photo carries a photographer watermark.</li>
+    <li><strong>Team:</strong> names, roles, real portraits and on-site photos, and the founding story. Nothing about the team is on the current site, so nothing was written.</li>
+    <li><strong>Labels for 8 archive photos</strong> (desert, yoga hall, pool, concerts, lounge).</li>
+    <li><strong>Decisions on sensitive material:</strong> the President Herzog photograph and the hostages exhibition.</li>
+    <li><strong>Source files:</strong> vector logo (only PNGs exist), original video files, high-resolution photos.</li>
+    <li><strong>Business details:</strong> email address, legal name, service area. Also a form endpoint, privacy policy and accessibility statement.</li>
+    <li><strong>Testimonials:</strong> none exist, and none were written.</li>
+  </ol>
+
+  <h3>Checks actually performed</h3>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Check</th><th>Result</th></tr></thead>
+    <tbody>
+      <tr><td>Fetched almapro.co.il and extracted all text, media and links</td><td><span class="ok">Done.</span> One page, 24 original images, 4 Vimeo IDs. Posters mapped to films by DOM order; titles and durations from Vimeo oEmbed.</td></tr>
+      <tr><td>Instagram @weralmapro</td><td><span class="no">Not reviewed.</span> The link resolves (200), but its content was not read.</td></tr>
+      <tr><td>Web search for other public facts</td><td>Found only a different company (elmapro.co.il). Excluded.</td></tr>
+      <tr><td>Font licences</td><td><span class="ok">OFL 1.1</span> confirmed in the google/fonts repository for all three families.</td></tr>
+      <tr><td>Colour contrast (WCAG formula, computed)</td><td><span class="ok">Pass.</span> Every text pairing used is ≥ 4.5:1 (lowest: #666666 on white, 5.74:1).</td></tr>
+      <tr><td>Desktop 1440×900 and mobile 375×812 (Chromium pane)</td><td><span class="ok">Pass.</span> No horizontal overflow at 375px (scrollWidth 375). Mobile renders at 390px through headless Chrome.</td></tr>
+      <tr><td>Links</td><td><span class="ok">Pass.</span> All anchors resolve, all local pages return 200, and all external links (4× Vimeo, WhatsApp, Instagram) return 200. Every new-tab link has <code>rel=noopener</code> and a screen-reader “opens in new window” note.</td></tr>
+      <tr><td>Semantics</td><td><span class="ok">Pass.</span> One H1 per page, alt text on every image, a label on every input, no unnamed buttons, a skip link, landmarks.</td></tr>
+      <tr><td>Mobile menu</td><td><span class="ok">Pass.</span> Opens and closes, <code>aria-expanded</code> updates, Escape closes it and returns focus.</td></tr>
+      <tr><td>Form</td><td><span class="ok">Pass.</span> An empty submit shows inline errors and focuses the first invalid field. A valid submit builds the WhatsApp URL; <code>window.open</code> was intercepted in the test, so nothing was sent.</td></tr>
+      <tr><td>Video facade</td><td><span class="ok">Pass.</span> The Vimeo iframe loads on click and plays (seen in the pane).</td></tr>
+      <tr><td>Bugs found and fixed during QA</td><td>Clipped arches never triggered IntersectionObserver; a margin collapse left a pale strip; a Latin word list reordered inside Hebrew text; ordered-list markers leaked into the process track; Hebrew labels were letter-spaced.</td></tr>
+      <tr><td>Not checked</td><td>Real iOS Safari and Android devices, a full screen-reader pass (VoiceOver/NVDA), Lighthouse performance scores, and whether Vimeo restricts embedding on ALMA’s production domain.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Self-critique</h3>
+  <p><strong>Could another producer swap in their logo?</strong> Not without the design breaking. The opening line, the <span class="he-d">עָלְמָא = עולם</span> section and the arch (taken from ALMA’s own logo container) all depend on the name. Under another company’s logo, the Aramaic section is meaningless and the arch arbitrary. On top of that, the logo, the ✦ sparkle, the strip and the black-and-white arches are ALMA’s own identity, so the page is unmistakably theirs. The transferable part is the precision vocabulary (cues, ticks). On its own that is generic, so it is deliberately the second voice, and the name section was placed directly after the hero so the idea comes before the work.</p>
+  <p><strong>Can a visitor quickly see what ALMA does, see evidence, and find a way to contact?</strong> What ALMA does is in the hero subline. Named clients (Discount Bank, Avène, MESS) appear within one scroll. There are four contact routes: the header CTA, the hero CTA, the sticky mobile call/WhatsApp bar and the form. <strong>The remaining weakness is content, not design.</strong> The evidence has no outcomes, and the People section is empty. That section must be filled or hidden before launch, because a page that claims “we are people” and then shows empty frames undermines itself.</p>
+</section>
+
+</div>
+</main>
+<script src="assets/alma.js?v=3"></script>
+</body>
+</html>
