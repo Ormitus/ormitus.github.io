@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Studio — Photo to PS1</title>
+<meta name="theme-color" content="#090913">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@1,700&family=Pixelify+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script type="module" crossorigin src="../assets/studio-D9C1dWAw.js"></script>
+  <link rel="stylesheet" crossorigin href="../assets/studio-B-ZxUNXy.css">
+  <link rel="stylesheet" crossorigin href="../assets/ui-D12CuAk8.css">
+</head>
+<body data-mode="ps1">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="s-cross" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10.5" fill="#1c2766" stroke="#6c8cff" stroke-width="2"/><path d="M7.5 7.5l9 9M16.5 7.5l-9 9" stroke="#b8ccff" stroke-width="2.6" stroke-linecap="square" fill="none"/></symbol>
+  <symbol id="s-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10.5" fill="#4a1018" stroke="#ff5a63" stroke-width="2"/><circle cx="12" cy="12" r="5" stroke="#ffb3b8" stroke-width="2.6" fill="none"/></symbol>
+  <symbol id="s-square" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10.5" fill="#4a1a3c" stroke="#e58ac8" stroke-width="2"/><rect x="7.5" y="7.5" width="9" height="9" stroke="#f6c4e6" stroke-width="2.4" fill="none"/></symbol>
+  <symbol id="s-tri" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10.5" fill="#0f3a2c" stroke="#5fd9a8" stroke-width="2"/><path d="M12 6.5l5.2 9H6.8z" stroke="#b6f0d8" stroke-width="2.4" fill="none" stroke-linejoin="miter"/></symbol>
+</svg>
+<nav class="nav" aria-label="Main">
+  <a class="logo" href="../"><svg class="sym" style="width:1.4em;height:1.4em" aria-hidden="true"><use href="#s-cross"/></svg>Photo to PS1</a>
+  <ul class="nav-links">
+    <li><a href="../">Make</a></li>
+    <li><a href="./" aria-current="page">Studio</a></li>
+    <li><a href="https://ormitus.com">Ori Mor</a></li>
+  </ul>
+</nav>
+<main id="stage"><canvas id="out"></canvas><div id="drop"><b>Drop a photo or video</b><span>JPG · PNG · WebP · MP4 · MOV</span></div><div id="status"></div></main>
+<aside id="panel">
+  <button id="photo">Add photo or video…</button><input id="photofile" type="file" accept="image/*,video/*" hidden>
+  <label>Mode <select id="mode"><option value="ps1">PS1 low-poly (photo / video)</option><option value="reel">Pixel dither (reel look)</option><option value="scene">3D scene from depth + objects</option></select></label>
+  <label>Format <select id="fmt"><option value="orig">Original</option><option value="story">Story 9:16 · 1080×1920</option><option value="post">Post 4:5 · 1080×1350</option><option value="square">Square 1:1 · 1080×1080</option></select></label>
+  <label>Crop focus <output id="o-focus"></output><input id="focus" type="range" min="0" max="1" step="0.01" value="0.5"></label>
+
+  <h2>Look</h2>
+  <label>Preset <select id="preset"><option value="">—</option><option value="ps1">PS1 · low-poly</option><option value="ps1fmv">PS1 · FMV cutscene</option><option value="reel">Reel · red dither</option><option value="reelblue">Reel · blue</option><option value="reelmono">Reel · 1-bit</option><option value="default">3D · default</option><option value="silenthill">3D · Silent Hill fog</option><option value="crash">3D · Crash / bright</option><option value="n64">3D · N64 smooth</option><option value="vhs">3D · VHS tape</option></select></label>
+  <label>Pixel size (render height) <output id="o-res"></output><input id="res" type="range" min="96" max="540" step="1" value="240"></label>
+  <div data-for="reel">
+    <label>Colour ramp <select id="ramp"><option value="reel">Red heat</option><option value="red">Deep red</option><option value="blue">Blue</option><option value="green">Green terminal</option><option value="amber">Amber</option><option value="gray4">Gray 4</option><option value="bw">1-bit</option><option value="custom">Custom (3 colours)</option><option value="photo">From the photo</option></select></label>
+    <label class="colors">Custom colours <span><input type="color" id="c1" value="#1a0303"><input type="color" id="c2" value="#d4200c"><input type="color" id="c3" value="#ffe9cf"></span></label>
+    <label>Keep original colour <output id="o-keep"></output><input id="keep" type="range" min="0" max="1" step="0.05" value="0.2"></label>
+    <label>Contrast <output id="o-con"></output><input id="con" type="range" min="0.5" max="2" step="0.05" value="1.15"></label>
+    <label>Brightness <output id="o-bri"></output><input id="bri" type="range" min="-0.4" max="0.4" step="0.02" value="0"></label>
+    <label>Saturation <output id="o-sat"></output><input id="sat" type="range" min="0" max="2" step="0.05" value="1"></label>
+  </div>
+  <label>Dither pattern <select id="bayer"><option value="2">Fine 2×2</option><option value="4" selected>PS1 4×4</option><option value="8">Coarse 8×8</option></select></label>
+  <label>Dither strength <output id="o-dith"></output><input id="dith" type="range" min="0" max="1" step="0.05" value="0.6"></label>
+  <label>Palette colours (0 = off) <output id="o-pal"></output><input id="pal" type="range" min="0" max="32" step="1" value="24"></label>
+  <label>Game frame rate <output id="o-fps"></output><input id="fps" type="range" min="6" max="30" step="1" value="15"></label>
+  <label>CRT / VHS <output id="o-crt"></output><input id="crt" type="range" min="0" max="1" step="0.05" value="0.5"></label>
+  <div data-for="ps1">
+    <label>Low-poly facets <output id="o-flat"></output><input id="flat" type="range" min="0" max="1" step="0.05" value="0.2"></label>
+    <label>Facet shading <output id="o-facet"></output><input id="facet" type="range" min="0" max="1" step="0.05" value="0.5"></label>
+    <label>Vertex looseness <output id="o-jit"></output><input id="jit" type="range" min="0" max="0.5" step="0.02" value="0.3"></label>
+    <label>Depth <select id="ps1d"><option value="flat">Flat (fast, no model)</option><option value="depth">From depth model</option></select></label>
+  </div>
+  <label>FMV block artefacts <output id="o-fmv"></output><input id="fmv" type="range" min="0" max="1" step="0.05" value="0"></label>
+  <div data-for="ps1 scene">
+    <label>Fog <output id="o-fog"></output><input id="fog" type="range" min="0" max="1" step="0.05" value="0.5"></label>
+    <label>Vertex light <output id="o-light"></output><input id="light" type="range" min="0" max="1" step="0.05" value="0.6"></label>
+    <label>Colour bits (palette off) <output id="o-bits"></output><input id="bits" type="range" min="2" max="8" step="1" value="5"></label>
+    <label>Vertex wobble <output id="o-snap"></output><input id="snap" type="range" min="0" max="1" step="0.05" value="1"></label>
+    <label>Texture size <output id="o-tex"></output><input id="tex" type="range" min="32" max="256" step="16" value="96"></label>
+  </div>
+
+  <h2>Caption</h2>
+  <label>Text <input type="text" id="caption" placeholder="Funny how?"></label>
+  <label>Font <select id="font"><option value="game">Press X · yellow</option><option value="gamered">Press X · red</option><option value="serif">Serif italic</option><option value="sans">Sans bold</option><option value="mono">Mono</option></select></label>
+
+  <h2>Camera</h2>
+  <label>Move <select id="move"><option value="static">Static</option><option value="push">Push in / out</option><option value="pan">Pan</option><option value="handheld">Handheld</option><option value="orbit">Orbit (3D)</option><option value="mouse">Follow mouse (3D)</option></select></label>
+  <label>Clip length (photos) <output id="o-dur"></output><input id="dur" type="range" min="2" max="12" step="1" value="4"></label>
+
+  <div data-for="ps1 scene">
+    <h2>Geometry</h2>
+    <label>Mesh density <output id="o-grid"></output><input id="grid" type="range" min="16" max="96" step="2" value="40"></label>
+    <label>Depth <output id="o-depth"></output><input id="depth" type="range" min="0" max="3" step="0.05" value="1.2"></label>
+    <label>Tear threshold <output id="o-tear"></output><input id="tear" type="range" min="0.05" max="1" step="0.01" value="0.35"></label>
+  </div>
+  <div data-for="scene">
+    <h2>3D objects (local server)</h2>
+    <label>Faces per object <output id="o-faces"></output><input id="faces" type="range" min="200" max="3000" step="100" value="900"></label>
+    <label>Max objects in scene <output id="o-objs"></output><input id="objs" type="range" min="1" max="5" step="1" value="3"></label>
+    <button id="scene">Build 3D scene from photo</button>
+    <button id="gen">Generate one 3D subject</button>
+    <button id="glb">Add subject (.glb)…</button><input id="glbfile" type="file" accept=".glb,.gltf" hidden>
+  </div>
+
+  <h2>Export</h2>
+  <button id="png">Export PNG</button>
+  <button id="mp4">Export MP4 (no audio)</button>
+  <p class="hint">Photos export as a camera move of the chosen length; videos keep their own length.</p>
+</aside></body></html>
