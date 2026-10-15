@@ -70,7 +70,7 @@
   .exports { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 14px; }
   .exports .exl { font-size: 16px; letter-spacing: .08em; text-transform: uppercase; color: var(--sub); margin-right: 4px; }
   @media (max-width: 960px) { #app { grid-template-columns: 1fr; } #controls { position: static; max-height: none; order: 2; } #cv { max-height: 70vh; } }
-</style>  <script type="module" crossorigin src="./assets/main-BudmDNAS.js"></script>
+</style>  <script type="module" crossorigin src="./assets/main-oe50PHMc.js"></script>
   <link rel="modulepreload" crossorigin href="./assets/palette-5_gZ1hCV.js">
   <link rel="stylesheet" crossorigin href="./assets/palette-D12CuAk8.css">
 </head>
@@ -158,6 +158,8 @@
         <p class="hint" id="meshyhint"></p>
         <label>Objects rebuilt in 3D <input id="objects" type="number" min="1" max="6" value="3"></label>
         <label>Polygons per object <input id="faces" type="number" min="300" max="6000" step="100" value="3000"></label>
+        <label class="row">Rebuild cropped subjects too <input type="checkbox" id="cropped"></label>
+        <p class="hint">Off: a person cut by the frame (half-length portrait) stays as the photo relief. Rebuilt in 3D, it comes out as floating shards.</p>
         <label>3D texture size <output id="o-tex"></output><input id="tex" type="range" min="32" max="256" step="16" value="128"></label>
         <p class="cost" id="cost" aria-live="polite"></p>
         <div class="two">
