@@ -56,6 +56,11 @@
   .chips, .two { display: flex; flex-wrap: wrap; gap: 6px; }
   .two .btn { flex: 1; }
   .hint { margin: 0; font-size: 15px; color: var(--sub); line-height: 1.4; }
+  .stale { color: #ffd23c; margin-bottom: 10px; }
+  .renderbar { position: sticky; bottom: -20px; margin: 6px -16px -20px; padding: 14px 16px 18px; background: var(--panel); border-top: 3px solid var(--hi); display: flex; flex-direction: column; gap: 10px; z-index: 3; }
+  .renderbar .btn { min-height: 48px; font-size: 16px; padding-left: 28px; }
+  .renderbar .btn::before { display: block; }
+  .renderbar .cost { min-height: 1.4em; }
   .cost { margin: 0; font-size: 15px; color: var(--sub); }
   .cost b { color: var(--gold); font-weight: 600; }
   .cost.warn { color: #ff8a8f; }
@@ -70,7 +75,7 @@
   .exports { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 14px; }
   .exports .exl { font-size: 16px; letter-spacing: .08em; text-transform: uppercase; color: var(--sub); margin-right: 4px; }
   @media (max-width: 960px) { #app { grid-template-columns: 1fr; } #controls { position: static; max-height: none; order: 2; } #cv { max-height: 70vh; } }
-</style>  <script type="module" crossorigin src="./assets/main-oe50PHMc.js"></script>
+</style>  <script type="module" crossorigin src="./assets/main-CtmQ_5tI.js"></script>
   <link rel="modulepreload" crossorigin href="./assets/palette-5_gZ1hCV.js">
   <link rel="stylesheet" crossorigin href="./assets/palette-D12CuAk8.css">
 </head>
@@ -161,17 +166,18 @@
         <label class="row">Rebuild cropped subjects too <input type="checkbox" id="cropped"></label>
         <p class="hint">Off: a person cut by the frame (half-length portrait) stays as the photo relief. Rebuilt in 3D, it comes out as floating shards.</p>
         <label>3D texture size <output id="o-tex"></output><input id="tex" type="range" min="32" max="256" step="16" value="128"></label>
-        <p class="cost" id="cost" aria-live="polite"></p>
-        <div class="two">
-          <button class="btn" id="rebuild" type="button">Rebuild scene</button>
-          <button class="btn" id="rerender" type="button">Re-render in 3D</button>
-        </div>
-        <p class="hint">The live effect works on your photo straight away. "Re-render in 3D" applies the same settings to the real 3D scene (a few seconds, free).</p>
       </div>
 
       <div class="grp">
         <h2>Photo</h2>
         <button class="btn" id="other" type="button">Another photo</button>
+      </div>
+
+      <div class="renderbar" data-local>
+        <p class="cost" id="cost" aria-live="polite"></p>
+        <button class="btn solid" id="render" type="button">Render in 3D</button>
+        <button class="btn" id="rerender" type="button" hidden>Re-render (free)</button>
+        <p class="hint">The caption and controller are rendered into the scene, so they get the effect too.</p>
       </div>
     </aside>
 
@@ -184,6 +190,7 @@
         <button class="btn" type="button" data-k="clay" aria-pressed="false" hidden>Geometry</button>
         <button class="btn" type="button" data-k="wire" aria-pressed="false" hidden>Wireframe</button>
       </div>
+      <p class="hint stale" id="stale" hidden>You changed settings after the last render. This 3D view is out of date: press Re-render (free) to update it.</p>
       <div class="frame bevel in">
         <div class="badge" id="badge" hidden><span id="badge-t"></span></div>
         <canvas id="cv" aria-label="Result"></canvas>
