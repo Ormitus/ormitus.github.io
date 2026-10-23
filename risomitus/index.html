@@ -793,7 +793,7 @@ body.onlychanged label.f:not(.changed){display:none}
   <div id="ticket">
     <div id="masthead">
       <h1>RISOMITUS</h1>
-      <nav class="tabs" aria-label="Systems"><a href="./" aria-current="page">Riso<small>Printing press</small></a><a href="./gradient/?v=2975a27">Gradient<small>Typography</small></a><a href="./objects/?v=2975a27">Objects<small>Words as things</small></a></nav><div class="build" title="Build version">01.10 10:51 · 2975a27</div>
+      <nav class="tabs" aria-label="Systems"><a href="./" aria-current="page">Riso<small>Printing press</small></a><a href="./gradient/?v=836eccf">Patterns<small>Type patterns</small></a><a href="./objects/?v=836eccf">Objects<small>Words as things</small></a></nav><div class="build" title="Build version">23.10 10:45 · 836eccf</div>
       <div id="sub"><span>Separations · screen · paper</span><span id="stat">—</span></div>
     </div>
 
@@ -1043,6 +1043,7 @@ body.onlychanged label.f:not(.changed){display:none}
         <select id="map">
           <option value="tone">Tonal · luminance</option>
           <option value="lut">Full gamut · colour</option>
+          <option value="spot">Spot · exact drums</option>
           <option value="hue">Hue + Dith'r · CPU</option>
         </select></label>
       <label class="f"><span>Dith'r (hue only)</span>
@@ -1450,7 +1451,8 @@ uniform sampler3D uLutA,uLutB;
 uniform vec2 uRes;
 uniform float uLod;
 uniform vec3 uTone;          // bright, contrastFactor, sat
-uniform int uMode;           // 0 = tone ramp, 1 = gamut LUT
+uniform int uMode;           // 0 = tone ramp, 1 = gamut LUT, 2 = spot (nearest drum, solid)
+uniform vec3 uSpot[9];       // spot mode: paper, then each drum, 0..255
 uniform int uNRung,uNInk;
 uniform vec2 uRung[10];      // x = luminance 0..1, y = ink index (-1 = paper)
 uniform vec2 uCurve[8];      // x = gamma, y = boost
@@ -1459,6 +1461,7 @@ uniform float uTAC;          // total area coverage limit, 0 = off
 void main(){
   vec2 uv=gl_FragCoord.xy/uRes*uSrcFit.xy+uSrcFit.zw;
   vec3 c=textureLod(uSrc,uv,uLod).rgb*255.0;
+  vec3 c0=c;
   c=(c-128.0)*uTone.y+128.0+uTone.x;
   float l=dot(c,vec3(0.299,0.587,0.114));
   c=clamp(l+(c-l)*uTone.z,0.0,255.0);
@@ -1466,7 +1469,15 @@ void main(){
   float cov[8];
   for(int i=0;i<8;i++) cov[i]=0.0;
 
-  if(uMode==1){
+  if(uMode==2){
+    /* Spot: art that was made in these very drums. Each pixel goes to the one
+       drum it already is, at full strength — no ink is ever built from two
+       others, which is how a real spot-colour Riso job is separated. Read
+       before the tone controls, which exist for photographs, not for this. */
+    int best=-1; vec3 e=c0-uSpot[0]; float bd=dot(e,e);
+    for(int i=0;i<8;i++){ if(i>=uNInk) break; e=c0-uSpot[i+1]; float d=dot(e,e); if(d<bd){ bd=d; best=i; } }
+    for(int i=0;i<8;i++) cov[i]=(i==best)?1.0:0.0;
+  } else if(uMode==1){
     vec3 t=c/255.0;
     vec4 a=texture(uLutA,t), b=texture(uLutB,t);
     cov[0]=a.r; cov[1]=a.g; cov[2]=a.b; cov[3]=a.a;
@@ -2248,7 +2259,10 @@ function render(){
     gl.uniform1f(U.uLod,Math.max(0,Math.log2(srcW()/sw)));
     const ct=+$("ct").value;
     gl.uniform3f(U.uTone,+$("br").value,(259*(ct+255))/(255*(259-ct)),+$("st").value/100);
-    gl.uniform1i(U.uMode,mapMode==="lut"?1:0);
+    gl.uniform1i(U.uMode,mapMode==="lut"?1:mapMode==="spot"?2:0);
+    if(mapMode==="spot"){ const sp=new Float32Array(27);
+      palette.slice(0,9).forEach((h,i)=>{ const c=hex2rgb(h); sp[i*3]=c[0]; sp[i*3+1]=c[1]; sp[i*3+2]=c[2]; });
+      gl.uniform3fv(U.uSpot,sp); }
     gl.uniform1i(U.uNInk,nInk);
     const rung=[{l:255,i:-1}];
     inks.forEach((c,i)=>rung.push({l:lumOf(hex2rgb(c)),i}));
@@ -3247,7 +3261,18 @@ window.PRESS={
   /** Host asks whether the pipeline is up before it starts pumping frames. */
   ready(){ return !!(gl && src); },
   /** The press's own output, for the host to read back if it wants it. */
-  canvas(){ return document.getElementById("out"); }
+  canvas(){ return document.getElementById("out"); },
+  /** Load the host's drums. A host that already knows its inks (the Patterns
+      page sets every mark in one of them) should not have them re-guessed by
+      separation; mode "lut" maps each source colour onto these inks exactly. */
+  setInks(paper, inks, mode){
+    if(!Array.isArray(inks) || !inks.length) return false;
+    palette=[paper||palette[0], ...inks.slice(0,8)];
+    inkP=palette.slice(1).map((_,i)=>defInk(i));
+    if(mode && $("map")) $("map").value=mode;
+    lutKey=""; buildChips(); readouts(); schedule();
+    return true;
+  }
 };
 
 /* When embedded the visitor is already past the gate on the host page, so the
