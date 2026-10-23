@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="he" dir="rtl">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RISOMITUS · Objects</title>
+<title>RISOMITUS · אובייקטים</title>
 <meta name="robots" content="noindex, nofollow">
 <style>
     :root{
@@ -292,6 +292,10 @@
   color:#6d6558;text-shadow:0 1px 0 #fffdf6;text-align:right;line-height:1.7}
 #gatecard p.d{margin:0 0 16px;font-size:12px;line-height:1.6;color:#6d6558;
   text-shadow:0 1px 0 #ffffff8c}
+/* the panel is laid out left to right like the machine, but its sentences are
+   Hebrew: they run right to left, and keep Hebrew's own tight tracking */
+#gatecard p.k,#gatecard p.d{direction:rtl;text-align:right}
+#gatecard p.k{letter-spacing:.04em}
 
 /* the display */
 #code{display:block;width:100%;box-sizing:border-box;
@@ -634,8 +638,8 @@ function review(pal, opts){
   snapped.forEach(function(s, i){
     if(s.drift >= 20)
       out.push({level:"warn", where:i,
-        msg:"Colour " + pal[i].toUpperCase() + " is not in the catalogue — the nearest is "
-            + s.name + " " + s.hex + " (Distance " + Math.round(s.drift) + ")"});
+        msg:"הצבע " + pal[i].toUpperCase() + " לא קיים בקטלוג — הכי קרוב הוא "
+            + s.name + " " + s.hex + " (מרחק " + Math.round(s.drift) + ")"});
   });
 
   const inks = snapped.slice(1).map(function(s){ return s.hex; });
@@ -644,19 +648,19 @@ function review(pal, opts){
       const sc = pairScore(inks[a], inks[b]);
       if(sc < 0.28)
         out.push({level:"warn", where:[a+1, b+1],
-          msg:"Overprinting " + byHex[inks[a]].name + " and" + byHex[inks[b]].name
-              + " gives " + overprint(inks[a], inks[b], .92) + " — mud. Consider another pair."});
+          msg:"הדפסת־על של " + byHex[inks[a]].name + " ו" + byHex[inks[b]].name
+              + " נותנת " + overprint(inks[a], inks[b], .92) + " — בוץ. שקול זוג אחר."});
     }
   }
 
   if(inks.length > 4)
-    out.push({level:"note", msg:inks.length + " Ink = " + inks.length
-      + " passes through the machine. Past 4, registration error'accumulates."});
+    out.push({level:"note", msg:inks.length + " דיו = " + inks.length
+      + " מעברים במכונה. מעל 4, שגיאת הרג'יסטר מצטברת."});
 
   if(opts.opacity != null && opts.opacity > 0.9 && inks.length >= 3)
     out.push({level:"note",
-      msg:"Opacity " + Math.round(opts.opacity*100) + "% on " + inks.length
-          + " layers will saturate the paper — the ink will smear."});
+      msg:"אטימות " + Math.round(opts.opacity*100) + "% על " + inks.length
+          + " שכבות תרווה את הנייר — הדיו יימרח."});
 
   return out;
 }
@@ -803,13 +807,13 @@ global.RISOKIT = {
         <h1>RISOMITUS</h1>
         <div class="jp">リソミトゥス</div>
       </div>
-      <p class="k">Hebrew words built into the things they name</p>
+      <p class="k">מילים בעברית שבנויות לחפצים שהן מתארות</p>
     </div>
-    <p class="d">A vase made of the word vase, a cup of the word cup — shaped, turned in front of a gradient of the same word, and printed. Entry code required.</p>
+    <p class="d">אגרטל שעשוי מהמילה אגרטל, כוס מהמילה כוס — מעוצבים, מסתובבים מול פטרן של אותה מילה, ומודפסים. נדרש קוד כניסה.</p>
     <input id="code" inputmode="numeric" autocomplete="off" maxlength="8"
-           aria-label="Entry code" placeholder="····">
+           aria-label="קוד כניסה" placeholder="····">
     <div id="gatemsg" role="status" aria-live="polite"></div>
-    <div id="pad" role="group" aria-label="Keypad">
+    <div id="pad" role="group" aria-label="מקלדת">
       <button type="button" data-d="1">1</button>
       <button type="button" data-d="2">2</button>
       <button type="button" data-d="3">3</button>
@@ -820,12 +824,12 @@ global.RISOKIT = {
       <button type="button" data-d="8">8</button>
       <button type="button" data-d="9">9</button>
       <button type="button" class="wide" data-d="0">0</button>
-      <button type="button" class="clear" id="clr">C</button>
+      <button type="button" class="clear" id="clr" aria-label="נקה">C</button>
     </div>
-    <button id="enter">START<span class="jp">スタート</span></button>
+    <button id="enter">התחל<span class="jp">スタート</span></button>
     <div id="lamps">
-      <span><i class="ready"></i>READY</span>
-      <span><i class="err"></i>ERROR</span>
+      <span><i class="ready"></i>מוכן</span>
+      <span><i class="err"></i>שגיאה</span>
     </div>
   </div>
 </div>
@@ -842,73 +846,73 @@ global.RISOKIT = {
 <div id="panel">
  <div id="panelscroll">
   <div class="head">
-    <h1>Objects</h1>
-    <p>Hebrew words built into the things they name — the vase is made of the word vase</p>
-    <nav class="tabs" aria-label="Systems"><a href="../?v=836eccf">Riso<small>Printing press</small></a><a href="../gradient/?v=836eccf">Patterns<small>Type patterns</small></a><a href="./" aria-current="page">Objects<small>Words as things</small></a></nav><div class="build" title="Build version">23.10 10:45 · 836eccf</div>
-    <div class="seg" role="group" aria-label="Format">
-      <button id="f_post" aria-pressed="true">Post<small>1080 × 1350</small></button>
-      <button id="f_story" aria-pressed="false">Story<small>1080 × 1920</small></button>
+    <h1>אובייקטים</h1>
+    <p>מילים בעברית שבנויות לחפצים שהן מתארות — האגרטל עשוי מהמילה אגרטל</p>
+    <nav class="tabs" aria-label="Systems"><a href="../?v=b4bd0b6">ריזו<small>מכונת דפוס</small></a><a href="../gradient/?v=b4bd0b6">פטרנים<small>פטרנים מאותיות</small></a><a href="./" aria-current="page">אובייקטים<small>מילים כחפצים</small></a></nav><div class="build" title="Build version">23.10 11:35 · b4bd0b6</div>
+    <div class="seg" role="group" aria-label="פורמט">
+      <button id="f_post" aria-pressed="true">פוסט<small>1080 × 1350</small></button>
+      <button id="f_story" aria-pressed="false">סטורי<small>1080 × 1920</small></button>
     </div>
   </div>
-  <div class="looks" id="looks" role="group" aria-label="Product"></div>
+  <div class="looks" id="looks" role="group" aria-label="מוצר"></div>
 
-  <details class="sec" open><summary><span class="nm">Object</span><span class="sm" id="sm_obj"></span><i class="chev"></i></summary>
+  <details class="sec" open><summary><span class="nm">חפץ</span><span class="sm" id="sm_obj"></span><i class="chev"></i></summary>
    <div class="body">
-    <div class="r"><label for="word">Word</label><input type="text" id="word" dir="rtl" maxlength="9" autocomplete="off" spellcheck="false" placeholder="כד, קנקן, מנורה"></div>
-    <div class="lab">Function</div>
-    <div class="chips" id="fnchips" role="group" aria-label="Function">
-      <button class="chip" data-f="full">Vessel</button><button class="chip" data-f="drain">Drain hole</button><button class="chip" data-f="socket">Candle socket</button>
+    <div class="r"><label for="word">מילה</label><input type="text" id="word" dir="rtl" maxlength="9" autocomplete="off" spellcheck="false" placeholder="כד, קנקן, מנורה"></div>
+    <div class="lab">שימוש</div>
+    <div class="chips" id="fnchips" role="group" aria-label="שימוש">
+      <button class="chip" data-f="full">כלי</button><button class="chip" data-f="drain">חור ניקוז</button><button class="chip" data-f="socket">בית לנר</button>
     </div>
     <div id="rows_fn"></div>
     <p class="warn" id="warn" role="alert"></p>
    </div>
   </details>
 
-  <details class="sec" open><summary><span class="nm">Silhouette</span><span class="sm" id="sm_shape"></span><i class="chev"></i></summary>
+  <details class="sec" open><summary><span class="nm">צללית</span><span class="sm" id="sm_shape"></span><i class="chev"></i></summary>
    <div class="body">
-    <div class="chips" id="shapes" role="group" aria-label="Shape"></div>
-    <canvas id="prof" aria-label="Section — drag a point to reshape"></canvas>
-    <div class="legend"><span><i id="lg_wall"></i><b id="lg_wall_n">wall</b></span><span><i id="lg_water"></i><b id="lg_water_n">cavity</b></span></div>
-    <p class="note">Drag a point · press the outline to add one · double-click to remove</p>
+    <div class="chips" id="shapes" role="group" aria-label="צורה"></div>
+    <canvas id="prof" aria-label="חתך — גרור נקודה כדי לשנות צורה"></canvas>
+    <div class="legend"><span><i id="lg_wall"></i><b id="lg_wall_n">דופן</b></span><span><i id="lg_water"></i><b id="lg_water_n">חלל</b></span></div>
+    <p class="note">גרור נקודה · לחץ על הקו כדי להוסיף · לחיצה כפולה כדי למחוק</p>
    </div>
   </details>
 
-  <details class="sec"><summary><span class="nm">Body</span><span class="sm" id="sm_body"></span><i class="chev"></i></summary>
+  <details class="sec"><summary><span class="nm">גוף</span><span class="sm" id="sm_body"></span><i class="chev"></i></summary>
    <div class="body" id="rows_body"></div></details>
-  <details class="sec"><summary><span class="nm">Letters</span><span class="sm" id="sm_let"></span><i class="chev"></i></summary>
+  <details class="sec"><summary><span class="nm">אותיות</span><span class="sm" id="sm_let"></span><i class="chev"></i></summary>
    <div class="body" id="rows_let"></div></details>
 
-  <details class="sec" open><summary><span class="nm">Backdrop</span><span class="sm" id="sm_bg"></span><i class="chev"></i></summary>
+  <details class="sec" open><summary><span class="nm">רקע</span><span class="sm" id="sm_bg"></span><i class="chev"></i></summary>
    <div class="body">
-    <div class="chips" id="bgchips" role="group" aria-label="Backdrop">
-      <button class="chip" data-b="grad">Gradient of the word</button><button class="chip" data-b="studio">Studio loop</button>
+    <div class="chips" id="bgchips" role="group" aria-label="רקע">
+      <button class="chip" data-b="grad">פטרן של המילה</button><button class="chip" data-b="studio">לולאת סטודיו</button>
     </div>
     <div class="grid3" id="gradbtns">
-      <button class="b" id="b_mine" title="Load the design you last made on the Gradient tab">My gradient</button>
-      <button class="b" id="b_shuffle" title="R">Shuffle</button>
-      <a class="b" id="b_editgrad" href="../gradient/">Edit ↗</a>
+      <button class="b" id="b_mine" title="לטעון את הפטרן האחרון שעיצבת בטאב פטרנים">הפטרן שלי</button>
+      <button class="b" id="b_shuffle" title="R">ערבב</button>
+      <a class="b" id="b_editgrad" href="../gradient/">עריכה ↗</a>
     </div>
     <div id="rows_bg"></div>
     <p class="note" id="bgnote"></p>
    </div>
   </details>
 
-  <details class="sec"><summary><span class="nm">Export</span><span class="sm">OBJ · JSON · Blender</span><i class="chev"></i></summary>
+  <details class="sec"><summary><span class="nm">ייצוא</span><span class="sm">OBJ · JSON · Blender</span><i class="chev"></i></summary>
    <div class="body">
     <div class="grid2">
-      <button class="b" id="b_obj">OBJ for animation</button>
-      <button class="b" id="b_json">JSON for STL</button>
+      <button class="b" id="b_obj">OBJ לאנימציה</button>
+      <button class="b" id="b_json">JSON ל-STL</button>
     </div>
-    <p class="note">The OBJ is overlapping panels around a liner — good for rendering, not watertight. For a print, save the JSON and run the generator, which does the boolean union and writes an STL:</p>
+    <p class="note">ה-OBJ הוא לוחות חופפים סביב גוף פנימי — טוב לרינדור, אבל לא אטום. להדפסה, שמור את ה-JSON והרץ את המחולל, שמאחד את הגופים וכותב STL:</p>
     <pre class="cmd" id="cmd"></pre>
    </div>
   </details>
  </div>
- <div id="dock" role="group" aria-label="Actions">
-   <button id="d_riso" aria-pressed="false" title="Print the turning object on the Riso press">Riso</button>
+ <div id="dock" role="group" aria-label="פעולות">
+   <button id="d_riso" aria-pressed="false" title="להדפיס את החפץ המסתובב במכונת הריזו">ריזו</button>
    <button id="d_play" title="Space"></button>
    <button id="d_png" class="solid" title="S">PNG</button>
-   <button id="d_rec" class="rec" title="Records exactly one loop">Record</button>
+   <button id="d_rec" class="rec" title="מקליט בדיוק לולאה אחת">הקלטה</button>
  </div>
 </div>
 
@@ -1365,8 +1369,8 @@ const LETTERS = new Set(Object.keys(GLYPHS));
    JSON saved here builds the same STL as vase_gen.py (verified to 0.1 mm).
    ═══════════════════════════════════════════════════════════════════ */
 const $ = id => document.getElementById(id);
-const FORMATS = { post:{w:1080,h:1350,l:"Post"}, story:{w:1080,h:1920,l:"Story"} };
-const PNAME = { vase:"Vase", planter:"Planter", cup:"Cup", bowl:"Bowl", candle:"Candlestick" };
+const FORMATS = { post:{w:1080,h:1350,l:"פוסט"}, story:{w:1080,h:1920,l:"סטורי"} };
+const PNAME = { vase:"אגרטל", planter:"עציץ", cup:"כוס", bowl:"קערה", candle:"פמוט" };
 let FMT = "post", BG = "grad", SOFT = 0, DIM = 0;
 const f0 = v => Math.round(v).toString(), f1 = v => (+v).toFixed(1);
 
@@ -1387,24 +1391,24 @@ const redo = () => { if (hi < hist.length-1) restore(hi+1); };
 
 /* ---- rows, in the gradient page's own markup (.r label range .v) -------- */
 const SPECS = [
-  {k:"height_mm",  g:"body", l:"Height",     min:50,   max:400, st:1,     d:0, mm:()=>"mm"},
-  {k:"r_base",     g:"body", l:"Core radius",min:.30,  max:1.40,st:.01,   d:2, mm:s=>"Ø"+f0(2*P.r_base*s)},
-  {k:"wall",       g:"body", l:"Wall",       min:.06,  max:.30, st:.005,  d:3, mm:s=>f1(P.wall*s)+"mm"},
-  {k:"floor",      g:"body", l:"Floor",      min:.10,  max:.90, st:.01,   d:2, mm:s=>f0(P.floor*s)+"mm"},
-  {k:"panels",     g:"let",  l:"Faces",      min:4,    max:16,  st:1,     d:0, mm:()=>""},
-  {k:"reps",       g:"let",  l:"Repeats",    min:1,    max:4,   st:1,     d:0, mm:()=>""},
-  {k:"letter_size",g:"let",  l:"Letter",     min:.5,   max:1.8, st:.005,  d:2, mm:s=>f0(letterAvg()*P.letter_size*s)+"mm"},
-  {k:"extrude",    g:"let",  l:"Relief",     min:.04,  max:.40, st:.005,  d:2, mm:s=>f1(2*P.extrude*s)+"mm"},
-  {k:"shift",      g:"let",  l:"Stand-off",  min:0,    max:.40, st:.005,  d:2, mm:s=>f1(P.shift*s)+"mm"},
-  {k:"gap",        g:"let",  l:"Overlap",    min:-.05, max:.20, st:.005,  d:3, mm:s=>f1(P.gap*s)+"mm"},
-  {k:"drain_mm",   g:"fn", fn:"drain",  l:"Drain Ø",  min:3,  max:20, st:.5, d:1, mm:()=>"mm"},
-  {k:"socket_mm",  g:"fn", fn:"socket", l:"Socket Ø", min:10, max:40, st:.5, d:1, mm:()=>"mm"},
-  {k:"socket_depth_mm", g:"fn", fn:"socket", l:"Socket depth", min:8, max:50, st:1, d:0, mm:()=>"mm"},
+  {k:"height_mm",  g:"body", l:"גובה",     min:50,   max:400, st:1,     d:0, mm:()=>"mm"},
+  {k:"r_base",     g:"body", l:"רדיוס ליבה",min:.30,  max:1.40,st:.01,   d:2, mm:s=>"Ø"+f0(2*P.r_base*s)},
+  {k:"wall",       g:"body", l:"דופן",       min:.06,  max:.30, st:.005,  d:3, mm:s=>f1(P.wall*s)+"mm"},
+  {k:"floor",      g:"body", l:"תחתית",      min:.10,  max:.90, st:.01,   d:2, mm:s=>f0(P.floor*s)+"mm"},
+  {k:"panels",     g:"let",  l:"פאות",      min:4,    max:16,  st:1,     d:0, mm:()=>""},
+  {k:"reps",       g:"let",  l:"חזרות",    min:1,    max:4,   st:1,     d:0, mm:()=>""},
+  {k:"letter_size",g:"let",  l:"אות",     min:.5,   max:1.8, st:.005,  d:2, mm:s=>f0(letterAvg()*P.letter_size*s)+"mm"},
+  {k:"extrude",    g:"let",  l:"תבליט",     min:.04,  max:.40, st:.005,  d:2, mm:s=>f1(2*P.extrude*s)+"mm"},
+  {k:"shift",      g:"let",  l:"מרחק",  min:0,    max:.40, st:.005,  d:2, mm:s=>f1(P.shift*s)+"mm"},
+  {k:"gap",        g:"let",  l:"חפיפה",    min:-.05, max:.20, st:.005,  d:3, mm:s=>f1(P.gap*s)+"mm"},
+  {k:"drain_mm",   g:"fn", fn:"drain",  l:"קוטר ניקוז",  min:3,  max:20, st:.5, d:1, mm:()=>"mm"},
+  {k:"socket_mm",  g:"fn", fn:"socket", l:"קוטר בית הנר", min:10, max:40, st:.5, d:1, mm:()=>"mm"},
+  {k:"socket_depth_mm", g:"fn", fn:"socket", l:"עומק בית הנר", min:8, max:50, st:1, d:0, mm:()=>"mm"},
 ];
 const ROWS = {};
 for (const sp of SPECS){
   const row = document.createElement("div"); row.className = "r";
-  row.innerHTML = `<label for="k_${sp.k}" title="Double-click to reset">${sp.l}</label>` +
+  row.innerHTML = `<label for="k_${sp.k}" title="לחיצה כפולה לאיפוס">${sp.l}</label>` +
     `<input type="range" id="k_${sp.k}" min="${sp.min}" max="${sp.max}" step="${sp.st}">` +
     `<span class="v mono" id="v_${sp.k}"></span>`;
   $("rows_" + sp.g).appendChild(row);
@@ -1415,7 +1419,7 @@ for (const sp of SPECS){
   ROWS[sp.k] = {sp, row, rng, v: row.querySelector(".v")};
 }
 /* backdrop rows are view settings, not part of the object or its history */
-for (const [k, l, mx, st] of [["soft","Soften",6,.1],["dim","Dim",.7,.01]]){
+for (const [k, l, mx, st] of [["soft","ריכוך",6,.1],["dim","עמעום",.7,.01]]){
   const row = document.createElement("div"); row.className = "r";
   row.innerHTML = `<label for="bg_${k}">${l}</label><input type="range" id="bg_${k}" min="0" max="${mx}" step="${st}" value="0"><span class="v mono" id="bgv_${k}">0</span>`;
   $("rows_bg").appendChild(row);
@@ -1438,9 +1442,9 @@ function syncRows(s){
   document.querySelectorAll("#fnchips .chip").forEach(b => b.setAttribute("aria-pressed", b.dataset.f === fn));
   let w = "";
   if (fn === "socket" && P.socket_mm > 2*linerR(1)*s - 5)
-    w = `Socket too wide for the core: ${f0(2*linerR(1)*s)} mm at the top, and it needs 2.5 mm of wall each side.`;
+    w = `בית הנר רחב מדי לליבה: ${f0(2*linerR(1)*s)} מ״מ למעלה, וצריך 2.5 מ״מ דופן מכל צד.`;
   if (fn === "drain" && P.drain_mm > 2*cavityR(Math.min(P.floor/staveH(), .98))*s - 6)
-    w = "The drain is nearly as wide as the floor.";
+    w = "חור הניקוז כמעט ברוחב התחתית.";
   $("warn").textContent = w;
 }
 document.querySelectorAll("#fnchips .chip").forEach(b => b.addEventListener("click", ()=>{
@@ -1454,7 +1458,7 @@ document.querySelectorAll("#fnchips .chip").forEach(b => b.addEventListener("cli
 const PCHIP = {};
 for (const key in PRODUCTS){
   const b = document.createElement("button"); b.className = "chip";
-  b.innerHTML = `${PNAME[key]}<span dir="rtl">${PRODUCTS[key].word}</span>`;
+  b.innerHTML = `<span dir="rtl">${PRODUCTS[key].word}</span>`;   // the word is the name now that the page is Hebrew
   b.addEventListener("click", ()=>{
     DEF = productDefaults(key); P = {...DEF}; pts = PRODUCTS[key].shape.map(p=>[...p]);
     $("word").value = ""; update(true); commit();
@@ -1492,11 +1496,11 @@ function shapeName(){
   for (const n in PRESETS) if (JSON.stringify(PRESETS[n]) === k) return n;
   // any product's shape, not just the current product's: a custom word keeps the
   // shape it was started from, and calling that "Custom" was wrong
-  for (const key in PRODUCTS) if (JSON.stringify(PRODUCTS[key].shape) === k) return PNAME[key] + " shape";
-  return "Custom";
+  for (const key in PRODUCTS) if (JSON.stringify(PRODUCTS[key].shape) === k) return "צורת " + PNAME[key];
+  return "מותאם";
 }
 
-const SNAME = {"עגול":"Round","בטן":"Belly","חרוט":"Cone","אמפורה":"Amphora","צוואר":"Neck"};
+const SNAME = {"עגול":"עגול","בטן":"בטן","חרוט":"חרוט","אמפורה":"אמפורה","צוואר":"צוואר"};
 for (const n in SCHIP) SCHIP[n].textContent = SNAME[n] || n;
 
 /* ---- the section ----------------------------------------------------------
@@ -1505,7 +1509,7 @@ for (const n in SCHIP) SCHIP[n].textContent = SNAME[n] || n;
 const INK = n => { const k = RISOKIT.INKS.find(i => i.name === n); return k ? k.hex : null; };
 const C_WALL  = INK("Fluorescent Pink") || RISOKIT.snapInk("#E0567F").hex;
 const C_WATER = INK("Medium Blue") || INK("Blue") || RISOKIT.snapInk("#0078BF").hex;
-$("lg_wall").style.background = C_WALL;  $("lg_wall_n").textContent  = "wall · " + (RISOKIT.nameOf(C_WALL) || C_WALL);
+$("lg_wall").style.background = C_WALL;  $("lg_wall_n").textContent  = "דופן · " + (RISOKIT.nameOf(C_WALL) || C_WALL);
 $("lg_water").style.background = C_WATER;
 const alpha = (hex, a) => { const [r,g,b] = RISOKIT.rgb(hex); return `rgba(${r},${g},${b},${a})`; };
 
@@ -1547,7 +1551,7 @@ function drawProf(s){
     const [xa,ya] = toPx(-sr,1), [xb,yb] = toPx(sr,zs);
     g.fillStyle = alpha(C_WATER,.22); g.fillRect(xa,ya,xb-xa,yb-ya);
     g.strokeStyle = C_WATER; g.lineWidth = 1.4; g.strokeRect(xa,ya,xb-xa,yb-ya);
-    $("lg_water_n").textContent = "candle socket";
+    $("lg_water_n").textContent = "בית לנר";
   } else {
     band(cavityR, zf, 1, alpha(C_WATER,.2));
     g.strokeStyle = C_WATER; g.lineWidth = 1.4;
@@ -1557,7 +1561,7 @@ function drawProf(s){
       g.clearRect(x0, y0, x1-x0, y1-y0);
       g.beginPath(); g.moveTo(x0,y0); g.lineTo(x0,y1); g.moveTo(x1,y0); g.lineTo(x1,y1); g.stroke();
     }
-    $("lg_water_n").textContent = P.drain_mm > 0 ? "soil · drain" : "cavity";
+    $("lg_water_n").textContent = P.drain_mm > 0 ? "אדמה · ניקוז" : "חלל";
   }
   // letter courses at their real heights
   g.strokeStyle = ink; g.globalAlpha = .18; g.setLineDash([2,4]); g.lineWidth = 1;
@@ -1737,7 +1741,7 @@ function loadGrad(){
   gf.addEventListener("load", ()=>{
     let tries = 0;
     const hand = ()=>{ const w = gf.contentWindow;
-      if (!w || !w.TILE){ if (++tries < 100) setTimeout(hand, 80); else noteBg("The Gradient page did not load — showing the studio backdrop."); return; }
+      if (!w || !w.TILE){ if (++tries < 100) setTimeout(hand, 80); else noteBg("דף הפטרנים לא נטען — מוצג רקע הסטודיו."); return; }
       TILE = w.TILE; pushGrad(); };
     hand();
   });
@@ -1748,9 +1752,9 @@ function syncBg(){
   $("gradbtns").style.display = BG === "grad" ? "" : "none";
   $("bgv_soft").textContent = SOFT.toFixed(1); $("bgv_dim").textContent = DIM.toFixed(2);
   fill($("bg_soft"), SOFT, 0, 6); fill($("bg_dim"), DIM, 0, .7);
-  $("sm_bg").textContent = (BG === "grad" ? "word gradient" : "studio") + " · " + LOOP.toFixed(1) + " s";
-  if (BG === "grad" && TILE) noteBg(`The gradient is the one from the Gradient tab, rewritten in ${P.word}. It loops every ${TILE.loopSeconds().toFixed(2)} s, so the object turns once every ${LOOP.toFixed(2)} s — both close on the same frame.`);
-  else if (BG === "studio") noteBg("The backdrop of the Blender loop videos: the gradient's angle turns once and its hue wraps once per loop.");
+  $("sm_bg").textContent = (BG === "grad" ? "פטרן המילה" : "סטודיו") + " · " + LOOP.toFixed(1) + " ש׳";
+  if (BG === "grad" && TILE) noteBg(`הרקע הוא הפטרן מטאב הפטרנים, בנוי מהמילה ${P.word}. הוא חוזר כל ${TILE.loopSeconds().toFixed(2)} ש׳, והחפץ מסתובב פעם אחת כל ${LOOP.toFixed(2)} ש׳ — שניהם נסגרים על אותו פריים.`);
+  else if (BG === "studio") noteBg("הרקע של סרטוני הלולאה מבלנדר: זווית הגרדיאנט מסתובבת פעם אחת והגוון שלו מקיף פעם אחת בכל לולאה.");
   dirty = true;
 }
 document.querySelectorAll("#bgchips .chip").forEach(b => b.addEventListener("click", ()=>{ BG = b.dataset.b; pushGrad(); syncBg(); }));
@@ -1828,8 +1832,8 @@ function loop(t){
   if (rec) recTick(dt);
   requestAnimationFrame(loop);
 }
-const PLAY = '<svg class="i" viewBox="0 0 16 16"><path d="M5 3.5v9l7-4.5z" fill="currentColor"/></svg>Play';
-const PAUSE = '<svg class="i" viewBox="0 0 16 16"><path d="M5 3.5v9M11 3.5v9"/></svg>Pause';
+const PLAY = '<svg class="i" viewBox="0 0 16 16"><path d="M5 3.5v9l7-4.5z" fill="currentColor"/></svg>נגן';
+const PAUSE = '<svg class="i" viewBox="0 0 16 16"><path d="M5 3.5v9M11 3.5v9"/></svg>השהה';
 function setPlaying(v){ playing = v; $("d_play").innerHTML = v ? PAUSE : PLAY; dirty = true; }
 $("d_play").onclick = ()=> setPlaying(!playing);
 
@@ -1846,7 +1850,7 @@ let pressFrame = null, pressOn = false, pressTimer = 0;
 function pressToggle(on){
   pressOn = on; $("d_riso").setAttribute("aria-pressed", String(on));
   if (!on){ clearInterval(pressTimer); pressTimer = 0; if (pressFrame){ pressFrame.remove(); pressFrame = null; } return; }
-  const f = document.createElement("iframe"); f.id = "pressframe"; f.src = "../?embed=1"; f.title = "The Riso press";
+  const f = document.createElement("iframe"); f.id = "pressframe"; f.src = "../?embed=1"; f.title = "מכונת הריזו";
   f.style.cssText = "width:100%;height:100%;border:0;display:block;background:#0c0c0e";
   stage.appendChild(f); pressFrame = f;
   f.addEventListener("load", ()=>{ let tries = 0;
@@ -1867,19 +1871,19 @@ $("d_rec").onclick = ()=>{
   if (rec){ rec.stop(); return; }
   const ok = m => window.MediaRecorder && MediaRecorder.isTypeSupported(m);
   const mime = ["video/mp4;codecs=avc1.42E01E","video/mp4;codecs=avc1","video/mp4","video/webm;codecs=vp9","video/webm"].find(ok);
-  if (!mime){ alert("This browser cannot record video"); return; }
+  if (!mime){ alert("הדפדפן הזה לא יכול להקליט וידאו"); return; }
   recExt = mime.startsWith("video/mp4") ? "mp4" : "webm"; recChunks = [];
   tLoop = 0; recEl = 0; setPlaying(true); dirty = true;
   rec = new MediaRecorder(cv.captureStream(30), {mimeType:mime, videoBitsPerSecond:16e6});
   rec.ondataavailable = e => e.data.size && recChunks.push(e.data);
   rec.onstop = ()=>{ download(new Blob(recChunks, {type:mime}), `${fileBase()}-${FMT}-loop.${recExt}`);
-    rec = null; $("recdot").style.display = "none"; $("d_rec").textContent = "Record"; $("d_rec").classList.add("rec"); };
-  rec.start(); $("recdot").style.display = "flex"; $("d_rec").textContent = "Stop"; $("d_rec").classList.remove("rec");
+    rec = null; $("recdot").style.display = "none"; $("d_rec").textContent = "הקלטה"; $("d_rec").classList.add("rec"); };
+  rec.start(); $("recdot").style.display = "flex"; $("d_rec").textContent = "עצור"; $("d_rec").classList.remove("rec");
 };
 function download(blob, name){ const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href), 5000); }
 $("d_png").onclick = ()=>{ draw(); cv.toBlob(b => download(b, `${fileBase()}-${FMT}.png`), "image/png"); };
-$("b_obj").onclick = async ()=>{ const b = $("b_obj"); b.textContent = "Building…"; const {tris} = await exportOBJ();
-  b.textContent = tris.toLocaleString() + " triangles"; setTimeout(()=> b.textContent = "OBJ for animation", 2200); };
+$("b_obj").onclick = async ()=>{ const b = $("b_obj"); b.textContent = "בונה…"; const {tris} = await exportOBJ();
+  b.textContent = tris.toLocaleString() + " משולשים"; setTimeout(()=> b.textContent = "OBJ לאנימציה", 2200); };
 $("b_json").onclick = ()=> download(new Blob([JSON.stringify(payload(), null, 2)], {type:"application/json"}), fileBase() + ".json");
 
 addEventListener("keydown", e=>{
@@ -1910,12 +1914,12 @@ function update(){
     for (const n in SCHIP) SCHIP[n].setAttribute("aria-pressed", sn === (SNAME[n] || n));
     // the word is Hebrew letters only (filtered on input), so it is safe as markup;
     // <bdi> stops it dragging the numbers after it into right-to-left order
-    $("sm_obj").innerHTML = `<bdi>${P.word}</bdi> · ${({full:"vessel",drain:"drain",socket:"candle"})[fnOf()]}`;
+    $("sm_obj").innerHTML = `<bdi>${P.word}</bdi> · ${({full:"כלי",drain:"ניקוז",socket:"נר"})[fnOf()]}`;
     $("sm_shape").textContent = sn;
     $("sm_body").textContent = `${f0(P.height_mm)} mm · Ø${f0(st.maxD)}`;
     $("sm_let").textContent = `${nlet()*P.reps} × ${P.panels}`;
     $("meta").innerHTML = `<bdi>${P.word}</bdi> · ${f0(P.height_mm)} × Ø${f0(st.maxD)} mm · ` +
-      (fnOf() === "socket" ? `socket Ø${f0(P.socket_mm)}` : `${f0(st.ml)} ml`);
+      (fnOf() === "socket" ? `בית נר Ø${f0(P.socket_mm)}` : `${f0(st.ml)} מ״ל`);
     $("cmd").textContent = `cd ~/word-objects/vase_gen && python3 make_loop.py ~/Downloads/${fileBase()}.json --format ${FMT}`;
     drawProf(s);
     if (P.word !== lastWord){ lastWord = P.word; pushGrad(); }
@@ -1926,7 +1930,7 @@ function update(){
 DEF = productDefaults("vase"); P = {...DEF};
 let glOK = false;
 try { glOK = initGL(); } catch(err){ console.error(err); }
-if (!glOK) stage.insertAdjacentHTML("beforeend", '<p class="note" style="position:absolute">WebGL2 is not available in this browser.</p>');
+if (!glOK) stage.insertAdjacentHTML("beforeend", '<p class="note" style="position:absolute">WebGL2 לא זמין בדפדפן הזה.</p>');
 new ResizeObserver(()=>{ fitBoard(); }).observe(stage);
 new ResizeObserver(()=>{ sizeProf(); drawProf(mmPerU()); }).observe(pc);
 sizeProf(); setPlaying(playing); setFormat("post"); syncBg();
@@ -1957,7 +1961,7 @@ requestAnimationFrame(loop);
     window.dispatchEvent(new Event("resize"));
   }
   function bad(){
-    msg.textContent="WRONG CODE";
+    msg.textContent="קוד שגוי";
     gate.classList.add("bad");
     card.classList.remove("shake"); void card.offsetWidth; card.classList.add("shake");
     inp.select();
@@ -2484,6 +2488,17 @@ h1,h2,h3,#masthead h1,.head h1,#gatecard h1,.sec .nm{letter-spacing:.04em}
 .mono,#stat,#vidtime,#meta,#fps,.sec .sm,.val,.v,[id^="v_"],#inkline,#code,
 #pad button,.build{
   font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace;
+}
+
+/* ----------------------------------------------------------- Hebrew --- */
+
+/* Every page speaks Hebrew. Japanatsuki has no Hebrew, so Hebrew falls through
+   to Assistant or the system's Hebrew face while Latin and the machine's own
+   words stay in Japanatsuki. The wide tracking Japanatsuki needs pulls Hebrew
+   apart, so on a Hebrew page it comes back almost to nothing. */
+html[lang="he"] :is(body,button,input,select,textarea,label,h1,h2,h3,summary,.nm,.lab,.note,.head p,.tabs a,.tabs a small,#drop,#gatecard,.chip,.b,#lamps,#enter){
+  font-family:"Japanatsuki","Assistant","Heebo",-apple-system,BlinkMacSystemFont,"Arial Hebrew",Arial,sans-serif;
+  letter-spacing:.01em;
 }
 </style>
 </body>
