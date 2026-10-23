@@ -841,6 +841,15 @@ global.RISOKIT = {
   #roles b{font:17px/1 "Haim",system-ui,sans-serif;font-weight:400;color:var(--txt)}
   #inks{display:flex;gap:9px;flex-wrap:wrap;margin:4px 0 10px}
   #inks .chip.off{opacity:.38}
+  #titletext{direction:rtl;text-align:right;font:20px/1.2 "Haim",system-ui,sans-serif;letter-spacing:.04em;padding:7px 10px;margin-block-end:4px}
+  .gallery{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:2px 0 6px}
+  .gal{cursor:pointer;border-radius:5px;overflow:hidden;background:#00000014;
+    box-shadow:0 1px 2px #00000033,inset 0 0 0 1px #0000001f;transition:transform .14s,box-shadow .14s}
+  .gal:hover{transform:translateY(-1px);box-shadow:0 3px 8px #00000038,inset 0 0 0 1px #0000001f}
+  .gal img{display:block;width:100%;aspect-ratio:4/5;object-fit:cover;background:#0000000f}
+  .gal span{display:block;font-size:10.5px;line-height:1.2;padding:4px 3px 5px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .gal[aria-pressed=true]{box-shadow:0 0 0 2px var(--m-red,#c8412d),0 3px 8px #00000038}
+  .gal:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   .inksets{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:2px 0 10px}
   .inkset{display:flex;height:20px;border-radius:5px;overflow:hidden;cursor:pointer;
     box-shadow:inset 0 0 0 1px #0000002e,0 1px 2px #00000026;transition:transform .12s}
@@ -862,7 +871,7 @@ global.RISOKIT = {
   <div class="head">
     <h1>פטרנים</h1>
     <p>פטרנים שבנויים כולם מאותיות חיים — כל קו, מסגרת ומילוי הוא אות</p>
-    <nav class="tabs" aria-label="Systems"><a href="../?v=b4bd0b6">ריזו<small>מכונת דפוס</small></a><a href="./" aria-current="page">פטרנים<small>פטרנים מאותיות</small></a><a href="../objects/?v=b4bd0b6">אובייקטים<small>מילים כחפצים</small></a></nav><div class="build" title="Build version">23.10 11:35 · b4bd0b6</div>
+    <nav class="tabs" aria-label="Systems"><a href="../?v=02f8695">ריזו<small>מכונת דפוס</small></a><a href="./" aria-current="page">פטרנים<small>פטרנים מאותיות</small></a><a href="../objects/?v=02f8695">אובייקטים<small>מילים כחפצים</small></a></nav><div class="build" title="Build version">23.10 14:43 · 02f8695</div>
     <div class="seg" role="group" aria-label="פורמט">
       <button id="f_post" aria-pressed="true">פוסט<small>1080 × 1350</small></button>
       <button id="f_story" aria-pressed="false">סטורי<small>1080 × 1920</small></button>
@@ -897,6 +906,13 @@ global.RISOKIT = {
    ═══════════════════════════════════════════════════════════════════ */
 const FORMATS = { post:{w:1080,h:1350,l:"Post"}, story:{w:1080,h:1920,l:"Story"} };
 const ABC = "אבגדהוזחטיכלמנסעפצקרשת";
+/* Haim Medium's own outlines for the letters this page sets, lifted from the
+   embedded font with fontTools: each path is centred on its ink box (the same
+   centre put() uses on the canvas) with y pointing down, plus the advance and
+   the ink-box centre in font units, so vector output lands where the pixels do. */
+const HAIM_PATHS={"א":{"d":"M-261.5 262.5H-115.5V103.5L-54.5 50.5L91.5 262.5H267.5L141.5 75.5L267.5 -35.5V-262.5H121.5V-102.5L58.5 -45.5L-90.5 -262.5H-267.5L-135.5 -70.5L-261.5 35.5Z","w":535.0,"h":525.0,"cx":302.5,"cy":262.5,"a":605},"ב":{"d":"M-284.5 262.5H284.5V116.5H224.5V-262.5H-284.5V-116.5H78.5V116.5H-284.5Z","w":569.0,"h":525.0,"cx":319.5,"cy":262.5,"a":635},"ג":{"d":"M-194.5 262.5H-42.5L-7.5 70.5L42.5 262.5H194.5L57.5 -262.5H-153.5V-116.5H-52.5L-12.5 55.5H-153.5Z","w":389.0,"h":525.0,"cx":217.5,"cy":262.5,"a":435},"ד":{"d":"M45.5 262.5H191.5V-116.5H252.5V-262.5H-252.5V-116.5H45.5Z","w":505.0,"h":525.0,"cx":284.5,"cy":262.5,"a":575},"ה":{"d":"M106 262.5H252V-262.5H-252V-116.5H106ZM-252 262.5H-106V10.5H-252Z","w":504.0,"h":525.0,"cx":294.0,"cy":262.5,"a":588},"ו":{"d":"M-73 262.5H73V-262.5H-73Z","w":146.0,"h":525.0,"cx":115.0,"cy":262.5,"a":230},"ז":{"d":"M-73 262.5H73V-116.5H144V-262.5H-144V-116.5H-73Z","w":288.0,"h":525.0,"cx":174.0,"cy":262.5,"a":347},"ח":{"d":"M-252 262.5H-106V-116.5H105V262.5H252V-262.5H-252Z","w":504.0,"h":525.0,"cx":294.0,"cy":262.5,"a":588},"ט":{"d":"M-262.5 262.5H262.5V-262.5H18.5L-97.5 -19.5H50.5L95.5 -116.5H116.5V116.5H-116.5V-262.5H-262.5Z","w":525.0,"h":525.0,"cx":304.5,"cy":262.5,"a":609},"י":{"d":"M-73.5 113.5H73.5V-113.5H-73.5Z","w":147.0,"h":227.0,"cx":115.5,"cy":411.5,"a":231},"כ":{"d":"M-254.5 262.5H134.5L254.5 116.5V-262.5H-254.5V-116.5H108.5V60.5L63.5 116.5H-254.5Z","w":509.0,"h":525.0,"cx":289.5,"cy":262.5,"a":586},"ל":{"d":"M-93 295H99L255 108V-230H-108V-295H-255V-84H109V58Z","w":510.0,"h":590.0,"cx":297.0,"cy":295.0,"a":594},"מ":{"d":"M-265 262.5H-104L89 -116.5H119V116.5H43V262.5H265V-262.5H-2L-108 -49.5V-262.5H-254V-35.5H-114Z","w":530.0,"h":525.0,"cx":287.0,"cy":262.5,"a":594},"נ":{"d":"M-116 262.5H116V-262.5H-116V-116.5H-30V116.5H-116Z","w":232.0,"h":525.0,"cx":151.0,"cy":262.5,"a":309},"ס":{"d":"M-259.5 262.5H138.5L259.5 116.5V-262.5H-259.5ZM-113.5 116.5V-116.5H113.5V60.5L68.5 116.5Z","w":519.0,"h":525.0,"cx":301.5,"cy":262.5,"a":603},"ע":{"d":"M-254.5 262.5H134.5L254.5 116.5V-262.5H108.5V60.5L63.5 116.5H-27.5V-262.5H-173.5V116.5H-254.5Z","w":509.0,"h":525.0,"cx":289.5,"cy":262.5,"a":586},"פ":{"d":"M-262 262.5H262V-262.5H-262V-116.5H-191V-3.5H-45V-116.5H116V116.5H-262Z","w":524.0,"h":525.0,"cx":297.0,"cy":262.5,"a":601},"צ":{"d":"M-262.5 262.5H262.5L106.5 24.5H244.5V-262.5H98.5V15.5L-84.5 -262.5H-262.5L-11.5 116.5H-262.5Z","w":525.0,"h":525.0,"cx":297.5,"cy":262.5,"a":589},"ק":{"d":"M-61 204.5H131L262 52.5V-320.5H-262V-174.5H116V2.5ZM-262 320.5H-116V-52.5H-262Z","w":524.0,"h":641.0,"cx":304.0,"cy":204.5,"a":608},"ר":{"d":"M90 262.5H236V-262.5H-236V-116.5H90Z","w":472.0,"h":525.0,"cx":271.0,"cy":262.5,"a":549},"ש":{"d":"M-325.5 262.5H179.5L325.5 116.5V-262.5H179.5V70.5L134.5 116.5H73.5V-262.5H-72.5V116.5H-179.5V-262.5H-325.5Z","w":651.0,"h":525.0,"cx":367.5,"cy":262.5,"a":735},"ת":{"d":"M-302 262.5H-55V-116.5H156V262.5H302V-262.5H-201V116.5H-302Z","w":604.0,"h":525.0,"cx":337.0,"cy":262.5,"a":681},"ך":{"d":"M97.5 310.5H244.5V-310.5H-244.5V-164.5H97.5Z","w":489.0,"h":621.0,"cx":264.5,"cy":214.5,"a":551},"ם":{"d":"M-262 262.5H262V-262.5H-262ZM-116 116.5V-116.5H115V116.5Z","w":524.0,"h":525.0,"cx":304.0,"cy":262.5,"a":608},"ן":{"d":"M-73 310.5H73V-310.5H-73Z","w":146.0,"h":621.0,"cx":115.0,"cy":214.5,"a":230},"ף":{"d":"M115.5 320.5H261.5V-320.5H-261.5V-174.5H-191.5V-61.5H-45.5V-174.5H115.5Z","w":523.0,"h":641.0,"cx":282.5,"cy":204.5,"a":586},"ץ":{"d":"M-216 320.5H-70V79.5L216 -87.5V-320.5H70V-157.5L-70 -87.5V-320.5H-216Z","w":432.0,"h":641.0,"cx":254.0,"cy":204.5,"a":507}};
+const HAIM_SPACE=302, HAIM_UPM=1000;
+
 const KIT = window.RISOKIT || null;
 const PAPER = "#F6F1E7";
 const INKS = KIT ? KIT.INKS.map(k=>[k.name,k.hex]) : [["Black","#000000"],["Federal Blue","#3D5588"],["Marine Red","#D2515E"],
@@ -908,7 +924,8 @@ const inkName = h => { const k=ALLINK.find(c=>c[1].toUpperCase()===String(h).toU
 /* ---- state ---- */
 const DEF = () => ({ format:"post", recipe:"tile", letters:"סםלגט",
   inks:["#D2515E","#3D5588","#00838A","#FF6C2F","#FFAE3B","#F984CA"],
-  scale:1, size:1, spacing:1, motion:"spin", speed:1, smear:0, seed:7 });
+  scale:1, size:1, spacing:1, motion:"spin", speed:1, smear:0, seed:7,
+  title:{text:"",size:1,pos:"center",style:"box",ink:1,track:.06} });
 let ST = DEF();
 
 /* ---- the type primitive ---- */
@@ -923,6 +940,7 @@ function box(ch){
 /* one letter, centred on its ink, at type size s (the cap height of ה) —
    a shared em, so every letter keeps its real proportions */
 function put(g,ch,x,y,s,col,rot){
+  if(g._rec){ g._rec.t(ch,x,y,s,col,rot||0); return; }
   const b=box(ch), k=s/box("ה").h, c=Math.cos(rot||0), n=Math.sin(rot||0);
   g.setTransform(k*g._a*c, k*g._b*n, -k*g._a*n, k*g._b*c, g._a*x, g._b*y);
   g.fillStyle=col; g.fillText(ch,-b.cx,-b.cy);
@@ -1432,6 +1450,9 @@ const snap=document.createElement("canvas"), sg=snap.getContext("2d");
 function smear(){
   if(!ST.smear) return;
   if(snap.width!==cv.width||snap.height!==cv.height){ snap.width=cv.width; snap.height=cv.height; }
+  /* the same stale-snapshot trap as the tile: read a pixel back first, or the
+     first frame after a change smears what was on the sheet before it */
+  ctx.getImageData(0,0,1,1);
   sg.setTransform(1,0,0,1,0,0); sg.clearRect(0,0,snap.width,snap.height); sg.drawImage(cv,0,0);
   const r=rng(ST.seed*7919+3), u=1080/440;
   const strip=document.createElement("canvas"), st=strip.getContext("2d");
@@ -1465,6 +1486,7 @@ function drawFrame(t){
     ctx.setTransform(1,0,0,1,0,0); ctx.fillStyle=p; ctx.fillRect(0,0,cv.width,cv.height);
   }
   smear();
+  drawTitle();
 }
 
 function fitBoard(){
@@ -1515,7 +1537,7 @@ let ptimer=0;
 const LSK="gradient-word-system:v2";       // the key the Objects page reads "my pattern" from
 const persist=()=>{ try{ localStorage.setItem(LSK, JSON.stringify(ST)); }catch{} };
 const saveDebounced=()=>{ clearTimeout(ptimer); ptimer=setTimeout(persist,400); };
-function changed(){ tileKey=""; syncAll(); saveDebounced(); if(pressOn) pressInks(); }
+function changed(){ tileKey=""; syncAll(); saveDebounced(); snapSoon(); if(pressOn) pressInks(); }
 
 function section(nm,open,sum){
   const d=document.createElement("details"); d.className="sec"; d.open=open;
@@ -1544,10 +1566,30 @@ function useRecipe(id){
 }
 for(const [g,lab] of [["read","קריאים — המילה נקראת"],["mid","באמצע — האותיות נראות, המבנה קודם"],["abstract","מופשטים — האותיות הן החומר"]]){
   rc.appendChild(labeled(lab));
-  const row=document.createElement("div"); row.className="chips"; rc.appendChild(row);
+  const row=document.createElement("div"); row.className="gallery"; rc.appendChild(row);
   for(const id in RECIPES){ if(RECIPES[id].group!==g) continue;
-    const b=document.createElement("button"); b.className="chip"; b.type="button"; b.textContent=RECIPES[id].name; b.dataset.r=id;
-    b.onclick=()=>useRecipe(id); row.appendChild(b); }
+    const b=document.createElement("div"); b.className="gal"; b.setAttribute("role","button"); b.tabIndex=0; b.dataset.r=id;
+    b.title=RECIPES[id].hint;
+    b.innerHTML=`<img alt=""><span>${RECIPES[id].name}</span>`;
+    b.onclick=()=>useRecipe(id);
+    b.onkeydown=e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); useRecipe(id); } };
+    row.appendChild(b); }
+}
+/* Each structure is shown as itself, in its own letters and inks, rendered by
+   this page once the face has loaded — a name says much less than a swatch.
+   The middle of the sheet, cropped, so the letters are big enough to see. */
+function thumbnails(){
+  const save=JSON.stringify(ST), k0=K, tc=document.createElement("canvas"), tx=tc.getContext("2d");
+  tc.width=176; tc.height=220; exporting=true;
+  try{
+    for(const el of rc.querySelectorAll("[data-r]")){
+      const id=el.dataset.r, R=RECIPES[id];
+      ST=adopt({recipe:id, letters:R.letters, inks:R.look?R.look.inks:JSON.parse(save).inks, motion:"still", format:"post"});
+      K=.42; setupCanvases(); tileKey=""; drawFrame(0);
+      tx.drawImage(cv,cv.width*.25,cv.height*.25,cv.width*.5,cv.height*.5,0,0,tc.width,tc.height);
+      el.querySelector("img").src=tc.toDataURL("image/png");
+    }
+  } finally { ST=adopt(JSON.parse(save)); K=k0; setupCanvases(); tileKey=""; still=""; exporting=false; }
 }
 const hint=document.createElement("div"); hint.className="note"; hint.style.marginBlockStart="0"; sStruct.appendChild(hint);
 sStruct.appendChild(labeled("אותיות"));
@@ -1562,7 +1604,7 @@ $("b_recipeLetters").onclick=()=>{ ST.letters=RECIPES[ST.recipe].letters; change
 $("b_randLetters").onclick=()=>{ const R=RECIPES[ST.recipe], n=R.word?3+((Math.random()*3)|0):R.roles.length; ST.letters=Array.from({length:n},()=>ABC[(Math.random()*ABC.length)|0]).join(""); changed(); };
 bound.push(()=>{
   const R=RECIPES[ST.recipe], list=letterList();
-  rc.querySelectorAll(".chip").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.r===ST.recipe)));
+  rc.querySelectorAll("[data-r]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.r===ST.recipe)));
   hint.textContent=R.hint;
   if(document.activeElement!==lt) lt.value=ST.letters;
   roles.innerHTML=R.word ? `<span><b>${list.join("")}</b>המילה כולה</span>` : R.roles.map((r,i)=>`<span><b>${list[i%list.length]}</b>${r}</span>`).join("")
@@ -1638,6 +1680,33 @@ const fn=document.createElement("div"); fn.className="note";
 fn.textContent="מריחה גוררת פס דק מהדף הצידה או למטה ומעמעמת אותו, כמו הדפסה שנמשכה כשהדיו עוד רטוב. הזרע קובע איפה, וגם את הפיזור בקליידוסקופ.";
 sFin.appendChild(fn);
 
+/* ---- title ---- */
+const sTit=section("כותרת",false,()=>ST.title.text?ST.title.text:"בלי");
+const ti=document.createElement("input"); ti.type="text"; ti.id="titletext"; ti.maxLength=40;
+ti.setAttribute("aria-label","כותרת על הפטרן"); ti.placeholder="מילה או שורה על הפטרן";
+ti.oninput=()=>{ ST.title.text=ti.value; changed(); }; sTit.appendChild(ti);
+function choice(body,label,key,opts){
+  body.appendChild(labeled(label));
+  const row=document.createElement("div"); row.className="chips"; body.appendChild(row);
+  for(const [v,l] of opts){ const b=document.createElement("button"); b.className="chip"; b.type="button"; b.textContent=l; b.dataset.v=v;
+    b.onclick=()=>{ ST.title[key]=isNaN(+v)?v:+v; changed(); }; row.appendChild(b); }
+  bound.push(()=>row.querySelectorAll(".chip").forEach(b=>b.setAttribute("aria-pressed",String(String(ST.title[key])===b.dataset.v))));
+}
+choice(sTit,"מיקום","pos",[["top","למעלה"],["center","מרכז"],["bottom","למטה"]]);
+choice(sTit,"סגנון","style",[["box","פאנל"],["halo","הילה"],["plain","נקי"]]);
+choice(sTit,"דיו","ink",[[1,"1"],[2,"2"],[3,"3"],[4,"4"],[5,"5"]]);
+for(const [key,label,min,max,step] of [["size","גודל",.35,2.4,.01],["track","ריווח",-.05,.6,.01]]){
+  const row=document.createElement("div"); row.className="r";
+  row.innerHTML=`<label for="t_${key}">${label}</label><input type="range" id="t_${key}" min="${min}" max="${max}" step="${step}"><span class="v mono"></span>`;
+  const el=row.querySelector("input"), vv=row.querySelector(".v");
+  el.oninput=()=>{ ST.title[key]=parseFloat(el.value); vv.textContent=num(ST.title[key]); fills(el); changed(); };
+  bound.push(()=>{ el.value=ST.title[key]; vv.textContent=num(ST.title[key]); fills(el); });
+  sTit.appendChild(row);
+}
+bound.push(()=>{ if(document.activeElement!==ti) ti.value=ST.title.text;
+  /* the ink chips wear the inks they stand for */
+  sTit.querySelectorAll('.chip[data-v]').forEach(b=>{ if(/^[1-5]$/.test(b.dataset.v)){ b.style.boxShadow=`inset 0 -4px 0 ${ST.inks[+b.dataset.v]}`; b.title=inkName(ST.inks[+b.dataset.v]); } }); });
+
 /* ---- looks ---- */
 const LOOKS={
   "אריח · אדום":   {recipe:"tile",letters:"סםלגט",inks:["#D2515E","#3D5588","#00838A","#FF6C2F","#FFAE3B","#F984CA"],motion:"spin"},
@@ -1703,6 +1772,13 @@ eb.innerHTML=`
   <div class="r"><label for="e_scale">גודל PNG</label>
     <select id="e_scale"><option value="1">1× (1080)</option><option value="2">2× (2160)</option><option value="3">3× (3240)</option></select></div>
   <button class="b" id="b_tile" style="width:100%;margin-block-start:6px">${svg("down")}אריח רציף PNG</button>
+  <div class="lab">וקטור והדפסה</div>
+  <div class="grid2">
+    <button class="b" id="b_svg" title="הדף כולו בקווי המתאר של חיים — נפתח באילוסטרייטור">${svg("down")}SVG של הדף</button>
+    <button class="b" id="b_svgtile" title="חזרה אחת, וקטורית — לסוואץ׳ של פטרן">${svg("down")}אריח SVG</button>
+  </div>
+  <button class="b solid" id="b_seps" style="width:100%;margin-block-start:6px" title="מאסטר שחור־לבן לכל גליל, בסדר ההדפסה, מוכן למכונת ריזו אמיתית">${svg("down")}הפרדות לריזו · ZIP</button>
+  <div class="note" id="sepnote"></div>
   <div class="lab">וידאו</div>
   <div class="r"><label for="e_len">אורך</label>
     <select id="e_len"><option value="loop">לולאה אחת</option><option value="2">שתי לולאות</option><option value="6">6 שניות</option><option value="10">10 שניות</option></select></div>
@@ -1710,12 +1786,17 @@ eb.innerHTML=`
     <select id="e_vfmt"><option value="mp4">MP4 (H.264)</option><option value="webm">WebM (VP9)</option></select></div>
   <button class="b rec" id="b_rec" style="width:100%;margin-block-start:8px">${svg("rec")}הקלטת וידאו</button>
   <div class="lab">הגדרות</div>
+  <div class="grid3">
+    <button class="b" id="b_undo" title="⌘Z">בטל</button>
+    <button class="b" id="b_redo" title="⇧⌘Z">בצע שוב</button>
+    <button class="b" id="b_link" title="קישור שמכיל את כל העיצוב">${svg("copy")}קישור</button>
+  </div>
   <div class="grid2">
     <button class="b" id="b_copy">${svg("copy")}העתק</button>
     <button class="b" id="b_load">טען</button>
   </div>
   <textarea id="e_json" spellcheck="false" aria-label="הגדרות JSON"></textarea>
-  <div class="note"><kbd>Space</kbd> נגן / עצור · <kbd>S</kbd> PNG · <kbd>R</kbd> אקראי · <kbd>1</kbd>/<kbd>2</kbd> פורמט<br>
+  <div class="note"><kbd>Space</kbd> נגן / עצור · <kbd>S</kbd> PNG · <kbd>R</kbd> אקראי · <kbd>1</kbd>/<kbd>2</kbd> פורמט · <kbd>⌘Z</kbd> בטל<br>
   כל תנועה נסגרת בדיוק על לולאה אחת, כך שלולאה מוקלטת חוזרת בלי קפיצה. כשהריזו דולק, ה-PNG והווידאו יוצאים מהמכונה, עם ההדפסה.</div>`;
 exp.appendChild(eb); secWrap.appendChild(exp);
 
@@ -1789,12 +1870,231 @@ function adopt(o){
   for(const k of ["scale","size","spacing","speed","smear","seed"]) if(typeof o[k]==="number"&&isFinite(o[k])) d[k]=o[k];
   if(["still","drift","spin","cycle"].includes(o.motion)) d.motion=o.motion;
   if(FORMATS[o.format]) d.format=o.format;
+  if(o.title&&typeof o.title==="object"){ const T=o.title, D=d.title;
+    if(typeof T.text==="string") D.text=T.text.slice(0,40);
+    for(const k of ["size","track"]) if(typeof T[k]==="number"&&isFinite(T[k])) D[k]=T[k];
+    if(["top","center","bottom"].includes(T.pos)) D.pos=T.pos;
+    if(["box","halo","plain"].includes(T.style)) D.style=T.style;
+    if(Number.isInteger(T.ink)&&T.ink>=0&&T.ink<6) D.ink=T.ink; }
   return d;
 }
 $("b_load").onclick=()=>{
   try{ ST=adopt(JSON.parse($("e_json").value)); setFormat(ST.format); changed(); }
   catch(e){ $("b_load").textContent="JSON לא תקין"; setTimeout(()=>$("b_load").textContent="טען",1500); }
 };
+$("b_svg").onclick=()=>download(new Blob([sheetSVG()],{type:"image/svg+xml"}),`${fileBase()}-${stamp()}.svg`);
+$("b_svgtile").onclick=()=>{ const s=tileSVG(); if(s) download(new Blob([s],{type:"image/svg+xml"}),`patterns-${ST.recipe}-tile-${stamp()}.svg`); };
+$("b_seps").onclick=async()=>{
+  const b=$("b_seps"); b.disabled=true; b.textContent="מפריד גלילים…";
+  try{ download(await separationsZip(parseInt($("e_scale").value,10)),`${fileBase()}-riso-${stamp()}.zip`); }
+  finally{ b.disabled=false; b.innerHTML=svg("down")+"הפרדות לריזו · ZIP"; }
+};
+$("b_link").onclick=async()=>{
+  const u=shareURL(); history.replaceState(null,"",u);
+  try{ await navigator.clipboard.writeText(u); $("b_link").innerHTML=svg("copy")+"הועתק"; }catch{ $("e_json").value=u; $("b_link").innerHTML=svg("copy")+"בתיבה"; }
+  setTimeout(()=>$("b_link").innerHTML=svg("copy")+"קישור",1500);
+};
+$("b_undo").onclick=undo; $("b_redo").onclick=redo;
+bound.push(()=>{
+  const d=!!RECIPES[ST.recipe].direct; $("b_svgtile").disabled=d;
+  const {paper,drums}=drumsUsed();
+  $("sepnote").textContent=`${drums.length} גלילים, בסדר ההדפסה: ${drums.map(inkName).join(" ← ")}`+(paper?` · על ${inkName(paper)}`:" · הרקע הוא גליל");
+});
+
+/* ═══════════════════════════════════════════════════════════════════
+   VECTOR · SEPARATIONS
+
+   The canvas is one rendering of the placements; SVG is another. Every mark
+   was already a (letter, position, size, angle, ink) record before it was
+   pixels, so the vector file is written from the same records with Haim's own
+   outlines — not traced. A tiled structure goes out as an SVG <pattern> of one
+   repeat, which clips exactly the way the tile canvas does; a structure set
+   straight onto the sheet is recorded through a stand-in context that put()
+   recognises. Smear is a raster effect and has no vector form.
+   ═══════════════════════════════════════════════════════════════════ */
+const fx=(v,d=2)=>String(+(+v).toFixed(d));
+function SvgWriter(){
+  /* Blending is set on each mark, not on a group: a multiplied group would
+     composite its own letters normally first and only then multiply onto the
+     page, so two grids inside it would cover each other instead of overprinting. */
+  const used=new Set(), parts=[]; let blend="source-over";
+  const bl=()=>blend==="source-over"?"":` style="mix-blend-mode:${blend}"`;
+  return { used, parts,
+    mode(m){ blend=m; },
+    end(){ blend="source-over"; },
+    t(ch,x,y,s,col,rot){ const P=HAIM_PATHS[ch]; if(!P) return; used.add(ch);
+      parts.push(`<use xlink:href="#h${ch.codePointAt(0)}" transform="translate(${fx(x)} ${fx(y)})${rot?` rotate(${fx(rot*180/Math.PI,3)})`:""} scale(${fx(s/HAIM_PATHS["ה"].h,5)})" fill="${col}"${bl()}/>`); },
+    r(x,y,w,h,col){ parts.push(`<rect x="${fx(x)}" y="${fx(y)}" width="${fx(w)}" height="${fx(h)}" fill="${col}"${bl()}/>`); },
+    c(x,y,r,col){ parts.push(`<circle cx="${fx(x)}" cy="${fx(y)}" r="${fx(r)}" fill="${col}"${bl()}/>`); },
+    defs(){ return [...used].map(ch=>`<path id="h${ch.codePointAt(0)}" d="${HAIM_PATHS[ch].d}"/>`).join(""); }
+  };
+}
+/* the same culling the tile renderer does, so the file holds what the pixels hold */
+function writeOps(w,out){
+  const [TW,TH]=out.period, offs=out.wrap?[-1,0,1]:[0];
+  for(const op of out.ops){
+    if(op[0]==="m"){ w.mode(op[1]); continue; }
+    for(const ix of offs) for(const iy of offs){ const dx=ix*TW, dy=iy*TH;
+      if(op[0]==="r"){ w.r(op[1]+dx,op[2]+dy,op[3],op[4],op[5]); continue; }
+      if(op[0]==="c"){ w.c(op[1]+dx,op[2]+dy,op[3],op[4]); continue; }
+      const [,c,x,y,s,col,rot]=op, m=s*1.6, X=x+dx, Y=y+dy;
+      if(X<-m||Y<-m||X>TW+m||Y>TH+m) continue;
+      w.t(c,X,Y,s,col,rot); } }
+  w.end();
+}
+/* a context that draws nothing and remembers everything put() is asked to set */
+function recorder(w){
+  return { _a:1, _b:1, _rec:w, font:"", textBaseline:"", textAlign:"", fillStyle:"",
+    set globalCompositeOperation(m){ w.mode(m); }, get globalCompositeOperation(){ return "source-over"; },
+    setTransform(){}, fillText(){} };
+}
+const phaseNow=()=>{ const Ls=loopSecs(); return Ls?((clock%Ls)/Ls+1)%1:0; };
+const svgDoc=(W,H,defs,body)=>`<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${fx(W)}" height="${fx(H)}" viewBox="0 0 ${fx(W)} ${fx(H)}"><defs>${defs}</defs>${body}</svg>\n`;
+function sheetSVG(){
+  const R=RECIPES[ST.recipe], f=FORMATS[ST.format], W=f.w, H=f.h, ph=phaseNow(), X=context(ph), w=SvgWriter();
+  let pat="", body="";
+  if(R.direct){ R.direct(recorder(w),X,W,H); w.end(); body=w.parts.join(""); }
+  else {
+    const out=R.build(X), [TW,TH]=out.period, [dx,dy]=R.drift, o=ST.motion==="drift"?ph:0;
+    writeOps(w,out);
+    pat=`<pattern id="repeat" patternUnits="userSpaceOnUse" width="${fx(TW,4)}" height="${fx(TH,4)}" patternTransform="translate(${fx(o*dx*TW)} ${fx(o*dy*TH)})"><rect width="${fx(TW,4)}" height="${fx(TH,4)}" fill="${ST.inks[0]}"/>${w.parts.join("")}</pattern>`;
+    body=`<rect width="${W}" height="${H}" fill="url(#repeat)"/>`;
+  }
+  const tw=SvgWriter(); titleOps(tw,W,H); tw.end();
+  for(const ch of tw.used) w.used.add(ch);
+  return svgDoc(W,H,w.defs()+pat,`<rect width="${W}" height="${H}" fill="${ST.inks[0]}"/>`+body+tw.parts.join(""));
+}
+function tileSVG(){
+  const R=RECIPES[ST.recipe]; if(R.direct) return null;
+  const out=R.build(context(phaseNow())), [TW,TH]=out.period, w=SvgWriter();
+  writeOps(w,out);
+  return svgDoc(TW,TH,w.defs(),`<rect width="${fx(TW,4)}" height="${fx(TH,4)}" fill="${ST.inks[0]}"/>`+w.parts.join(""));
+}
+
+/* ---- a stored (uncompressed) ZIP: PNGs are already compressed, and a
+   forty-line writer beats pulling a library onto a gated static page ---- */
+const CRC_T=(()=>{ const t=new Uint32Array(256); for(let n=0;n<256;n++){ let c=n; for(let k=0;k<8;k++) c=c&1?0xEDB88320^(c>>>1):c>>>1; t[n]=c>>>0; } return t; })();
+function crc32(u){ let c=0xFFFFFFFF; for(let i=0;i<u.length;i++) c=CRC_T[(c^u[i])&255]^(c>>>8); return (c^0xFFFFFFFF)>>>0; }
+function zipStore(files){
+  const enc=new TextEncoder(), chunks=[], central=[]; let off=0;
+  for(const f of files){
+    const name=enc.encode(f.name), d=f.data, crc=crc32(d);
+    const h=new DataView(new ArrayBuffer(30));
+    h.setUint32(0,0x04034b50,true); h.setUint16(4,20,true); h.setUint16(6,0x0800,true); h.setUint16(8,0,true);
+    h.setUint16(10,0,true); h.setUint16(12,0x21,true); h.setUint32(14,crc,true); h.setUint32(18,d.length,true);
+    h.setUint32(22,d.length,true); h.setUint16(26,name.length,true); h.setUint16(28,0,true);
+    chunks.push(new Uint8Array(h.buffer),name,d);
+    const c=new DataView(new ArrayBuffer(46));
+    c.setUint32(0,0x02014b50,true); c.setUint16(4,20,true); c.setUint16(6,20,true); c.setUint16(8,0x0800,true);
+    c.setUint16(10,0,true); c.setUint16(12,0,true); c.setUint16(14,0x21,true); c.setUint32(16,crc,true);
+    c.setUint32(20,d.length,true); c.setUint32(24,d.length,true); c.setUint16(28,name.length,true);
+    c.setUint32(42,off,true);
+    central.push(new Uint8Array(c.buffer),name);
+    off+=30+name.length+d.length;
+  }
+  const size=central.reduce((s,a)=>s+a.length,0), e=new DataView(new ArrayBuffer(22));
+  e.setUint32(0,0x06054b50,true); e.setUint16(8,files.length,true); e.setUint16(10,files.length,true);
+  e.setUint32(12,size,true); e.setUint32(16,off,true);
+  return new Blob([...chunks,...central,new Uint8Array(e.buffer)],{type:"application/zip"});
+}
+const blobOf=c=>new Promise(r=>c.toBlob(r,"image/png"));
+const bytesOf=async c=>new Uint8Array(await (await blobOf(c)).arrayBuffer());
+const lumHex=h=>{ const v=[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)/255); return .2126*v[0]+.7152*v[1]+.0722*v[2]; };
+
+/* The drums this sheet actually uses. A paper ground is the sheet, not a drum;
+   a flooded ground is one more drum. Lightest first: on a Riso the light inks
+   go down first so the dark ones can sit on top of them. */
+function drumsUsed(){
+  const R=RECIPES[ST.recipe], g0=ST.inks[0].toUpperCase();
+  const paper=PAPERS.some(p=>p[1].toUpperCase()===g0)||g0===PAPER.toUpperCase(), d=[];
+  ST.inks.forEach((h,i)=>{ if(i===0&&paper) return; if(i>0&&R.inkRoles[i]==="—") return;
+    if(!d.some(x=>x.toUpperCase()===h.toUpperCase())) d.push(h); });
+  if(ST.title&&ST.title.text){ const h=ST.inks[ST.title.ink]||ST.inks[1]; if(!d.some(x=>x.toUpperCase()===h.toUpperCase())) d.push(h); }
+  return {paper:paper?ST.inks[0]:null, drums:d.sort((a,b)=>lumHex(b)-lumHex(a))};
+}
+let exporting=false;
+/* One master per drum, black where that drum prints and white everywhere else,
+   drawn by the same renderer with every other ink set to white — so knockouts,
+   overprints and the smear land on each plate exactly as on the screen. */
+async function separationsZip(sc){
+  const save=ST.inks.slice(), saveTitle=ST.title, k0=K, {paper,drums}=drumsUsed(), files=[];
+  exporting=true;
+  try{
+    if(sc!==K){ K=sc; setupCanvases(); }
+    tileKey=""; drawFrame(clock); files.push({name:"00-composite.png",data:await bytesOf(cv)});
+    for(const [n,h] of drums.entries()){
+      const H=h.toUpperCase(), map=x=>x.toUpperCase()===H?"#000000":"#FFFFFF";
+      ST.inks=save.map(map);
+      if(saveTitle) ST.title={...saveTitle};
+      tileKey=""; drawFrame(clock);
+      files.push({name:`${String(n+1).padStart(2,"0")}-${inkName(h).replace(/[^A-Za-z0-9]+/g,"-")}.png`,data:await bytesOf(cv)});
+    }
+  } finally {
+    ST.inks=save; ST.title=saveTitle; if(K!==k0){ K=k0; setupCanvases(); } tileKey=""; still=""; exporting=false;
+  }
+  const lines=["RISOMITUS · Patterns — separations",
+    `${RECIPES[ST.recipe].name} · ${letterList().join("")} · ${FORMATS[ST.format].w*sc}×${FORMATS[ST.format].h*sc}px`,
+    paper?`Paper: ${inkName(paper)} ${paper}`:"Paper: any — the ground is a drum",
+    "Drums, in print order (lightest first):",
+    ...drums.map((h,i)=>`  ${String(i+1).padStart(2,"0")}  ${inkName(h)}  ${h}`),
+    "", "Each PNG is a master: black prints, white does not. 00-composite is the sheet as designed."];
+  files.push({name:"drums.txt",data:new TextEncoder().encode(lines.join("\n")+"\n")});
+  return zipStore(files);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   TITLE — an optional line of Haim over the pattern, for posts and covers.
+   Set from the same outlines and the same advance widths as everything else;
+   on its knockout panel it reads against any structure.
+   ═══════════════════════════════════════════════════════════════════ */
+function titleLayout(W,H){
+  const T=ST.title; if(!T||!T.text||!T.text.trim()) return null;
+  const chars=[...T.text], cap=W*.11*T.size, k=cap/HAIM_PATHS["ה"].h;
+  const adv=ch=>(HAIM_PATHS[ch]?HAIM_PATHS[ch].a:HAIM_SPACE)*k*(1+T.track);
+  const width=chars.reduce((s,ch)=>s+adv(ch),0);
+  const y={top:H*.16,center:H*.5,bottom:H*.84}[T.pos]||H*.5, base=y+cap/2;
+  let x=W/2+width/2; const glyphs=[];
+  for(const ch of chars){ const a=adv(ch); x-=a; const P=HAIM_PATHS[ch];
+    if(P) glyphs.push([ch, x+(P.cx*k), base-(P.cy*k), cap]); }
+  const pad=cap*.42;
+  return {glyphs, box:[W/2-width/2-pad, y-cap/2-pad, width+2*pad, cap+2*pad], cap};
+}
+function titleOps(w,W,H){
+  const L=titleLayout(W,H); if(!L) return;
+  const T=ST.title, ink=ST.inks[T.ink]||ST.inks[1], ground=ST.inks[0];
+  if(T.style==="box"){ const [x,y,bw,bh]=L.box; w.r(x,y,bw,bh,ground); }
+  /* the outline style is made of the letters too: the word set again, larger
+     and in the ground colour, behind itself */
+  if(T.style==="halo") for(const [ch,x,y,s] of L.glyphs) w.t(ch,x,y,s*1.16,ground,0);
+  for(const [ch,x,y,s] of L.glyphs) w.t(ch,x,y,s,ink,0);
+}
+function drawTitle(){
+  const f=FORMATS[ST.format];
+  if(!titleLayout(f.w,f.h)) return;
+  const E=Emitter(); titleOps(E,f.w,f.h);
+  ctx.setTransform(1,0,0,1,0,0); base(ctx,K,K);
+  for(const op of E.ops){
+    if(op[0]==="r"){ ctx.setTransform(K,0,0,K,0,0); ctx.fillStyle=op[5]; ctx.fillRect(op[1],op[2],op[3],op[4]); continue; }
+    if(op[0]==="t"){ const [,c,x,y,s,col,rot]=op; put(ctx,c,x,y,s,col,rot); }
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   SHARE · UNDO
+   A design is a few hundred bytes of state, so a link can carry it whole.
+   ═══════════════════════════════════════════════════════════════════ */
+const b64u={
+  enc:s=>btoa(String.fromCharCode(...new TextEncoder().encode(s))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,""),
+  dec:s=>new TextDecoder().decode(Uint8Array.from(atob(s.replace(/-/g,"+").replace(/_/g,"/")),c=>c.charCodeAt(0)))
+};
+const shareURL=()=>location.origin+location.pathname+"#p="+b64u.enc(JSON.stringify(ST));
+function fromHash(){ const m=location.hash.match(/#p=([A-Za-z0-9_-]+)/); if(!m) return null;
+  try{ const o=JSON.parse(b64u.dec(m[1])); return o&&o.recipe?o:null; }catch{ return null; } }
+const HIST=[], REDO=[]; let histT=0, lastSnap="";
+function snapshot(){ const s=JSON.stringify(ST); if(s===lastSnap) return; if(lastSnap) HIST.push(lastSnap); if(HIST.length>80) HIST.shift(); REDO.length=0; lastSnap=s; }
+const snapSoon=()=>{ clearTimeout(histT); histT=setTimeout(snapshot,280); };
+function undo(){ clearTimeout(histT); snapshot(); if(!HIST.length) return; REDO.push(lastSnap); lastSnap=HIST.pop(); ST=adopt(JSON.parse(lastSnap)); setFormat(ST.format); tileKey=""; syncAll(); saveDebounced(); if(pressOn) pressInks(); }
+function redo(){ if(!REDO.length) return; HIST.push(lastSnap); lastSnap=REDO.pop(); ST=adopt(JSON.parse(lastSnap)); setFormat(ST.format); tileKey=""; syncAll(); saveDebounced(); if(pressOn) pressInks(); }
 
 /* ================= the press, on this page =================
    The actual press page in a same-origin frame, fed this canvas through the
@@ -1828,7 +2128,7 @@ function pressInks(){
   w.PRESS.setInks(isPaper?ST.inks[0]:PAPER, used, R.overprint?"lut":"spot");
 }
 function pressPump(){
-  if(!pressOn||!pressFrame) return;
+  if(!pressOn||!pressFrame||exporting) return;
   const w=pressFrame.contentWindow;
   if(!w||!w.PRESS||!w.PRESS.ready()) return;
   try{ w.PRESS.refresh(); }catch(e){}
@@ -1855,6 +2155,7 @@ $("d_riso").onclick=()=>pressToggle(!pressOn);
 addEventListener("change",saveDebounced,true); addEventListener("input",saveDebounced,true);
 addEventListener("keydown",e=>{
   if(/input|textarea|select/i.test(e.target.tagName)) return;
+  if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==="z"){ e.preventDefault(); e.shiftKey?redo():undo(); return; }
   if(e.code==="Space"){ e.preventDefault(); playing=!playing; playIcon(); }
   else if(e.key==="s"||e.key==="S") $("b_png").click();
   else if(e.key==="r"||e.key==="R") randomize();
@@ -1873,7 +2174,7 @@ if(EMBED){
   playing=false;
   window.TILE={
     canvas:cv,
-    setConfig(o){ ST=adopt(o); if(ST.motion==="still") ST.motion="drift"; setupCanvases(); tileKey=""; },
+    setConfig(o){ ST=adopt(o); ST.title.text=""; if(ST.motion==="still") ST.motion="drift"; setupCanvases(); tileKey=""; },
     draw(t){ drawFrame(t); },
     setScale(k){ K=Math.max(.2,Math.min(2,k)); setupCanvases(); },
     size(){ return [RW,RH]; },
@@ -1883,14 +2184,17 @@ if(EMBED){
   };
 }
 
-if(!EMBED){ try{ const s=localStorage.getItem(LSK); if(s){ const o=JSON.parse(s); if(o&&o.recipe) ST=adopt(o); } }catch{} }
+/* a shared link wins over what this browser last had */
+if(!EMBED){ const h=fromHash(); if(h) ST=adopt(h);
+  else try{ const s=localStorage.getItem(LSK); if(s){ const o=JSON.parse(s); if(o&&o.recipe) ST=adopt(o); } }catch{} }
+lastSnap=JSON.stringify(ST);
 setFormat(ST.format); syncAll(); playIcon();
 if(!EMBED){ let r="1"; try{ r=localStorage.getItem(RISO_KEY)||"1"; }catch{} if(r!=="0") pressToggle(true); }
-$("exsum").textContent="PNG · אריח · וידאו";
+$("exsum").textContent="PNG · SVG · הפרדות · וידאו";
 /* every ink box is measured from Haim itself — measuring before the face has
    arrived would cache the fallback font's metrics for the life of the page */
 document.fonts.load(`${BASE}px Haim`).then(()=>{ for(const k in boxes) delete boxes[k]; for(const k in masks) delete masks[k];
-  fontReady=true; tileKey=""; still=""; requestAnimationFrame(loop); });
+  fontReady=true; tileKey=""; still=""; if(!EMBED) thumbnails(); requestAnimationFrame(loop); });
 </script>
 
 <script>
