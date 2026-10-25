@@ -806,7 +806,7 @@ global.RISOKIT = {
       </div>
       <p class="k">פטרנים מאותיות · טפטים באות חיים</p>
     </div>
-    <p class="d">בונה טפטים מאותיות: שלושים ואחד מבנים, כל אחד משוואה — עקומות, שדות, מרחב מעוקם, פרקטלים וכאוס — בדיו ריזו אמיתי. נדרש קוד כניסה.</p>
+    <p class="d">בונה טפטים מאותיות: ארבעים ואחד מבנים, כל אחד משוואה — אות אחת, עקומות, שדות, מרחב מעוקם, פרקטלים וכאוס — בדיו ריזו אמיתי. נדרש קוד כניסה.</p>
     <input id="code" inputmode="numeric" autocomplete="off" maxlength="8"
            aria-label="קוד כניסה" placeholder="····">
     <div id="gatemsg" role="status" aria-live="polite"></div>
@@ -876,7 +876,7 @@ global.RISOKIT = {
   <div class="head">
     <h1>פטרנים</h1>
     <p>פטרנים שבנויים כולם מאותיות חיים — כל קו, מסגרת ומילוי הוא אות</p>
-    <nav class="tabs" aria-label="Systems"><a href="../?v=414b91b">ריזו<small>מכונת דפוס</small></a><a href="./" aria-current="page">פטרנים<small>פטרנים מאותיות</small></a><a href="../objects/?v=414b91b">אובייקטים<small>מילים כחפצים</small></a></nav><div class="build" title="Build version">25.10 10:50 · 414b91b</div>
+    <nav class="tabs" aria-label="Systems"><a href="../?v=fb89ca4">ריזו<small>מכונת דפוס</small></a><a href="./" aria-current="page">פטרנים<small>פטרנים מאותיות</small></a><a href="../objects/?v=fb89ca4">אובייקטים<small>מילים כחפצים</small></a></nav><div class="build" title="Build version">25.10 14:22 · fb89ca4</div>
     <div class="seg" role="group" aria-label="פורמט">
       <button id="f_post" aria-pressed="true">פוסט<small>1080 × 1350</small></button>
       <button id="f_story" aria-pressed="false">סטורי<small>1080 × 1920</small></button>
@@ -1878,14 +1878,199 @@ Object.assign(RECIPES,{
           put(g,L(band),ox+(i+.5)*p,oy+(j+.5)*p,p*(.3+.72*Math.min(1,Math.log(1+c)/lc))*X.sz,ink(b),0); } }
     }}
 });
-/* five shelves in the gallery, by what the equation does to the letters */
-const GROUPS=[["curve","עקומות — האותיות רצות לאורך משוואה פרמטרית"],["field","שדות — כל אות קוראת את ערך הפונקציה במקומה"],
+/* ═══════════════════════════════════════════════════════════════════
+   ONE LETTER. Ten formulas where the whole sheet is a single letter.
+   Everything the eye reads — flow, a gradient, moiré, depth — comes from
+   where that one letter sits, how big it is, which way it turns and which
+   drum prints it. Sources: vortex fields (Σ q·arg); the halftone screen;
+   modular Truchet tilings; the five rotation wallpaper groups; Bayer's
+   ordered dither; moiré of two lattices; sine domain warping; winding
+   numbers of a direction field; self-similar letters; Weyl sequences.
+   ═══════════════════════════════════════════════════════════════════ */
+const bayerCache={};
+function bayer(n){
+  if(bayerCache[n]) return bayerCache[n];
+  let M=[[0]];
+  while(M.length<n){ const m=M.length, N=[];
+    for(let y=0;y<2*m;y++){ N.push([]); for(let x=0;x<2*m;x++) N[y].push(4*M[y%m][x%m]+[[0,2],[3,1]][Math.floor(y/m)][Math.floor(x/m)]); }
+    M=N; }
+  return bayerCache[n]=M;
+}
+
+Object.assign(RECIPES,{
+  vortex:{ name:"מערבולות", group:"single", letters:"ש", roles:["האות"], drift:[0,0],
+    formula:p=>`θ(z) = Σᵢ qᵢ·arg(z − pᵢ)     ${p("N")} מערבולות,  q = ±${p("q")}`,
+    hint:"כל אות מסתובבת לפי זווית של שדה: סכום של מערבולות, וכל אחת מסובבת את מה שסביבה q פעמים. אותה אות בדיוק, רק זווית — והעין רואה זרימה. הצבע עוקב אחרי הזווית",
+    params:[{k:"N",l:"מערבולות",min:1,max:9,step:1,d:5},{k:"q",l:"עוצמה q",min:1,max:4,step:1,d:1},
+            {k:"rho",l:"פיזור",min:0,max:.48,step:.005,d:.3},{k:"bands",l:"פסי צבע",min:1,max:9,step:1,d:3}],
+    inkRoles:["רקע","זווית 1","זווית 2","זווית 3","—","—"],
+    look:{inks:["#000000","#FF48B0","#FFE800","#5EC8E5","#000000","#000000"],motion:"spin"},
+    direct(g,X,W,H){
+      const {u,G,L,ink}=X, pitch=11*u*G, U=Math.min(W,H), N=X.p("N"), q=X.p("q"), bands=X.p("bands");
+      const rot=X.mode==="drift"?X.ph*TAU:0, sp=X.mode==="spin"?X.ph*TAU:0, V=[];
+      for(let i=0;i<N;i++){ const a=i*TAU/N+rot-Math.PI/2, r=N===1?0:X.p("rho")*U; V.push([W/2+r*Math.cos(a),H/2+r*Math.sin(a),i%2?-q:q]); }
+      for(let row=0,y=pitch/2;y<H+pitch;y+=pitch*.866,row++) for(let x=(row&1)*pitch/2;x<W+pitch;x+=pitch){
+        let th=sp; for(const [vx,vy,qq] of V) th+=qq*Math.atan2(y-vy,x-vx);
+        put(g,L(0),x,y,pitch*.84*X.sz,ink(bandOf(mod(th,TAU)/TAU,X,bands/X.nb)),th); }
+    }},
+  halftone:{ name:"רסטר", group:"single", letters:"ם", roles:["האות"], drift:[0,0],
+    formula:p=>({r2:"s(x,y) ∝ ½ + ½·sin(k·r² − φ)",xy:"s(x,y) ∝ ½ + ½·sin(kx − φ)·sin(ky)",sp:"s(x,y) ∝ ½ + ½·sin(k·r + 5θ − φ)",sq:"s(x,y) ∝ ½ + ½·sin(k·max(|x|,|y|) − φ)"})[p("f")]+`     רשת ב־${Math.round(p("ang"))}°`,
+    hint:"רסטר של דפוס: רשת של אותה אות, וגודל כל אות הוא ערך הפונקציה במקומה — כמו נקודות בעיתון, רק שכל נקודה היא אות. מתרחקים ורואים את הפונקציה, מתקרבים ורואים את האות",
+    params:[{k:"f",l:"פונקציה",o:[["r2","sin r²"],["xy","sin x·sin y"],["sp","ספירלה"],["sq","ריבועים"]],d:"r2"},
+            {k:"k",l:"תדר k",min:.5,max:10,step:.05,d:3},{k:"ang",l:"זווית רשת",min:0,max:90,step:1,d:45,fmt:v=>Math.round(v)+"°"},
+            {k:"cell",l:"גודל תא",min:.5,max:2,step:.01,d:1}],
+    inkRoles:["רקע","שיא","אמצע","שפל","—","—"],
+    look:{inks:[PAPER,"#000000","#FF48B0","#0078BF","#000000","#000000"],motion:"spin"},
+    direct(g,X,W,H){
+      const {u,G,L,ink}=X, p=12*u*G*X.p("cell"), a=X.p("ang")*Math.PI/180, ca=Math.cos(a), sa=Math.sin(a), f=X.p("f"), U=Math.min(W,H)/2;
+      const k=X.p("k")*Math.PI, phi=X.mode==="spin"?X.ph*TAU:0, sh=X.mode==="drift"?X.ph*p:0, n=Math.ceil((Math.hypot(W,H)/2+p)/p);
+      const F=(x,y)=>{ const r=Math.hypot(x,y);
+        return f==="r2"?Math.sin(k*r*r-phi):f==="xy"?Math.sin(k*x-phi)*Math.sin(k*y):f==="sp"?Math.sin(k*r+5*Math.atan2(y,x)-phi):Math.sin(k*Math.max(Math.abs(x),Math.abs(y))-phi); };
+      for(let j=-n;j<=n;j++) for(let i=-n-1;i<=n;i++){
+        const gx=i*p+sh, gy=j*p, x=W/2+gx*ca-gy*sa, y=H/2+gx*sa+gy*ca; if(offSheet(x,y,p,W,H)) continue;
+        const v=F((x-W/2)/U,(y-H/2)/U);
+        put(g,L(0),x,y,p*(.1+.95*(v+1)/2)*X.sz,ink(bandOf(Math.min(.999,(1-v)/2),X,1)),a); }
+    }},
+  truchet:{ name:"טרושה", group:"single", letters:"ל", roles:["האות"], drift:[0,0],
+    formula:p=>`θᵢⱼ = (2π/${p("m")})·( ${({sum:"i² + j²",prod:"i·j",xor:"i ⊕ j",tri:"i² + i·j + j²"})[p("rule")]} mod ${p("m")} )`,
+    hint:"אותה אות בכל משבצת, מסובבת לפי חשבון של מספר השורה והעמודה — בלי שום מקריות. מכלל פשוט כמו i² + j² mod 4 יוצאים מבוכים, צלבים ושטיחים, וכל m נותן שטיח אחר",
+    params:[{k:"rule",l:"כלל",o:[["sum","i²+j²"],["prod","i·j"],["xor","i⊕j"],["tri","i²+ij+j²"]],d:"sum"},
+            {k:"m",l:"מודולו m",min:2,max:12,step:1,d:4},{k:"cell",l:"גודל תא",min:.5,max:2.5,step:.01,d:1}],
+    inkRoles:["רקע","ערך 1","ערך 2","ערך 3","ערך 4","—"],
+    look:{inks:["#000000","#FFE800","#FF48B0","#5EC8E5","#FF7477","#000000"],motion:"spin"},
+    direct(g,X,W,H){
+      const {u,G,L,ink}=X, p=13*u*G*X.p("cell"), m=X.p("m"), rule=X.p("rule"), cyc=cycOf(X), ni=Math.ceil(W/2/p)+1, nj=Math.ceil(H/2/p)+1;
+      for(let j=-nj;j<=nj;j++) for(let i=-ni;i<=ni;i++){
+        const a=Math.abs(i), b=Math.abs(j), v=mod(rule==="sum"?a*a+b*b:rule==="prod"?a*b:rule==="xor"?(a^b):a*a+a*b+b*b,m);
+        put(g,L(0),W/2+i*p,H/2+j*p,p*.98*X.sz,ink(1+mod(v+cyc,X.nb)),v*TAU/m+(X.mode==="spin"?(v%2?1:-1)*X.ph*TAU:0)); }
+    }},
+  wallpaper:{ name:"קבוצת טפט", group:"single", letters:"ג", roles:["האות"], drift:[0,0],
+    formula:p=>{ const n={p1:1,p2:2,p3:3,p4:4,p6:6}[p("grp")]; return `${p("grp")}:  z ↦ e^(2πik/${n})·z + λ     k = 0…${n-1},  λ ∈ סריג ${n===3||n===6?"משושה":"ריבועי"}`; },
+    hint:"קבוצות הטפט של הסיבובים — p1, p2, p3, p4, p6 — כל הסימטריות שמישור שלם יכול לשאת בלי היפוך. אות אחת מונחת ליד מרכז סיבוב וחוזרת n פעמים סביבו ועל פני כל הסריג. בסיבוב היא מקיפה את המרכז והקליידוסקופ זז",
+    params:[{k:"grp",l:"קבוצה",o:[["p1","p1"],["p2","p2"],["p3","p3"],["p4","p4"],["p6","p6"]],d:"p6"},
+            {k:"r",l:"מרחק מהמרכז",min:0,max:.6,step:.005,d:.28},{k:"a0",l:"זווית",min:0,max:360,step:1,d:20,fmt:v=>Math.round(v)+"°"},
+            {k:"size",l:"גודל",min:.3,max:1.4,step:.01,d:.62},{k:"cell",l:"גודל תא",min:.5,max:2.5,step:.01,d:1}],
+    inkRoles:["רקע","עותק 1","עותק 2","עותק 3","—","—"],
+    look:{inks:["#0078BF","#FFE800","#FF48B0","#000000","#000000","#000000"],motion:"spin"},
+    direct(g,X,W,H){
+      const {u,G,L,ink}=X, grp=X.p("grp"), n={p1:1,p2:2,p3:3,p4:4,p6:6}[grp], hex=n===3||n===6, c=70*u*G*X.p("cell"), cyc=cycOf(X);
+      const e1=[c,0], e2=hex?[c/2,c*Math.sqrt(3)/2]:[0,c], r=X.p("r")*c, s=X.p("size")*c*.5*X.sz;
+      const a0=X.p("a0")*Math.PI/180+(X.mode==="spin"?X.ph*TAU:0), self=X.mode==="drift"?X.ph*TAU:0;
+      const nj=Math.ceil(H/e2[1]/2)+2, ni=Math.ceil(W/c/2)+nj+2;
+      for(let j=-nj;j<=nj;j++) for(let i=-ni;i<=ni;i++){
+        const cx=W/2+i*e1[0]+j*e2[0], cy=H/2+j*e2[1]; if(offSheet(cx,cy,r+s,W,H)) continue;
+        for(let k=0;k<n;k++){ const a=a0+k*TAU/n, x=cx+r*Math.cos(a), y=cy+r*Math.sin(a);
+          if(!offSheet(x,y,s,W,H)) put(g,L(0),x,y,s,ink(1+mod(k+cyc,X.nb)),a+Math.PI/2+self); } }
+    }},
+  dither:{ name:"דיתר", group:"single", letters:"נ", roles:["האות"], drift:[0,0],
+    formula:p=>`אות ⇔ f(x,y) > (B${sub(2**p("n"))}(i,j) + ½) / ${4**p("n")}     f = ${({rad:"½ + ½·cos(π·r/R − φ)",lin:"½ + ½·sin(k·(x·cos φ + y·sin φ))",sin:"½ + ½·sin(kx − φ)·sin(ky)",ring:"½ + ½·cos(k·r − φ)"})[p("f")]}`,
+    hint:"דיתור מסודר של באייר — השיטה שבה מסך של ביט אחד מצייר גווני אפור: לכל משבצת סף קבוע מתוך מטריצה רקורסיבית, והאות מופיעה רק היכן שהערך עובר אותו. הגוונים נוצרים מצפיפות של אות אחת",
+    params:[{k:"f",l:"שדה",o:[["rad","רדיאלי"],["lin","ליניארי"],["sin","גלים"],["ring","טבעות"]],d:"ring"},
+            {k:"n",l:"מטריצה",o:[[1,"2×2"],[2,"4×4"],[3,"8×8"]],d:2},{k:"k",l:"תדר k",min:.5,max:8,step:.05,d:2.5},
+            {k:"cell",l:"גודל תא",min:.5,max:2,step:.01,d:1}],
+    inkRoles:["רקע","בהיר","בינוני","כהה","—","—"],
+    look:{inks:[PAPER,"#FFB511","#FF48B0","#3D5588","#000000","#000000"],motion:"spin"},
+    direct(g,X,W,H){
+      const {u,G,L,ink}=X, p=8*u*G*X.p("cell"), N=2**X.p("n"), B=bayer(N), f=X.p("f"), U=Math.min(W,H)/2, k=X.p("k")*Math.PI;
+      const phi=X.mode==="spin"?X.ph*TAU:0, R=Math.hypot(W,H)/2/U, cp=Math.cos(phi), sp=Math.sin(phi);
+      const F=(x,y)=>{ const r=Math.hypot(x,y);
+        return .5+.5*(f==="rad"?Math.cos(Math.PI*r/R-phi):f==="lin"?Math.sin(k*(x*cp+y*sp)):f==="sin"?Math.sin(k*x-phi)*Math.sin(k*y):Math.cos(k*r-phi)); };
+      for(let j=0;j*p<H;j++) for(let i=0;i*p<W;i++){
+        const x=(i+.5)*p, y=(j+.5)*p, v=F((x-W/2)/U,(y-H/2)/U);
+        if(v>(B[j%N][i%N]+.5)/(N*N)) put(g,L(0),x,y,p*.96*X.sz,ink(bandOf(Math.min(.999,v),X,1)),0); }
+    }},
+  moire:{ name:"מואר", group:"single", letters:"ו", roles:["האות"], drift:[0,0],
+    formula:p=>`L₂ = s·R(α)·L₁ + t     α = ${(+p("a")).toFixed(2)}°,  s = ${(+p("s")).toFixed(3)}`,
+    hint:"שני סריגים של אותה אות, השני מסובב מעט. כל אחד לבדו שגרתי; יחד הם יוצרים פסים ענקיים שלא קיימים באף אחד מהם — תבנית מואר, שהמחזור שלה בערך p חלקי α. שינוי זעיר בזווית מזיז פסים בגודל הדף",
+    params:[{k:"a",l:"זווית α",min:0,max:20,step:.05,d:2.4,fmt:v=>(+v).toFixed(2)+"°"},{k:"s",l:"קנה מידה s",min:.92,max:1.08,step:.001,d:1},
+            {k:"cell",l:"גודל תא",min:.4,max:2,step:.01,d:1},{k:"lat",l:"סריג",o:[["hex","משושה"],["sq","ריבועי"]],d:"hex"}],
+    inkRoles:["רקע","סריג 1","סריג 2","—","—","—"],
+    look:{inks:[PAPER,"#000000","#FF48B0","#000000","#000000","#000000"],motion:"spin"},
+    direct(g,X,W,H){
+      const {u,G,L,ink}=X, p=10*u*G*X.p("cell"), hex=X.p("lat")==="hex", e2=hex?[p/2,p*Math.sqrt(3)/2]:[0,p], cyc=cycOf(X);
+      const Rm=Math.hypot(W,H)/2+p, nj=Math.ceil(Rm/e2[1]), ni=Math.ceil(Rm/p)+nj;
+      for(let l=0;l<2;l++){
+        const a=l?(X.p("a")+(X.mode==="spin"?1.5*Math.sin(X.ph*TAU):0))*Math.PI/180:0, sc=l?X.p("s")+(X.mode==="cycle"?.012*Math.sin(X.ph*TAU):0):1, t=l&&X.mode==="drift"?X.ph*p:0;
+        const ca=Math.cos(a)*sc, sa=Math.sin(a)*sc, col=ink(1+mod(l+cyc,X.nb));
+        for(let j=-nj;j<=nj;j++) for(let i=-ni;i<=ni;i++){
+          const gx=i*p+j*e2[0]+t, gy=j*e2[1]; if(gx*gx+gy*gy>Rm*Rm/(sc*sc)) continue;
+          const x=W/2+gx*ca-gy*sa, y=H/2+gx*sa+gy*ca; if(offSheet(x,y,p,W,H)) continue;
+          put(g,L(0),x,y,p*.86*sc*X.sz,col,a); } }
+    }},
+  warp:{ name:"עיוות", group:"single", letters:"ט", roles:["האות"], drift:[0,0],
+    formula:p=>`P′ = P + (A/k)·( sin(k·y + φ), sin(k·x + φ) )     A = ${(+p("A")).toFixed(2)},  det J = 1 − A²·cos(ky+φ)·cos(kx+φ)`,
+    hint:"סריג ישר של אות אחת, וכל נקודה בו מוזזת לפי שדה של סינוסים — המישור מתעקם כמו בד. האות מסתובבת לפי הסיבוב המקומי של העיוות וגדלה לפי ההתרחבות שלו; הצבע מסמן היכן הבד נמתח והיכן נדחס. מעל A = 1 הבד מתקפל",
+    params:[{k:"A",l:"עוצמה A",min:0,max:1.6,step:.01,d:.85},{k:"k",l:"תדר k",min:.5,max:8,step:.05,d:2.2},{k:"cell",l:"גודל תא",min:.5,max:2,step:.01,d:1}],
+    inkRoles:["רקע","נדחס","רגיל","נמתח","—","—"],
+    look:{inks:["#000000","#5EC8E5","#FFE800","#FF48B0","#000000","#000000"],motion:"spin"},
+    direct(g,X,W,H){
+      const {u,G,L,ink}=X, p=11*u*G*X.p("cell"), A=X.p("A"), kk=X.p("k")*TAU/Math.min(W,H), amp=A/kk;
+      const phi=X.mode==="spin"?X.ph*TAU:0, sh=X.mode==="drift"?X.ph*p:0, m=Math.ceil(amp/p)+2;
+      for(let j=-m;j*p<H+m*p;j++) for(let i=-m-1;i*p<W+m*p;i++){
+        const x0=i*p+sh, y0=j*p, c1=A*Math.cos(kk*y0+phi), c2=A*Math.cos(kk*x0+phi);
+        const x=x0+amp*Math.sin(kk*y0+phi), y=y0+amp*Math.sin(kk*x0+phi), det=1-c1*c2;
+        if(offSheet(x,y,p,W,H)) continue;
+        const v=A>0?(det-(1-A*A))/(2*A*A):.5;
+        put(g,L(0),x,y,p*.82*Math.max(.18,Math.sqrt(Math.abs(det)))*X.sz,ink(bandOf(Math.min(.999,Math.max(0,v)),X,1)),Math.atan2(c2-c1,2)); }
+    }},
+  galaxy:{ name:"גלקסיה", group:"single", letters:"צ", roles:["האות"], drift:[0,0],
+    formula:p=>`θ(r,φ) = ${p("w")}·φ + k·${(+p("tw")).toFixed(1)}°     טבעת k ברדיוס k·d`,
+    hint:"טבעות של אות אחת, וזווית כל אות היא נוסחה של מיקומה: w סיבובים לאורך כל טבעת, ועוד פיתול קבוע מטבעת לטבעת. w הוא מספר הליפוף — הוא קובע איזו נקודה יושבת במרכז: מערבולת, מקור או אוכף. הצבע עוקב אחרי הזווית",
+    params:[{k:"w",l:"ליפוף w",min:-4,max:4,step:1,d:2},{k:"tw",l:"פיתול בין טבעות",min:0,max:60,step:.5,d:9,fmt:v=>v+"°"},
+            {k:"bands",l:"פסי צבע",min:1,max:9,step:1,d:3},{k:"cell",l:"גודל תא",min:.5,max:2,step:.01,d:1}],
+    inkRoles:["רקע","זווית 1","זווית 2","זווית 3","—","—"],
+    look:{inks:["#000000","#FFE800","#5EC8E5","#FF48B0","#000000","#000000"],motion:"spin"},
+    direct(g,X,W,H){
+      const {u,G,L,ink}=X, d=10*u*G*X.p("cell"), K=Math.ceil(Math.hypot(W,H)/2/d)+1, w=X.p("w"), tw=X.p("tw")*Math.PI/180, bands=X.p("bands");
+      for(let k=0;k<=K;k++){ const r=k*d, nk=k?Math.max(1,Math.round(TAU*r/(d*.95))):1;
+        const pr=X.mode==="spin"?(k%2?1:-1)*X.ph*TAU:X.mode==="drift"?X.ph*TAU:0;
+        for(let i=0;i<nk;i++){ const a=i*TAU/nk+pr, x=W/2+r*Math.cos(a), y=H/2+r*Math.sin(a); if(offSheet(x,y,d,W,H)) continue;
+          const th=w*a+k*tw; put(g,L(0),x,y,d*.84*X.sz,ink(bandOf(mod(th,TAU)/TAU,X,bands/X.nb)),th); } }
+    }},
+  selfsim:{ name:"אות מאות", group:"single", letters:"א", roles:["האות"], drift:[0,0],
+    formula:p=>`A₀ = האות     Aₖ₊₁ = { האות, מוקטנת, בכל נקודה של Aₖ }     עומק ${p("depth")}`,
+    hint:"האות בנויה מעצמה: אות ענקית, שכל קו בה הוא אותה אות בגודל בינוני, וכל אחת מהן בנויה שוב מאותה אות בקטן. דמיון עצמי בשלושה קני מידה, בלי שום צורה אחרת",
+    params:[{k:"depth",l:"עומק",min:1,max:2,step:1,d:2},{k:"fill",l:"צפיפות",min:.6,max:1.6,step:.01,d:1},{k:"bg",l:"רקע",o:[[1,"אותיות"],[0,"ריק"]],d:1}],
+    inkRoles:["רקע","רמה 1","רמה 2","רמה 3","—","—"],
+    look:{inks:["#FF48B0","#000000","#FFE800","#5EC8E5","#000000","#000000"],motion:"spin"},
+    direct(g,X,W,H){
+      const {L,ink}=X, ch=L(0), depth=X.p("depth"), fill=X.p("fill")/X.G, size=Math.min(W,H)*.96, cyc=cycOf(X), rot=X.mode==="spin"?X.ph*TAU:0;
+      let q=0;
+      /* the drum is chosen once, at the first level down, and inherited — so
+         each medium letter reads as one colour made of small ones */
+      const level=(cx,cy,sz,lv,inkI)=>{
+        const pitch=sz/(lv===1?9:8.5)/fill, m=glyphMask(ch,sz,sz), ox=cx-sz/2, oy=cy-sz/2;
+        for(let y=pitch/2;y<sz;y+=pitch) for(let x=pitch/2;x<sz;x+=pitch){ if(!m(x,y)) continue;
+          const ii=lv===1?1+mod((q++)+cyc,X.nb):inkI, s=pitch*.92;
+          if(lv===depth) put(g,ch,ox+x,oy+y,s,ink(ii),lv>1?(ii%2?1:-1)*rot:0); else level(ox+x,oy+y,s,lv+1,ii); } };
+      if(+X.p("bg")){ const m=glyphMask(ch,size,size), pt=size/9/fill*.5, ox=W/2-size/2, oy=H/2-size/2;
+        for(let y=pt/2;y<H;y+=pt) for(let x=pt/2;x<W;x+=pt) if(!m(x-ox,y-oy)) put(g,ch,x,y,pt*.3,ink(1+mod(2+cyc,X.nb)),rot); }
+      level(W/2,H/2,size,1,1);
+    }},
+  weyl:{ name:"סריג סיבובים", group:"single", letters:"ר", roles:["האות"], drift:[0,0],
+    formula:p=>`θᵢⱼ = 2π·frac( i·${(+p("a")).toFixed(4)} + j·${(+p("b")).toFixed(4)} )`,
+    hint:"כל אות מסתובבת לפי החלק השברי של צירוף של מספר השורה והעמודה. כש־α ו־β רציונליים יוצא טפט שחוזר; כשהם אי־רציונליים הדף כמעט־מחזורי — ותזוזה זעירה של הסליידר מעבירה אותו בין גלים, משבצות ופסים",
+    params:[{k:"a",l:"α",min:0,max:1,step:.0001,d:.0618,fmt:v=>(+v).toFixed(4)},{k:"b",l:"β",min:0,max:1,step:.0001,d:.1035,fmt:v=>(+v).toFixed(4)},
+            {k:"bands",l:"פסי צבע",min:1,max:9,step:1,d:3},{k:"cell",l:"גודל תא",min:.5,max:2.5,step:.01,d:1}],
+    inkRoles:["רקע","זווית 1","זווית 2","זווית 3","—","—"],
+    look:{inks:["#000000","#FF48B0","#FFE800","#44D62C","#000000","#000000"],motion:"spin"},
+    direct(g,X,W,H){
+      const {u,G,L,ink}=X, p=12*u*G*X.p("cell"), a=X.p("a"), b=X.p("b"), bands=X.p("bands"), ni=Math.ceil(W/2/p)+1, nj=Math.ceil(H/2/p)+1;
+      for(let j=-nj;j<=nj;j++) for(let i=-ni;i<=ni;i++){
+        const f=mod(i*a+j*b,1), th=f*TAU+(X.mode==="spin"?X.ph*TAU:X.mode==="drift"?(1+mod(i+j,2))*X.ph*TAU:0);
+        put(g,L(0),W/2+i*p,H/2+j*p,p*.9*X.sz,ink(bandOf(f,X,bands/X.nb)),th); }
+    }}
+});
+
+/* six shelves in the gallery, by what the equation does to the letters */
+const GROUPS=[["single","אות אחת — רק מקום, גודל, זווית ודיו"],["curve","עקומות — האותיות רצות לאורך משוואה פרמטרית"],["field","שדות — כל אות קוראת את ערך הפונקציה במקומה"],
   ["space","מרחב מעוקם — המישור עצמו מתכופף"],["tiling","ריצופים, פרקטלים ומספרים"],["chaos","כאוס — מערכות דינמיות"]];
 for(const [id,gr] of [["harmono","curve"],["rose","curve"],["quasi","field"],["chladni","field"],["turing","field"],
   ["conformal","space"],["droste","space"],["hyper","space"],["phyllo","tiling"],["fractal","tiling"],["attractor","chaos"]]) RECIPES[id].group=gr;
 for(const id in RECIPES) if(!RECIPES[id].nb) RECIPES[id].nb=nInks(RECIPES[id]);
 for(const id of ["quasi","chladni","attractor","harmono","rose","fractal","pascal","apollonian","logistic"]) RECIPES[id].modeMap={drift:"spin"};
 RECIPES.hilbert.modeMap={spin:"drift"};
+for(const id of ["truchet","dither","selfsim"]) RECIPES[id].modeMap={drift:"spin"};
 RECIPES.turing.modeMap={drift:"cycle",spin:"cycle"};
 RECIPES.turing.heavy=true;
 
