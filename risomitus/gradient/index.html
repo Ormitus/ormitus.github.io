@@ -876,7 +876,7 @@ global.RISOKIT = {
   <div class="head">
     <h1>פטרנים</h1>
     <p>פטרנים שבנויים כולם מאותיות חיים — כל קו, מסגרת ומילוי הוא אות</p>
-    <nav class="tabs" aria-label="Systems"><a href="../?v=d1bf212">ריזו<small>מכונת דפוס</small></a><a href="./" aria-current="page">פטרנים<small>פטרנים מאותיות</small></a><a href="../objects/?v=d1bf212">אובייקטים<small>מילים כחפצים</small></a></nav><div class="build" title="Build version">25.10 09:30 · d1bf212</div>
+    <nav class="tabs" aria-label="Systems"><a href="../?v=92a2079">ריזו<small>מכונת דפוס</small></a><a href="./" aria-current="page">פטרנים<small>פטרנים מאותיות</small></a><a href="../objects/?v=92a2079">אובייקטים<small>מילים כחפצים</small></a></nav><div class="build" title="Build version">25.10 10:14 · 92a2079</div>
     <div class="seg" role="group" aria-label="פורמט">
       <button id="f_post" aria-pressed="true">פוסט<small>1080 × 1350</small></button>
       <button id="f_story" aria-pressed="false">סטורי<small>1080 × 1920</small></button>
@@ -944,15 +944,26 @@ function box(ch){
 }
 /* one letter, centred on its ink, at type size s (the cap height of ה) —
    a shared em, so every letter keeps its real proportions */
+/* Letters are filled as ready-made paths, not set as text. fillText shapes
+   and looks the glyph up on every call; the formulas set several thousand
+   letters a frame, and that lookup was most of a 50–220ms frame. The paths are
+   Haim's own outlines (HAIM_PATHS), so the marks are the same. fillStyle is
+   only written when it changes — parsing a colour string per letter is the
+   next most expensive thing. */
+const GP={};
+const glyphPath=ch=>GP[ch]!==undefined?GP[ch]:(GP[ch]=typeof HAIM_PATHS!=="undefined"&&HAIM_PATHS[ch]?new Path2D(HAIM_PATHS[ch].d):null);
 function put(g,ch,x,y,s,col,rot){
   if(g._rec){ g._rec.t(ch,x,y,s,col,rot||0); return; }
-  const b=box(ch), k=s/box("ה").h, c=Math.cos(rot||0), n=Math.sin(rot||0);
+  const c=Math.cos(rot||0), n=Math.sin(rot||0), P=glyphPath(ch);
+  if(g._fs!==col){ g.fillStyle=col; g._fs=col; }
+  if(P){ const k=s/HAIM_PATHS["ה"].h; g.setTransform(k*g._a*c, k*g._b*n, -k*g._a*n, k*g._b*c, g._a*x, g._b*y); g.fill(P); return; }
+  const b=box(ch), k=s/box("ה").h;
   g.setTransform(k*g._a*c, k*g._b*n, -k*g._a*n, k*g._b*c, g._a*x, g._b*y);
-  g.fillStyle=col; g.fillText(ch,-b.cx,-b.cy);
+  g.fillText(ch,-b.cx,-b.cy);
 }
 /* a context remembers its base scale (sheet units → pixels) so put() can set
    one matrix per letter instead of save/translate/rotate/scale/restore */
-function base(g,a,b){ g._a=a; g._b=b; g.font=`${BASE}px Haim`; g.textBaseline="alphabetic"; g.textAlign="left"; }
+function base(g,a,b){ g._a=a; g._b=b; g._fs=null; g.font=`${BASE}px Haim`; g.textBaseline="alphabetic"; g.textAlign="left"; }
 
 /* ---- emitters: what a recipe says, before anything is drawn ---- */
 function Emitter(){ const ops=[];
@@ -1932,6 +1943,7 @@ Object.assign(RECIPES,{
 for(const id of ["phyllo","quasi","chladni","conformal","droste","hyper","turing","attractor","harmono","rose","fractal"]) RECIPES[id].nb=nInks(RECIPES[id]);
 for(const id of ["quasi","chladni","attractor","harmono","rose","fractal"]) RECIPES[id].modeMap={drift:"spin"};
 RECIPES.turing.modeMap={drift:"cycle",spin:"cycle"};
+RECIPES.turing.heavy=true;
 
 /* ═══════════════════════════════════════════════════════════════════
    RENDER
@@ -1984,8 +1996,8 @@ function renderTile(ph){
     if(op[0]==="m"){ tg.globalCompositeOperation=op[1]; continue; }
     for(const ix of offs) for(const iy of offs){
       const dx=ix*TW, dy=iy*TH;
-      if(op[0]==="r"){ tg.setTransform(sx,0,0,sy,0,0); tg.fillStyle=op[5]; tg.fillRect(op[1]+dx,op[2]+dy,op[3],op[4]); continue; }
-      if(op[0]==="c"){ tg.setTransform(sx,0,0,sy,0,0); tg.fillStyle=op[4]; tg.beginPath(); tg.arc(op[1]+dx,op[2]+dy,op[3],0,2*Math.PI); tg.fill(); continue; }
+      if(op[0]==="r"){ tg.setTransform(sx,0,0,sy,0,0); tg.fillStyle=op[5]; tg._fs=op[5]; tg.fillRect(op[1]+dx,op[2]+dy,op[3],op[4]); continue; }
+      if(op[0]==="c"){ tg.setTransform(sx,0,0,sy,0,0); tg.fillStyle=op[4]; tg._fs=op[4]; tg.beginPath(); tg.arc(op[1]+dx,op[2]+dy,op[3],0,2*Math.PI); tg.fill(); continue; }
       const [,c,x,y,s,col,rot]=op, m=s*1.6, X2=x+dx, Y2=y+dy;
       if(X2<-m||Y2<-m||X2>TW+m||Y2>TH+m) continue;
       put(tg,c,X2,Y2,s,col,rot);
@@ -2023,8 +2035,10 @@ function smear(){
   }
 }
 
+let drawCount=0;
 function drawFrame(t){
   if(!fontReady) return;
+  drawCount++;
   const Ls=loopSecs(), ph = Ls ? ((t%Ls)/Ls+1)%1 : 0;
   const R=RECIPES[ST.recipe];
   ctx.setTransform(1,0,0,1,0,0); ctx.fillStyle=ST.inks[0]; ctx.fillRect(0,0,cv.width,cv.height);
@@ -2089,7 +2103,10 @@ let ptimer=0;
 const LSK="gradient-word-system:v2";       // the key the Objects page reads "my pattern" from
 const persist=()=>{ try{ localStorage.setItem(LSK, JSON.stringify(ST)); }catch{} };
 const saveDebounced=()=>{ clearTimeout(ptimer); ptimer=setTimeout(persist,400); };
-function changed(){ tileKey=""; syncAll(); saveDebounced(); snapSoon(); if(pressOn) pressInks(); }
+let inkT=0;
+/* the press re-separates on every ink change; while a slider is dragged that
+   is dozens a second, so it waits for the hand to stop */
+function changed(){ tileKey=""; syncAll(); saveDebounced(); snapSoon(); if(pressOn){ clearTimeout(inkT); inkT=setTimeout(pressInks,220); } }
 
 function section(nm,open,sum){
   const d=document.createElement("details"); d.className="sec"; d.open=open;
@@ -2132,18 +2149,35 @@ for(const [g,lab] of [["formula","נוסחאות — כל אות במקומה ל
 /* Each structure is shown as itself, in its own letters and inks, rendered by
    this page once the face has loaded — a name says much less than a swatch.
    The middle of the sheet, cropped, so the letters are big enough to see. */
-function thumbnails(){
+/* Fifty-two renders at load froze the page for four seconds. Now the
+   swatches are kept between visits (JPEG, ~10KB each, keyed to this build),
+   and the ones missing are drawn a few at a time while the browser is idle,
+   after the sheet has already appeared. */
+const THUMB_KEY="risomitus.thumbs."+((document.querySelector(".build")||{}).textContent||"dev")+"."+Object.keys(RECIPES).length;
+function thumbOne(el,out){
   const save=JSON.stringify(ST), k0=K, tc=document.createElement("canvas"), tx=tc.getContext("2d");
   tc.width=176; tc.height=220; exporting=true;
   try{
-    for(const el of rc.querySelectorAll("[data-r]")){
-      const id=el.dataset.r, R=RECIPES[id];
-      ST=adopt({recipe:id, letters:R.letters, inks:R.look?R.look.inks:JSON.parse(save).inks, motion:"still", format:"post"});
-      K=.42; setupCanvases(); tileKey=""; drawFrame(0);
-      tx.drawImage(cv,cv.width*.25,cv.height*.25,cv.width*.5,cv.height*.5,0,0,tc.width,tc.height);
-      el.querySelector("img").src=tc.toDataURL("image/png");
-    }
+    const id=el.dataset.r, R=RECIPES[id];
+    ST=adopt({recipe:id, letters:R.letters, inks:R.look?R.look.inks:JSON.parse(save).inks, motion:"still", format:"post"});
+    K=.42; setupCanvases(); tileKey=""; drawFrame(0);
+    tx.drawImage(cv,cv.width*.25,cv.height*.25,cv.width*.5,cv.height*.5,0,0,tc.width,tc.height);
+    el.querySelector("img").src=out[id]=tc.toDataURL("image/jpeg",.82);
   } finally { ST=adopt(JSON.parse(save)); K=k0; setupCanvases(); tileKey=""; still=""; exporting=false; }
+}
+function thumbnails(){
+  let out={}; try{ out=JSON.parse(localStorage.getItem(THUMB_KEY)||"{}")||{}; }catch{}
+  const todo=[];
+  for(const el of rc.querySelectorAll("[data-r]")){ const src=out[el.dataset.r]; if(src) el.querySelector("img").src=src; else todo.push(el); }
+  if(!todo.length) return;
+  const idle=window.requestIdleCallback||(f=>setTimeout(()=>f({timeRemaining:()=>12}),60));
+  const step=dl=>{
+    do{ thumbOne(todo.shift(),out); } while(todo.length&&dl.timeRemaining()>10);
+    if(todo.length) idle(step,{timeout:400});
+    else try{ for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(k&&k.startsWith("risomitus.thumbs.")&&k!==THUMB_KEY) localStorage.removeItem(k); }
+              localStorage.setItem(THUMB_KEY,JSON.stringify(out)); }catch{}
+  };
+  idle(step,{timeout:600});
 }
 const hint=document.createElement("div"); hint.className="note"; hint.style.marginBlockStart="0"; sStruct.appendChild(hint);
 sStruct.appendChild(labeled("אותיות"));
@@ -2196,7 +2230,10 @@ function paramRow(q){
   const row=document.createElement("div"); row.className="r";
   row.innerHTML=`<label for="fp_${q.k}">${q.l}</label><input type="range" id="fp_${q.k}" min="${q.min}" max="${q.max}" step="${q.step}"><span class="v mono"></span>`;
   const el=row.querySelector("input"), vv=row.querySelector(".v"), fmt=q.fmt||(v=>num(v,q.step<.01?4:2));
-  el.oninput=()=>{ vv.textContent=fmt(+el.value); fills(el); setParam(q.k,+el.value); };
+  /* a structure that simulates (Turing: half a second per run) follows the
+     slider's label while it moves and only re-runs when it is let go */
+  el.oninput=()=>{ vv.textContent=fmt(+el.value); fills(el); if(!RECIPES[ST.recipe].heavy) setParam(q.k,+el.value); };
+  el.onchange=()=>{ if(RECIPES[ST.recipe].heavy) setParam(q.k,+el.value); };
   row._sync=()=>{ const v=param(ST.recipe,q.k); if(document.activeElement!==el) el.value=v; vv.textContent=fmt(+v); fills(el); };
   return row;
 }
@@ -2680,7 +2717,7 @@ function drawTitle(){
   const E=Emitter(); titleOps(E,f.w,f.h);
   ctx.setTransform(1,0,0,1,0,0); base(ctx,K,K);
   for(const op of E.ops){
-    if(op[0]==="r"){ ctx.setTransform(K,0,0,K,0,0); ctx.fillStyle=op[5]; ctx.fillRect(op[1],op[2],op[3],op[4]); continue; }
+    if(op[0]==="r"){ ctx.setTransform(K,0,0,K,0,0); ctx.fillStyle=op[5]; ctx._fs=op[5]; ctx.fillRect(op[1],op[2],op[3],op[4]); continue; }
     if(op[0]==="t"){ const [,c,x,y,s,col,rot]=op; put(ctx,c,x,y,s,col,rot); }
   }
 }
@@ -2733,10 +2770,14 @@ function pressInks(){
      cross still print as two drums on top of each other */
   w.PRESS.setInks(isPaper?ST.inks[0]:PAPER, used, R.overprint?"lut":"spot");
 }
+/* a still sheet is printed once, not twelve times a second: the press is a
+   multi-pass WebGL simulation and reprinting an unchanged frame was pure load */
+let pumped=-1;
 function pressPump(){
-  if(!pressOn||!pressFrame||exporting) return;
+  if(!pressOn||!pressFrame||exporting||pumped===drawCount) return;
   const w=pressFrame.contentWindow;
   if(!w||!w.PRESS||!w.PRESS.ready()) return;
+  pumped=drawCount;
   try{ w.PRESS.refresh(); }catch(e){}
 }
 const RISO_KEY="risomitus.patterns.riso";
