@@ -806,7 +806,7 @@ global.RISOKIT = {
       </div>
       <p class="k">פטרנים מאותיות · טפטים באות חיים</p>
     </div>
-    <p class="d">בונה טפטים מאותיות: ארבעים ואחד מבנים — מקריאים ועד מופשטים — בדיו ריזו אמיתי. נדרש קוד כניסה.</p>
+    <p class="d">בונה טפטים מאותיות: חמישים ושניים מבנים — מנוסחאות מתמטיות ועד קריאים — בדיו ריזו אמיתי. נדרש קוד כניסה.</p>
     <input id="code" inputmode="numeric" autocomplete="off" maxlength="8"
            aria-label="קוד כניסה" placeholder="····">
     <div id="gatemsg" role="status" aria-live="polite"></div>
@@ -842,6 +842,11 @@ global.RISOKIT = {
   #inks{display:flex;gap:9px;flex-wrap:wrap;margin:4px 0 10px}
   #inks .chip.off{opacity:.38}
   #titletext{direction:rtl;text-align:right;font:20px/1.2 "Haim",system-ui,sans-serif;letter-spacing:.04em;padding:7px 10px;margin-block-end:4px}
+  .formula{font:11.5px/1.65 ui-monospace,"SF Mono",Menlo,monospace;direction:ltr;text-align:left;white-space:pre-wrap;
+    padding:10px 12px;margin:2px 0 8px;border-radius:6px;background:#0d100c;color:#9be37f;
+    box-shadow:inset 0 2px 6px #000a,0 1px 0 #ffffff40;letter-spacing:0;unicode-bidi:plaintext}
+  .gwell{max-height:min(46vh,430px);overflow-y:auto;overscroll-behavior:contain;padding:0 4px 4px;margin:0 -4px 8px;
+    border-radius:6px;box-shadow:inset 0 2px 6px #00000026;scrollbar-width:thin}
   .gallery{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:2px 0 6px}
   .gal{cursor:pointer;border-radius:5px;overflow:hidden;background:#00000014;
     box-shadow:0 1px 2px #00000033,inset 0 0 0 1px #0000001f;transition:transform .14s,box-shadow .14s}
@@ -871,7 +876,7 @@ global.RISOKIT = {
   <div class="head">
     <h1>פטרנים</h1>
     <p>פטרנים שבנויים כולם מאותיות חיים — כל קו, מסגרת ומילוי הוא אות</p>
-    <nav class="tabs" aria-label="Systems"><a href="../?v=2da7ee9">ריזו<small>מכונת דפוס</small></a><a href="./" aria-current="page">פטרנים<small>פטרנים מאותיות</small></a><a href="../objects/?v=2da7ee9">אובייקטים<small>מילים כחפצים</small></a></nav><div class="build" title="Build version">23.10 17:23 · 2da7ee9</div>
+    <nav class="tabs" aria-label="Systems"><a href="../?v=d1bf212">ריזו<small>מכונת דפוס</small></a><a href="./" aria-current="page">פטרנים<small>פטרנים מאותיות</small></a><a href="../objects/?v=d1bf212">אובייקטים<small>מילים כחפצים</small></a></nav><div class="build" title="Build version">25.10 09:30 · d1bf212</div>
     <div class="seg" role="group" aria-label="פורמט">
       <button id="f_post" aria-pressed="true">פוסט<small>1080 × 1350</small></button>
       <button id="f_story" aria-pressed="false">סטורי<small>1080 × 1920</small></button>
@@ -924,7 +929,7 @@ const inkName = h => { const k=ALLINK.find(c=>c[1].toUpperCase()===String(h).toU
 /* ---- state ---- */
 const DEF = () => ({ format:"post", recipe:"tile", letters:"סםלגט",
   inks:["#D2515E","#3D5588","#00838A","#FF6C2F","#FFAE3B","#F984CA"],
-  scale:1, size:1, spacing:1, motion:"spin", speed:1, smear:0, seed:7,
+  scale:1, size:1, spacing:1, motion:"spin", speed:1, smear:0, seed:7, fp:{},
   title:{text:"",size:1,pos:"center",style:"box",ink:1,track:.06} });
 let ST = DEF();
 
@@ -1607,6 +1612,328 @@ Object.assign(RECIPES,{
 });
 
 /* ═══════════════════════════════════════════════════════════════════
+   FORMULAS — the fourth group, and the reason the page exists now.
+
+   Here nothing is placed by hand and nothing is random. Every letter's
+   position, angle, size and drum is read off an equation, and each structure
+   says which one, in the panel, with its parameters on sliders. The letters
+   stay letters: where a formula warps space it is a conformal one, which
+   keeps angles, so a letter is only ever scaled and turned, never sheared.
+
+   The psychedelic part is colour as a field. Inks are bands of the formula's
+   value — contour lines of the function, posterised into Riso drums — and in
+   Cycle the bands flow through the sheet. A real 1967 poster vibrates because
+   two saturated inks fight along a curve; here the curve is an isoline.
+
+   Sources: Vogel's phyllotaxis (θ = n·137.508°, r = c√n); a quasicrystal as a
+   sum of m plane waves; Chladni's nodal lines cos(nπx)cos(mπy) −
+   cos(mπx)cos(nπy); conformal maps of the complex plane; the log-polar
+   spiral behind Escher's Print Gallery; Gray–Scott reaction–diffusion;
+   Clifford's attractor; the {p,q} tilings of the Poincaré disc (Dunham);
+   the harmonograph; Maurer's rose.
+   ═══════════════════════════════════════════════════════════════════ */
+const TAU=Math.PI*2;
+const nInks=R=>{ let n=0; for(let i=1;i<6;i++) if(R.inkRoles[i]!=="—") n++; return Math.max(1,n); };
+/* a value in [0,1] → a drum, `rings` times across the range; Cycle slides the bands */
+function bandOf(v,X,rings=1){
+  const nb=X.nb, t=v*rings*nb+(X.mode==="cycle"?X.ph*nb:0);
+  return 1+(((Math.floor(t)%nb)+nb)%nb);
+}
+const mod=(a,n)=>((a%n)+n)%n;
+/* complex numbers as [re, im] */
+const C={
+  mul:(a,b)=>[a[0]*b[0]-a[1]*b[1],a[0]*b[1]+a[1]*b[0]],
+  div:(a,b)=>{ const d=b[0]*b[0]+b[1]*b[1]||1e-12; return [(a[0]*b[0]+a[1]*b[1])/d,(a[1]*b[0]-a[0]*b[1])/d]; },
+  exp:a=>{ const e=Math.exp(a[0]); return [e*Math.cos(a[1]),e*Math.sin(a[1])]; },
+  abs:a=>Math.hypot(a[0],a[1]), arg:a=>Math.atan2(a[1],a[0])
+};
+
+/* ---- the conformal maps: a source domain where the text is set in straight
+   rows, the function, its derivative (whose argument turns each letter and
+   whose modulus scales it), and how much of the w-plane the sheet shows ---- */
+const MAPS={
+  exp:{ f:"w = eᶻ", dom:[-5.2,1.65,-Math.PI,Math.PI], span:4.9,
+        F:z=>C.exp(z), D:z=>C.exp(z) },
+  sq:{ f:"w = z²", dom:[0,2.3,-2.3,2.3], span:5.2,
+       F:z=>C.mul(z,z), D:z=>[2*z[0],2*z[1]] },
+  inv:{ f:"w = 1 / z", dom:[-3,3,-3,3], hole:.14, span:3.2,
+        F:z=>C.div([1,0],z), D:z=>{ const z2=C.mul(z,z); return C.div([-1,0],z2); } },
+  jouk:{ f:"w = z + 1/z", dom:[-3.4,3.4,-3.4,3.4], hole:1.02, span:3.6,
+         F:z=>{ const i=C.div([1,0],z); return [z[0]+i[0],z[1]+i[1]]; },
+         D:z=>{ const i=C.div([1,0],C.mul(z,z)); return [1-i[0],-i[1]]; } },
+  sin:{ f:"w = sin z", dom:[-Math.PI/2,Math.PI/2,-2.3,2.3], span:4.8,
+        F:z=>[Math.sin(z[0])*Math.cosh(z[1]),Math.cos(z[0])*Math.sinh(z[1])],
+        D:z=>[Math.cos(z[0])*Math.cosh(z[1]),-Math.sin(z[0])*Math.sinh(z[1])] },
+  mob:{ f:"w = (z − a) / (1 − āz)", dom:[-1,1,-1,1], disc:.985, span:1.02, mob:true }
+};
+
+/* ---- Gray–Scott, seeded with the word itself: the spots grow out of the
+   letters. Toroidal grid, five-point Laplacian, forward Euler. Cached. ---- */
+const gsCache={};
+function grayScott(word,F,K,steps,gw,gh){
+  const key=[word,F,K,steps,gw,gh].join("|"); if(gsCache[key]) return gsCache[key];
+  const N=gw*gh; let u=new Float32Array(N).fill(1), v=new Float32Array(N), u2=new Float32Array(N), v2=new Float32Array(N);
+  const m=wordMask(word,120), k=Math.min(gw*.82/m.w,gh*.42/m.h), ox=(gw-m.w*k)/2, oy=(gh-m.h*k)/2;
+  for(let y=0;y<gh;y++) for(let x=0;x<gw;x++){
+    const i=y*gw+x, h=Math.sin(x*12.9898+y*78.233)*43758.5453, n=h-Math.floor(h);   // a fixed hash, not a random draw
+    if(m.test((x-ox)/k,(y-oy)/k)){ u[i]=.5; v[i]=.25+.05*n; } else v[i]=.002*n;
+  }
+  const Du=.16, Dv=.08;
+  for(let s=0;s<steps;s++){
+    for(let y=0;y<gh;y++){ const yu=((y-1+gh)%gh)*gw, yd=((y+1)%gh)*gw, yc=y*gw;
+      for(let x=0;x<gw;x++){ const xl=(x-1+gw)%gw, xr=(x+1)%gw, i=yc+x;
+        const U=u[i], V=v[i], uvv=U*V*V;
+        const lu=u[yc+xl]+u[yc+xr]+u[yu+x]+u[yd+x]-4*U, lv=v[yc+xl]+v[yc+xr]+v[yu+x]+v[yd+x]-4*V;
+        u2[i]=U+Du*lu-uvv+F*(1-U); v2[i]=V+Dv*lv+uvv-(F+K)*V; } }
+    let t=u; u=u2; u2=t; t=v; v=v2; v2=t;
+  }
+  return gsCache[key]={v,gw,gh};
+}
+/* ---- the {p,q} tiling of the Poincaré disc: Möbius maps as 2×2 complex
+   matrices [a,b,c,d]; a neighbour across edge k is M·Rᵏ·T·R_π, where T
+   translates by the centre-to-centre distance D and R_π turns the new tile
+   half a turn so its frame matches the edge it shares. Cached per {p,q}. ---- */
+const hypCache={};
+const mm=(A,B)=>[ C.add2(C.mul(A[0],B[0]),C.mul(A[1],B[2])), C.add2(C.mul(A[0],B[1]),C.mul(A[1],B[3])),
+                  C.add2(C.mul(A[2],B[0]),C.mul(A[3],B[2])), C.add2(C.mul(A[2],B[1]),C.mul(A[3],B[3])) ];
+C.add2=(a,b)=>[a[0]+b[0],a[1]+b[1]];
+const mob=(M,z)=>C.div(C.add2(C.mul(M[0],z),M[1]),C.add2(C.mul(M[2],z),M[3]));
+const mobD=(M,z)=>{ const det=C.add2(C.mul(M[0],M[3]),C.mul([-1,0],C.mul(M[1],M[2]))), den=C.add2(C.mul(M[2],z),M[3]); return C.div(det,C.mul(den,den)); };
+function hypTiles(p,q){
+  const key=p+","+q; if(hypCache[key]) return hypCache[key];
+  const D=2*Math.acosh(Math.cos(Math.PI/q)/Math.sin(Math.PI/p)), t=Math.tanh(D/2);
+  const rot=a=>[[Math.cos(a/2),Math.sin(a/2)],[0,0],[0,0],[Math.cos(a/2),-Math.sin(a/2)]];
+  const T=[[1,0],[t,0],[t,0],[1,0]], G=[];
+  for(let k=0;k<p;k++) G.push(mm(mm(rot(k*TAU/p),T),rot(Math.PI)));
+  const I=[[1,0],[0,0],[0,0],[1,0]], tiles=[{M:I,depth:0}], seen=new Set(["0,0"]);
+  let front=[tiles[0]];
+  for(let d=1;d<14&&front.length&&tiles.length<5000;d++){
+    const next=[];
+    for(const f of front) for(const g of G){ const M=mm(f.M,g), c=mob(M,[0,0]);
+      if(C.abs(c)>.9965) continue;
+      const k2=Math.round(c[0]*2000)+","+Math.round(c[1]*2000); if(seen.has(k2)) continue; seen.add(k2);
+      const tile={M,depth:d}; tiles.push(tile); next.push(tile); }
+    front=next;
+  }
+  return hypCache[key]={tiles,D};
+}
+
+Object.assign(RECIPES,{
+  phyllo:{ name:"חמנייה", group:"formula", word:true, letters:"שמש", drift:[0,0],
+    formula:()=>"θₙ = n · α     rₙ = c · √n",
+    hint:"מודל פוגל לחמנייה: כל אות מסובבת בזווית הזהב מקודמתה ומתרחקת בשורש — הספירלות לא מצוירות, הן נובעות מהזווית. הזיזו את α מעט ותראו אותן מתפרקות",
+    params:[{k:"alpha",l:"זווית α",min:136.6,max:138.4,step:.001,d:137.508,fmt:v=>v.toFixed(3)+"°"},
+            {k:"arms",l:"זרועות צבע",o:[[5,"5"],[8,"8"],[13,"13"],[21,"21"],[34,"34"]],d:21}],
+    inkRoles:["רקע","זרוע 1","זרוע 2","זרוע 3","זרוע 4","—"],
+    look:{inks:["#000000","#FF48B0","#FFE800","#44D62C","#FF7477","#000000"],motion:"spin"},
+    direct(g,X,W,H){
+      const {L,ink,n}=X, cx=W/2, cy=H/2, Rm=Math.hypot(W,H)/2+20, N=Math.round(1500/(X.G*X.G)/(ST.scale*ST.scale));
+      const a=(X.p("alpha")+(X.mode==="spin"?.22*Math.sin(X.ph*TAU):0))*Math.PI/180, rot0=X.mode==="drift"?X.ph*TAU:0;
+      const c=Rm/Math.sqrt(N), s=c*1.5*X.sz, arms=+X.p("arms");
+      for(let k=1;k<=N;k++){ const th=k*a+rot0, r=c*Math.sqrt(k), x=cx+r*Math.cos(th), y=cy+r*Math.sin(th);
+        if(x<-s||y<-s||x>W+s||y>H+s) continue;
+        put(g,L(k%n),x,y,s,ink(1+mod(k%arms+(X.mode==="cycle"?Math.floor(X.ph*X.nb):0),X.nb)),th+Math.PI/2); }
+    }},
+  quasi:{ name:"קוואזי־גביש", group:"formula", letters:"ושמא", roles:["פס 1","פס 2","פס 3","פס 4"], drift:[0,0],
+    formula:p=>`f(x,y) = Σⱼ₌₀^${p("m")-1} cos( k·(x·cos(πj/${p("m")}) + y·sin(πj/${p("m")})) + φ )`,
+    hint:"סכום של m גלים מישוריים — סימטריה סיבובית בלי שום חזרה. כל אות מונחת לאורך קו הגובה של הפונקציה, גודלה לפי עוצמתה, והדיו לפי הפס שלה",
+    params:[{k:"m",l:"סימטריה m",min:3,max:13,step:1,d:7},{k:"k",l:"תדר k",min:.012,max:.07,step:.001,d:.03},
+            {k:"rings",l:"פסי צבע",min:.5,max:5,step:.05,d:1.6}],
+    inkRoles:["רקע","פס 1","פס 2","פס 3","פס 4","—"],
+    look:{inks:["#765BA7","#FF48B0","#FFB511","#5EC8E5","#FFE800","#000000"],motion:"spin"},
+    direct(g,X,W,H){
+      const {u,G,L,ink}=X, m=X.p("m"), k=X.p("k")*2.45/u, pitch=13*u*G, cx=W/2, cy=H/2, phi=X.mode==="spin"?X.ph*TAU:0, rg=X.p("rings");
+      const dirs=[]; for(let j=0;j<m;j++) dirs.push([Math.cos(Math.PI*j/m),Math.sin(Math.PI*j/m)]);
+      for(let row=0,y=-pitch;y<H+pitch;y+=pitch*.866,row++) for(let x=-pitch+(row&1)*pitch/2;x<W+pitch;x+=pitch){
+        const X0=x-cx, Y0=y-cy; let f=0,gx=0,gy=0;
+        for(const [c,s] of dirs){ const a=k*(X0*c+Y0*s)+phi, sn=Math.sin(a); f+=Math.cos(a); gx-=k*c*sn; gy-=k*s*sn; }
+        const v=f/m, b=bandOf((v+1)/2,X,rg);
+        put(g,L(b-1),x,y,pitch*(.32+.8*Math.pow(Math.abs(v),.55))*X.sz,ink(b),Math.atan2(gy,gx)+Math.PI/2); }
+    }},
+  chladni:{ name:"כלדני", group:"formula", letters:"ושם", roles:["קו צומת","פס","פס 2"], drift:[0,0],
+    formula:p=>`f = cos(${p("n")}πx)·cos(${p("m")}πy) − cos(${p("m")}πx)·cos(${p("n")}πy)`,
+    hint:"דמויות כלדני: לוח שרוטט, וחול שנאסף על הקווים שבהם הלוח עומד. כאן האותיות הן החול — גדולות על קו הצומת, זעירות בין לבין, מסובבות לאורך הקו",
+    params:[{k:"n",l:"n",min:1,max:12,step:1,d:3},{k:"m",l:"m",min:1,max:12,step:1,d:8},{k:"eps",l:"עובי קו",min:.05,max:.6,step:.01,d:.26}],
+    inkRoles:["רקע","קו צומת","פס","פס 2","—","—"],
+    look:{inks:["#000000","#FFE800","#0078BF","#FF48B0","#000000","#000000"],motion:"spin"},
+    direct(g,X,W,H){
+      const {u,G,L,ink}=X, pitch=10.5*u*G, cx=W/2, cy=H/2, R0=Math.min(W,H)/2, eps=X.p("eps");
+      let n=X.p("n"), m=X.p("m"); if(n===m) m=m%12+1;
+      const F=(a,b,x,y)=>Math.cos(a*Math.PI*x)*Math.cos(b*Math.PI*y)-Math.cos(b*Math.PI*x)*Math.cos(a*Math.PI*y);
+      const s=X.mode==="spin"?.5-.5*Math.cos(X.ph*TAU):0, n2=Math.max(1,n+1), m2=Math.max(1,m-1===n2?m+1:m-1);
+      const f=(x,y)=>(1-s)*F(n,m,x,y)+s*F(n2,m2,x,y), h=.002;
+      for(let row=0,y=-pitch;y<H+pitch;y+=pitch*.9,row++) for(let x=-pitch+(row&1)*pitch/2;x<W+pitch;x+=pitch){
+        const ux=(x-cx)/R0, uy=(y-cy)/R0, v=f(ux,uy)/2, a=Math.abs(v);
+        if(a<eps){ const gx=f(ux+h,uy)-f(ux-h,uy), gy=f(ux,uy+h)-f(ux,uy-h);
+          put(g,L(0),x,y,pitch*(1.12-.75*a/eps)*X.sz,ink(1),Math.atan2(gy,gx)+Math.PI/2); }
+        else { const b=1+bandOf((v+1)/2,{...X,nb:2},1); put(g,L(b-1),x,y,pitch*.22*X.sz,ink(b),0); } }
+    }},
+  conformal:{ name:"מיפוי קונפורמי", group:"formula", word:true, letters:"זרם", drift:[0,0],
+    formula:p=>MAPS[p("fn")].f+"     z = x + iy",
+    hint:"שורות ישרות של המילה, מועברות דרך פונקציה מרוכבת. מיפוי קונפורמי שומר על זוויות, אז כל אות רק מוגדלת ומסובבת — לפי |f′(z)| ו־arg f′(z) — ולעולם לא נמרחת",
+    params:[{k:"fn",l:"פונקציה",o:[["exp","eᶻ"],["sq","z²"],["inv","1/z"],["jouk","z+1/z"],["sin","sin z"],["mob","מביוס"]],d:"exp"},
+            {k:"zoom",l:"זום",min:.4,max:2.6,step:.01,d:1},{k:"pitch",l:"צפיפות",min:.06,max:.3,step:.002,d:.15}],
+    inkRoles:["רקע","שורה","שורה 2","שורה 3","—","—"],
+    look:{inks:["#3255A4","#FF48B0","#FFE800","#44D62C","#000000","#000000"],motion:"drift"},
+    direct(g,X,W,H){
+      const {L,ink,n}=X, mp=MAPS[X.p("fn")], cx=W/2, cy=H/2, Rm=Math.hypot(W,H)/2, sc=Rm/mp.span*X.p("zoom");
+      const p=X.p("pitch")*(mp.mob?.32:1), per=n+1, rh=p*1.32, [x0,x1,y0,y1]=mp.dom;
+      const t=X.mode==="drift"?X.ph*per:0, spin=X.mode==="spin"&&!mp.mob?X.ph*TAU:0, cs=Math.cos(spin), sn=Math.sin(spin);
+      const a=mp.mob?[.55*Math.cos(X.mode==="spin"?X.ph*TAU:.6),.55*Math.sin(X.mode==="spin"?X.ph*TAU:.6)]:null;
+      const F=mp.mob?z=>C.div([z[0]-a[0],z[1]-a[1]],C.add2([1,0],C.mul([-a[0],a[1]],z))):mp.F;
+      const Dv=mp.mob?z=>{ const den=C.add2([1,0],C.mul([-a[0],a[1]],z)); return C.div([1-a[0]*a[0]-a[1]*a[1],0],C.mul(den,den)); }:mp.D;
+      const cyc=X.mode==="cycle"?Math.floor(X.ph*X.nb):0;
+      for(let r=0;y0+r*rh<=y1;r++){ const y=y0+(r+.5)*rh;
+        for(let c=Math.floor(-per-1);x0+(c-per)*p<=x1+per*p;c++){
+          const x=x0+(c+t)*p; if(x<x0||x>x1) continue;
+          const idx=mod(-c,per); if(idx===n) continue;
+          if(mp.hole&&Math.hypot(x,y)<mp.hole) continue;
+          if(mp.disc&&Math.hypot(x,y)>mp.disc) continue;
+          const z=[x,y], w=F(z), d=Dv(z), s=p*.8*C.abs(d)*sc*X.sz;
+          if(!isFinite(s)||s<2||s>Math.min(W,H)*.45) continue;
+          const px=cx+sc*(w[0]*cs-w[1]*sn), py=cy+sc*(w[0]*sn+w[1]*cs);
+          if(px<-s||py<-s||px>W+s||py>H+s) continue;
+          put(g,L(idx),px,py,s,ink(1+mod(r+cyc,X.nb)),C.arg(d)+spin); } }
+    }},
+  droste:{ name:"דרוסטה", group:"formula", word:true, letters:"אינסוף", drift:[0,0],
+    formula:p=>`r = e^(${(+p("b")).toFixed(2)}·θ)     s = r · σ     ${p("arms")} זרועות`,
+    hint:"ספירלה לוגריתמית, ההנדסה שמאחורי 'גלריית ההדפסים' של אשר: גודל כל אות יחסי למרחקה מהמרכז, אז הדף דומה לעצמו בכל קנה מידה — ובתנועה הוא צולל לתוך עצמו בלי סוף",
+    params:[{k:"arms",l:"זרועות",min:1,max:16,step:1,d:10},{k:"b",l:"פיתול b",min:.06,max:.6,step:.005,d:.17},{k:"sig",l:"גודל σ",min:.05,max:.22,step:.005,d:.13}],
+    inkRoles:["רקע","זרוע","זרוע 2","זרוע 3","—","—"],
+    look:{inks:["#000000","#FF48B0","#FF7477","#FFE800","#000000","#000000"],motion:"drift"},
+    direct(g,X,W,H){
+      const {L,ink,n}=X, cx=W/2, cy=H/2, Rm=Math.hypot(W,H)/2*1.06, N=X.p("arms"), b=X.p("b"), sig=X.p("sig")*X.sz;
+      const du=1.2*sig/Math.sqrt(1+1/(b*b)), per=n+1, shift=X.mode==="drift"?X.ph*per*du:0, rot=X.mode==="spin"?X.ph*TAU:0;
+      const uMin=Math.log(1.5), uMax=Math.log(Rm);
+      const cyc=X.mode==="cycle"?Math.floor(X.ph*X.nb):0;
+      for(let k=0;k<N;k++){ const tk=TAU*k/N+rot;
+        for(let j=Math.floor((uMin-shift)/du)-1;j<=Math.ceil((uMax-shift)/du)+1;j++){
+          const uu=j*du+shift, r=Math.exp(uu), s=r*sig; if(s<1.4) continue;
+          const idx=mod(-j,per); if(idx===n) continue;
+          const th=uu/b+tk, ct=Math.cos(th), st=Math.sin(th), x=cx+r*ct, y=cy+r*st;
+          if(x<-s||y<-s||x>W+s||y>H+s) continue;
+          put(g,L(idx),x,y,s,ink(1+mod(k+cyc,X.nb)),Math.atan2(b*st+ct,b*ct-st)); } }
+    }},
+  hyper:{ name:"היפרבולי", group:"formula", letters:"אם", roles:["מרכז","טבעת"], drift:[0,0],
+    formula:p=>`{${p("p")},${p("q")}}     T(z) = (z + t) / (1 + t·z),  t = tanh(D/2)`,
+    hint:"ריצוף של המישור ההיפרבולי בדיסק של פואנקרה, כמו 'גבול המעגל' של אשר: אינסוף מצולעים שכולם באותו גודל, וכולם נדחסים לקראת השפה. כל מצולע — טבעת של אותיות",
+    params:[{k:"p",l:"צלעות p",min:3,max:10,step:1,d:7},{k:"q",l:"מפגש q",min:3,max:8,step:1,d:3}],
+    inkRoles:["רקע","טבעת","טבעת 2","טבעת 3","מרכז","—"],
+    look:{inks:["#000000","#FF48B0","#FFE800","#5EC8E5","#44D62C","#000000"],motion:"spin"},
+    direct(g,X,W,H){
+      const {L,ink}=X; let p=X.p("p"), q=X.p("q"); while((p-2)*(q-2)<=4) q++;
+      const {tiles,D}=hypTiles(p,q), cx=W/2, cy=H/2, R=Math.min(W,H)/2*.97, base=R*.2*X.sz;
+      const spin=X.mode==="spin"?X.ph*TAU/p:X.mode==="drift"?X.ph*TAU:0, cs=Math.cos(spin), sn=Math.sin(spin);
+      const rl=Math.tanh(D/4*.62), cyc=X.mode==="cycle"?Math.floor(X.ph*X.nb):0, byDepth=X.mode!=="drift";
+      for(const {M,depth} of tiles){
+        const ring=byDepth?1+mod(depth+cyc,3):1;
+        for(let k=-1;k<p;k++){
+          const z=k<0?[0,0]:[rl*Math.cos(k*TAU/p),rl*Math.sin(k*TAU/p)], w=mob(M,z), d=mobD(M,z), s=base*C.abs(d)*(k<0?.55:.42);
+          if(s<1.3) continue;
+          const x=cx+R*(w[0]*cs-w[1]*sn), y=cy+R*(w[0]*sn+w[1]*cs);
+          put(g,L(k<0?0:1),x,y,s,ink(k<0?4:ring),C.arg(d)+spin+(k<0?0:k*TAU/p+Math.PI/2)); } }
+      const nb=Math.round(TAU*R/(base*.16)); for(let k=0;k<nb;k++){ const a=k*TAU/nb; put(g,L(0),cx+R*1.01*Math.cos(a),cy+R*1.01*Math.sin(a),base*.1,ink(4),a+Math.PI/2); }
+    }},
+  turing:{ name:"טיורינג", group:"formula", word:true, letters:"חי", drift:[0,0],
+    formula:p=>`∂v/∂t = 0.08·∇²v + u·v² − (${(+p("F")).toFixed(4)} + ${(+p("K")).toFixed(4)})·v`,
+    hint:"תגובה־דיפוזיה של גריי־סקוט — המשוואה שטיורינג הציע לנמרים ולזברות. הזרע הוא המילה עצמה: הכתמים צומחים מתוך האותיות, והאותיות הקטנות ממלאות אותם לאורך קווי הגובה",
+    params:[{k:"F",l:"הזנה F",min:.018,max:.07,step:.0005,d:.037},{k:"K",l:"הריגה k",min:.045,max:.07,step:.0005,d:.06},
+            {k:"steps",l:"זמן",min:400,max:6000,step:100,d:2600}],
+    inkRoles:["רקע","כתם","כתם 2","כתם 3","—","—"],
+    look:{inks:["#00838A","#FFE800","#FF7477","#000000","#000000","#000000"],motion:"cycle"},
+    direct(g,X,W,H){
+      const {u,G,L,ink,all}=X, gw=Math.round(W/8), gh=Math.round(H/8), fld=grayScott(all.join(""),X.p("F"),X.p("K"),X.p("steps"),gw,gh);
+      const V=(x,y)=>{ const gx=Math.min(gw-1.001,Math.max(0,x/W*gw-.5)), gy=Math.min(gh-1.001,Math.max(0,y/H*gh-.5)), i=Math.floor(gx), j=Math.floor(gy), fx=gx-i, fy=gy-j, v=fld.v;
+        return (v[j*gw+i]*(1-fx)+v[j*gw+i+1]*fx)*(1-fy)+(v[(j+1)*gw+i]*(1-fx)+v[(j+1)*gw+i+1]*fx)*fy; };
+      const pitch=8.5*u*G;
+      for(let row=0,y=pitch/2;y<H;y+=pitch*.9,row++) for(let x=pitch/2+(row&1)*pitch/2;x<W;x+=pitch){
+        const v=V(x,y); if(v<.07) continue;
+        const gx=V(x+3,y)-V(x-3,y), gy=V(x,y+3)-V(x,y-3), b=bandOf(Math.min(1,v/.42),X,1);
+        put(g,L(b-1),x,y,pitch*Math.min(1.25,.35+2.4*v)*X.sz,ink(b),Math.atan2(gy,gx)+Math.PI/2); }
+    }},
+  attractor:{ name:"אטרקטור", group:"formula", letters:"תוהו", roles:["זוהר 1","זוהר 2","זוהר 3","זוהר 4"], drift:[0,0],
+    formula:p=>`xₙ₊₁ = sin(${p("a")}·yₙ) + ${p("c")}·cos(${p("a")}·xₙ)     yₙ₊₁ = sin(${p("b")}·xₙ) + ${p("d")}·cos(${p("b")}·yₙ)`,
+    hint:"האטרקטור של קליפורד: נקודה אחת שקופצת לפי שתי משוואות רבע מיליון פעם. האותיות יושבות היכן שהיא ביקרה — גדולות ובהירות היכן שביקרה הרבה — ומסובבות לכיוון שבו זרמה",
+    params:[{k:"a",l:"a",min:-3,max:3,step:.01,d:-1.4},{k:"b",l:"b",min:-3,max:3,step:.01,d:1.6},{k:"c",l:"c",min:-3,max:3,step:.01,d:1},{k:"d",l:"d",min:-3,max:3,step:.01,d:.7}],
+    inkRoles:["רקע","זוהר 1","זוהר 2","זוהר 3","זוהר 4","—"],
+    look:{inks:["#000000","#765BA7","#FF48B0","#FF7477","#FFE800","#000000"],motion:"spin"},
+    direct(g,X,W,H){
+      const {u,G,L,ink}=X, pitch=9.5*u*G, gw=Math.ceil(W/pitch), gh=Math.ceil(H/pitch);
+      const w=X.mode==="spin"?X.ph*TAU:0, a=X.p("a")+.07*Math.sin(w), b=X.p("b")+.07*Math.cos(w), c=X.p("c"), d=X.p("d");
+      const cnt=new Float32Array(gw*gh), vx=new Float32Array(gw*gh), vy=new Float32Array(gw*gh);
+      const sx=1+Math.abs(c), sy=1+Math.abs(d), sc=Math.min(W/(2*sx),H/(2*sy))*.94;
+      let x=.1, y=.1;
+      for(let i=0;i<260000;i++){ const nx=Math.sin(a*y)+c*Math.cos(a*x), ny=Math.sin(b*x)+d*Math.cos(b*y);
+        if(i>100){ const px=W/2+nx*sc, py=H/2+ny*sc, gi=Math.floor(px/pitch), gj=Math.floor(py/pitch);
+          if(gi>=0&&gj>=0&&gi<gw&&gj<gh){ const k=gj*gw+gi; cnt[k]++; vx[k]+=nx-x; vy[k]+=ny-y; } }
+        x=nx; y=ny; }
+      let mx=1; for(const v of cnt) if(v>mx) mx=v; const lm=Math.log(1+mx);
+      for(let j=0;j<gh;j++) for(let i=0;i<gw;i++){ const k=j*gw+i; if(!cnt[k]) continue;
+        const v=Math.log(1+cnt[k])/lm; if(v<.12) continue; const bb=bandOf(v,X,1);
+        put(g,L(bb-1),(i+.5)*pitch,(j+.5)*pitch,pitch*(.3+.95*v)*X.sz,ink(bb),Math.atan2(vy[k],vx[k])); }
+    }},
+  harmono:{ name:"הרמונוגרף", group:"formula", word:true, letters:"גלגל", drift:[0,0],
+    formula:p=>`x = A·[sin(${p("f1")}t + φ) + sin(${(p("f1")*1.004).toFixed(3)}t)]·e^(−${p("dmp")}t)     y = A·[sin(${p("f2")}t) + sin(${(p("f2")*1.003).toFixed(3)}t + φ)]·e^(−${p("dmp")}t)`,
+    hint:"שתי מטוטלות לכל ציר, דועכות לאט — המכונה הוויקטוריאנית שציירה עקומות ליסז'ו. הקו כאן הוא שורה אחת ארוכה של המילה, והצבע מתחלף לאורכה",
+    params:[{k:"f1",l:"תדר x",min:1,max:7,step:.01,d:3},{k:"f2",l:"תדר y",min:1,max:7,step:.01,d:2},
+            {k:"dmp",l:"דעיכה",min:0,max:.04,step:.0005,d:.012},{k:"len",l:"אורך",min:20,max:160,step:1,d:70}],
+    inkRoles:["רקע","קו","קו 2","קו 3","—","—"],
+    look:{inks:[PAPER,"#0078BF","#FF48B0","#FFB511","#000000","#000000"],motion:"spin"},
+    direct(g,X,W,H){
+      const {S,G,L,ink,n}=X, A=Math.min(W,H)*.235, cx=W/2, cy=H/2, f1=X.p("f1"), f2=X.p("f2"), dm=X.p("dmp"), T=X.p("len");
+      const phi=1.3+(X.mode==="spin"?X.ph*TAU:0), pts=[];
+      for(let t=0;t<=T;t+=.012){ const e=Math.exp(-dm*t);
+        pts.push([cx+A*(Math.sin(f1*t+phi)+Math.sin(f1*1.004*t))*e, cy+A*(Math.sin(f2*t)+Math.sin(f2*1.003*t+phi))*e]); }
+      const s=8*S*X.sz, step=s*1.25*G; let acc=0, j=0;
+      for(let i=1;i<pts.length;i++){ const [x0,y0]=pts[i-1],[x1,y1]=pts[i], d=Math.hypot(x1-x0,y1-y0); acc+=d;
+        while(acc>=step){ acc-=step; const tt=1-acc/Math.max(d,1e-6), x=x0+(x1-x0)*tt, y=y0+(y1-y0)*tt;
+          const band=Math.floor(j/(n*6))+(X.mode==="cycle"?Math.floor(X.ph*X.nb):0);
+          put(g,L(mod(-j,n)),x,y,s,ink(1+mod(band,X.nb)),Math.atan2(y1-y0,x1-x0)); j++; } }
+    }},
+  rose:{ name:"ורד מאורר", group:"formula", letters:"ורד", roles:["מיתר","ורד"], drift:[0,0],
+    formula:p=>`r = sin(${p("n")}θ)     נקודות θₖ = k·${(+p("d")).toFixed(1)}°`,
+    hint:"ורד מאורר: עקומת עלי כותרת r = sin(nθ), ועליה נקודות כל d מעלות מחוברות במיתרים. כל מיתר הוא שורה של אותיות; שינוי קטן ב־d מחליף את כל הרקמה",
+    params:[{k:"n",l:"עלי כותרת n",min:2,max:9,step:1,d:6},{k:"d",l:"צעד d°",min:1,max:179,step:.1,d:71},{k:"pts",l:"נקודות",min:40,max:361,step:1,d:150}],
+    inkRoles:["רקע","מיתר","מיתר 2","ורד","—","—"],
+    look:{inks:["#484D7A","#FF48B0","#5EC8E5","#FFE800","#000000","#000000"],motion:"spin"},
+    direct(g,X,W,H){
+      const {S,G,L,ink}=X, R=Math.min(W,H)*.46, cx=W/2, cy=H/2, nn=X.p("n"), dd=X.p("d")+(X.mode==="spin"?.6*Math.sin(X.ph*TAU):0), K=X.p("pts");
+      const P=th=>{ const r=R*Math.sin(nn*th); return [cx+r*Math.cos(th),cy+r*Math.sin(th)]; };
+      const sc=4.6*S*X.sz, E=Emitter(), cyc=X.mode==="cycle"?Math.floor(X.ph*X.nb):0;
+      let prev=P(0);
+      for(let k=1;k<=K;k++){ const cur=P(k*dd*Math.PI/180); chain(E,[prev,cur],L(0),sc,ink(1+mod(Math.floor(k/12)+cyc,2)),1.6*G); prev=cur; }
+      const curve=[]; for(let i=0;i<=720;i++) curve.push(P(i*Math.PI/360));
+      chainArc(E,curve,L(1),sc*1.6,ink(3),1.25*G);
+      for(const [,ch,x,y,s,col,rot] of E.ops) put(g,ch,x,y,s,col,rot);
+    }},
+  fractal:{ name:"פרקטל", group:"formula", word:true, letters:"אור", drift:[0,0],
+    formula:p=>`Aₖ₊₁ = ⋃ { אות ∈ המילה  |  מרכזה בתוך Aₖ }     עומק ${p("depth")}`,
+    hint:"דמיון עצמי: כל אות גדולה בנויה מאותיות בינוניות, וכל אחת מהן מאותיות קטנות — אותה מילה בשלושה קני מידה",
+    params:[{k:"depth",l:"עומק",min:1,max:3,step:1,d:2},{k:"fill",l:"צפיפות",min:.6,max:1.5,step:.01,d:1}],
+    inkRoles:["רקע","רמה 1","רמה 2","רמה 3","—","—"],
+    look:{inks:[PAPER,"#000000","#F2484B","#0078BF","#000000","#000000"],motion:"cycle"},
+    direct(g,X,W,H){
+      const {L,ink,n}=X, depth=X.p("depth"), fill=X.p("fill")/X.G, P0=W/2.05, rot=X.mode==="spin"?X.ph*TAU:0;
+      let k=0, j1=0;
+      /* the drum is chosen once, at the first level down, and inherited — so
+         each medium letter reads as one colour made of small ones */
+      const level=(ch,cx,cy,size,lv,inkI)=>{
+        const pitch=size/(lv===1?8.5:6.2)/fill, m=glyphMask(ch,size,size), ox=cx-size/2, oy=cy-size/2;
+        for(let y=pitch/2;y<size;y+=pitch) for(let x=pitch/2;x<size;x+=pitch){ if(!m(x,y)) continue;
+          /* counted per medium letter, not per small one: each medium letter
+             spends a whole word's worth of small ones, which would make every
+             drum the same whenever that count is a multiple of the ink count */
+          const c2=L((k++)%n), s=pitch*.92, ii=lv===1?1+mod((j1++)+(X.mode==="cycle"?Math.floor(X.ph*X.nb):0),X.nb):inkI;
+          if(lv===depth) put(g,c2,ox+x,oy+y,s,ink(ii),lv>1?rot:0); else level(c2,ox+x,oy+y,s,lv+1,ii); } };
+      let i=0;
+      for(let y=P0*.62;y<H+P0*.4;y+=P0*1.06) for(let x=W-P0*.52;x>-P0*.4;x-=P0*1.02) level(L(i++%n),x,y,P0,1,1);
+    }}
+});
+for(const id of ["phyllo","quasi","chladni","conformal","droste","hyper","turing","attractor","harmono","rose","fractal"]) RECIPES[id].nb=nInks(RECIPES[id]);
+for(const id of ["quasi","chladni","attractor","harmono","rose","fractal"]) RECIPES[id].modeMap={drift:"spin"};
+RECIPES.turing.modeMap={drift:"cycle",spin:"cycle"};
+
+/* ═══════════════════════════════════════════════════════════════════
    RENDER
    ═══════════════════════════════════════════════════════════════════ */
 const cv=document.getElementById("cv"), ctx=cv.getContext("2d");
@@ -1623,7 +1950,15 @@ function context(ph){
   const cyc = ST.motion==="cycle" ? Math.floor(ph*n)%n : 0;
   return { u:(1080/440)*ST.scale, S:(1080/440)*ST.scale*ST.size, G:ST.spacing, scaleS:1, sz:ST.size,
     L:i=>list[((i+cyc)%n+n)%n], n, all:list, ink:i=>ST.inks[i]||ST.inks[1],
-    ph, mode:ST.motion, spin:ST.motion==="spin"?ph:0, seed:ST.seed };
+    /* a formula with no meaning for a motion borrows one it has, so no
+       motion button ever leaves the sheet standing still */
+    ph, mode:(R.modeMap&&R.modeMap[ST.motion])||ST.motion, spin:ST.motion==="spin"?ph:0, seed:ST.seed,
+    p:k=>param(ST.recipe,k), nb:R.nb||nInks(R) };
+}
+/* a formula's parameter: what this design set, else the recipe's default */
+function param(id,k){
+  const R=RECIPES[id], q=(R.params||[]).find(x=>x.k===k), v=ST.fp&&ST.fp[id]?ST.fp[id][k]:undefined;
+  return v!==undefined?v:q?q.d:undefined;
 }
 
 /* the repeat, rendered once per change (and per frame only while it moves) */
@@ -1775,13 +2110,15 @@ function slider(body,key,label,min,max,step,fmt=v=>num(v)){
 
 /* ---- 1. structure ---- */
 const sStruct=section("מבנה",true,()=>RECIPES[ST.recipe].name);
-const rc=document.createElement("div"); sStruct.appendChild(rc);
+/* fifty-two swatches would push everything below them off the panel: the
+   gallery scrolls in its own well, so the formula stays a short reach away */
+const rc=document.createElement("div"); rc.className="gwell"; sStruct.appendChild(rc);
 function useRecipe(id){
   const R=RECIPES[id]; ST.recipe=id; ST.letters=R.letters;
   if(R.look){ ST.inks=R.look.inks.slice(); ST.motion=R.look.motion||ST.motion; ST.smear=R.look.smear||0; }
   slot=1; changed();
 }
-for(const [g,lab] of [["read","קריאים — המילה נקראת"],["mid","באמצע — האותיות נראות, המבנה קודם"],["abstract","מופשטים — האותיות הן החומר"]]){
+for(const [g,lab] of [["formula","נוסחאות — כל אות במקומה לפי משוואה"],["read","קריאים — המילה נקראת"],["mid","באמצע — האותיות נראות, המבנה קודם"],["abstract","מופשטים — האותיות הן החומר"]]){
   rc.appendChild(labeled(lab));
   const row=document.createElement("div"); row.className="gallery"; rc.appendChild(row);
   for(const id in RECIPES){ if(RECIPES[id].group!==g) continue;
@@ -1826,6 +2163,51 @@ bound.push(()=>{
   if(document.activeElement!==lt) lt.value=ST.letters;
   roles.innerHTML=R.word ? `<span><b>${list.join("")}</b>המילה כולה</span>` : R.roles.map((r,i)=>`<span><b>${list[i%list.length]}</b>${r}</span>`).join("")
     + (R.roles[R.roles.length-1].endsWith("←") && list.length>R.roles.length ? `<span><b>${list.slice(R.roles.length).join("")}</b></span>`:"");
+});
+
+/* ---- formula ---- */
+/* The equation the structure is drawn by, written out with its live values,
+   and its parameters on sliders. Rebuilt when the structure changes. */
+const sForm=section("נוסחה",true,()=>RECIPES[ST.recipe].formula?RECIPES[ST.recipe].name:"");
+const fBox=document.createElement("div"); fBox.className="formula"; fBox.dir="ltr"; sForm.appendChild(fBox);
+const fRows=document.createElement("div"); sForm.appendChild(fRows);
+const fg=document.createElement("div"); fg.className="grid2";
+fg.innerHTML=`<button class="b" type="button" id="b_fdice">${svg("dice")}פרמטרים אקראיים</button><button class="b" type="button" id="b_freset">ערכי מקור</button>`;
+sForm.appendChild(fg);
+function setParam(k,v){ ST.fp=ST.fp||{}; (ST.fp[ST.recipe]=ST.fp[ST.recipe]||{})[k]=v; changed(); }
+function diceParams(id){ const R=RECIPES[id]; if(!R.params) return; const o=(ST.fp[id]={});
+  for(const q of R.params){ if(q.o){ o[q.k]=q.o[(Math.random()*q.o.length)|0][0]; continue; }
+    /* around the default, not across the whole range: the interesting
+       regions of these equations are narrow, and a uniform draw mostly
+       lands in noise */
+    const span=(q.max-q.min)*.35, v=q.d+(Math.random()*2-1)*span;
+    o[q.k]=+Math.min(q.max,Math.max(q.min,Math.round(v/q.step)*q.step)).toFixed(4); } }
+$("b_fdice").onclick=()=>{ diceParams(ST.recipe); changed(); };
+$("b_freset").onclick=()=>{ if(ST.fp) delete ST.fp[ST.recipe]; changed(); };
+function paramRow(q){
+  if(q.o){
+    const wrap=document.createElement("div"); wrap.appendChild(labeled(q.l));
+    const row=document.createElement("div"); row.className="chips"; wrap.appendChild(row);
+    for(const [v,l] of q.o){ const b=document.createElement("button"); b.className="chip"; b.type="button"; b.textContent=l;
+      b.onclick=()=>setParam(q.k,v); b.dataset.v=String(v); row.appendChild(b); }
+    wrap._sync=()=>row.querySelectorAll(".chip").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.v===String(param(ST.recipe,q.k)))));
+    return wrap;
+  }
+  const row=document.createElement("div"); row.className="r";
+  row.innerHTML=`<label for="fp_${q.k}">${q.l}</label><input type="range" id="fp_${q.k}" min="${q.min}" max="${q.max}" step="${q.step}"><span class="v mono"></span>`;
+  const el=row.querySelector("input"), vv=row.querySelector(".v"), fmt=q.fmt||(v=>num(v,q.step<.01?4:2));
+  el.oninput=()=>{ vv.textContent=fmt(+el.value); fills(el); setParam(q.k,+el.value); };
+  row._sync=()=>{ const v=param(ST.recipe,q.k); if(document.activeElement!==el) el.value=v; vv.textContent=fmt(+v); fills(el); };
+  return row;
+}
+let fFor="";
+bound.push(()=>{
+  const R=RECIPES[ST.recipe], det=sForm.parentElement;
+  det.style.display=R.formula?"":"none";
+  if(!R.formula) return;
+  fBox.textContent=R.formula(k=>param(ST.recipe,k));
+  if(fFor!==ST.recipe){ fFor=ST.recipe; fRows.innerHTML=""; for(const q of R.params||[]) fRows.appendChild(paramRow(q)); }
+  for(const r of fRows.children) r._sync&&r._sync();
 });
 
 /* ---- 2. inks ---- */
@@ -1956,6 +2338,7 @@ $("looks").style.display="none";
 function randomize(){
   const ids=Object.keys(RECIPES), pick=a=>a[(Math.random()*a.length)|0];
   ST.recipe=pick(ids); ST.letters=RECIPES[ST.recipe].letters;
+  if(RECIPES[ST.recipe].params&&Math.random()<.6) diceParams(ST.recipe);
   const own=RECIPES[ST.recipe].look;
   ST.inks=(own&&Math.random()<.6?own.inks:pick(INKSETS)).slice();
   ST.scale=+(.75+Math.random()*.8).toFixed(2); ST.size=+(.85+Math.random()*.4).toFixed(2);
@@ -2087,6 +2470,10 @@ function adopt(o){
   for(const k of ["scale","size","spacing","speed","smear","seed"]) if(typeof o[k]==="number"&&isFinite(o[k])) d[k]=o[k];
   if(["still","drift","spin","cycle"].includes(o.motion)) d.motion=o.motion;
   if(FORMATS[o.format]) d.format=o.format;
+  if(o.fp&&typeof o.fp==="object") for(const id in o.fp){ const R=RECIPES[id]; if(!R||!R.params||!o.fp[id]) continue;
+    for(const q of R.params){ const v=o.fp[id][q.k]; if(v===undefined) continue;
+      if(q.o){ if(q.o.some(([ov])=>String(ov)===String(v))) (d.fp[id]=d.fp[id]||{})[q.k]=v; }
+      else if(typeof v==="number"&&isFinite(v)) (d.fp[id]=d.fp[id]||{})[q.k]=Math.min(q.max,Math.max(q.min,v)); } }
   if(o.title&&typeof o.title==="object"){ const T=o.title, D=d.title;
     if(typeof T.text==="string") D.text=T.text.slice(0,40);
     for(const k of ["size","track"]) if(typeof T[k]==="number"&&isFinite(T[k])) D[k]=T[k];
