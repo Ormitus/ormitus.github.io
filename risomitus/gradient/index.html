@@ -802,7 +802,7 @@ global.RISOKIT = {
       </div>
       <p class="k">פטרנים מאותיות · טפטים באות חיים</p>
     </div>
-    <p class="d">בונה טפטים מאותיות: ארבעים ותשעה מבנים, כל אחד משוואה — אות אחת, עקומות, שדות, מרחב מעוקם, פרקטלים וכאוס — בדיו ריזו אמיתי. נדרש קוד כניסה.</p>
+    <p class="d">בונה טפטים מאותיות: ארבעים ותשעה מבנים, כל אחד משוואה, על הדף ובתלת־ממד: אות אחת, עקומות, שדות, מרחב מעוקם, פרקטלים וכאוס — בדיו ריזו אמיתי. נדרש קוד כניסה.</p>
     <input id="code" inputmode="numeric" autocomplete="off" maxlength="8"
            aria-label="קוד כניסה" placeholder="····">
     <div id="gatemsg" role="status" aria-live="polite"></div>
@@ -872,7 +872,7 @@ global.RISOKIT = {
   <div class="head">
     <h1>פטרנים</h1>
     <p>פטרנים שבנויים כולם מאותיות חיים — כל קו, מסגרת ומילוי הוא אות</p>
-    <nav class="tabs" aria-label="Systems"><a href="../?v=5216914">ריזו<small>מכונת דפוס</small></a><a href="./" aria-current="page">פטרנים<small>פטרנים מאותיות</small></a><a href="../objects/?v=5216914">אובייקטים<small>מילים כחפצים</small></a></nav><div class="build" title="Build version">26.10 10:45 · 5216914</div>
+    <nav class="tabs" aria-label="Systems"><a href="../?v=a19e4e5">ריזו<small>מכונת דפוס</small></a><a href="./" aria-current="page">פטרנים<small>פטרנים מאותיות</small></a><a href="../objects/?v=a19e4e5">אובייקטים<small>מילים כחפצים</small></a></nav><div class="build" title="Build version">26.10 22:25 · a19e4e5</div>
     <div class="seg" role="group" aria-label="פורמט">
       <button id="f_post" aria-pressed="true">פוסט<small>1080 × 1350</small></button>
       <button id="f_story" aria-pressed="false">סטורי<small>1080 × 1920</small></button>
@@ -925,7 +925,8 @@ const inkName = h => { const k=ALLINK.find(c=>c[1].toUpperCase()===String(h).toU
 const DEF = () => ({ format:"post", recipe:"quasi", letters:"ושמא",
   inks:["#765BA7","#FF48B0","#FFB511","#5EC8E5","#FFE800","#000000"],
   scale:1, size:1, spacing:1, motion:"spin", speed:1, smear:0, seed:7, fp:{},
-  title:{text:"",size:1,pos:"center",style:"box",ink:1,track:.06} });
+  title:{text:"",size:1,pos:"center",style:"box",ink:1,track:.06},
+  d3:{on:false,mat:"ink",cam:"orbit",yaw:-28,pitch:20,zoom:1,ext:.25,fog:.3} });
 let ST = DEF();
 
 /* ---- the type primitive ---- */
@@ -2294,6 +2295,896 @@ Object.assign(RECIPES,{
     }}
 });
 
+/* ═══════════════════════════════════════════════════════════════════
+   3D. Every structure once more, its formula rewritten in space: a curve
+   becomes a space curve, a field a volume or a surface, a tiling a solid or
+   a model of its geometry (the hyperboloid, the Riemann sphere, Flamm's
+   paraboloid). The letters are Haim's own outlines, triangulated and
+   extruded, drawn instanced — one draw per letter shape.
+
+   A recipe's d3(E,X) works in a scene of radius ~1 (y up) and adds letters
+   with E.add(ch, p, size, ink, right, up): right is the letter's baseline,
+   up its ascender, so its face points along right × up. Leave right out and
+   the letter turns to face the camera. E.eye is the camera, known before the
+   scene is built, so letters along a curve can lean toward the viewer.
+   ═══════════════════════════════════════════════════════════════════ */
+const V3={
+  add:(a,b)=>[a[0]+b[0],a[1]+b[1],a[2]+b[2]], sub:(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]],
+  mul:(a,s)=>[a[0]*s,a[1]*s,a[2]*s], dot:(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2],
+  cross:(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]],
+  len:a=>Math.hypot(a[0],a[1],a[2]), norm:a=>{ const l=Math.hypot(a[0],a[1],a[2])||1; return [a[0]/l,a[1]/l,a[2]/l]; },
+  rotY:(p,a)=>{ const c=Math.cos(a), s=Math.sin(a); return [c*p[0]+s*p[2],p[1],-s*p[0]+c*p[2]]; },
+  rotX:(p,a)=>{ const c=Math.cos(a), s=Math.sin(a); return [p[0],c*p[1]-s*p[2],s*p[1]+c*p[2]]; },
+  rotZ:(p,a)=>{ const c=Math.cos(a), s=Math.sin(a); return [c*p[0]-s*p[1],s*p[0]+c*p[1],p[2]]; }
+};
+/* a letter's frame from the way its face should point (n) and the way its
+   baseline should run (t): right = t made perpendicular to n, up = n × right */
+function frame3(n,t){
+  n=V3.norm(n); let r=V3.sub(t,V3.mul(n,V3.dot(n,t)));
+  if(V3.len(r)<1e-6) r=V3.cross(Math.abs(n[1])<.9?[0,1,0]:[1,0,0],n);
+  r=V3.norm(r); return [r,V3.cross(n,r)];
+}
+const hexCache={};
+const hex3=h=>hexCache[h]||(hexCache[h]=[parseInt(h.slice(1,3),16)/255,parseInt(h.slice(3,5),16)/255,parseInt(h.slice(5,7),16)/255]);
+function Emitter3(eye){
+  const by={}; let count=0;
+  const E={ by, eye,
+    add(ch,p,s,col,r,u){ if(!(s>0)||!isFinite(p[0]+p[1]+p[2])) return; const a=by[ch]||(by[ch]=[]), c=hex3(col);
+      a.push(p[0],p[1],p[2],s, r?r[0]:0,r?r[1]:0,r?r[2]:0, u?u[0]:0,u?u[1]:0,u?u[2]:0, c[0],c[1],c[2]); count++; },
+    /* a letter on a curve: baseline along the tangent, face turned toward the camera */
+    cam(ch,p,s,col,T){ const [r,u]=frame3(V3.sub(eye,p),T); E.add(ch,p,s,col,r,u); },
+    get count(){ return count; } };
+  return E;
+}
+/* letters at an even step along a 3D polyline; same contract as along() */
+function along3(pts,step,closed,shift,per,cb,cap=6000){
+  const P=closed?[...pts,pts[0]]:pts, m=P.length; if(m<2) return;
+  const cum=new Float64Array(m);
+  for(let i=1;i<m;i++) cum[i]=cum[i-1]+Math.hypot(P[i][0]-P[i-1][0],P[i][1]-P[i-1][1],P[i][2]-P[i-1][2]);
+  const total=cum[m-1]; if(!(total>0)) return;
+  step=Math.max(step,total/cap);
+  const N=closed?per*Math.max(1,Math.round(total/step/per)):Math.ceil(total/step), st=closed?total/N:step;
+  const j0=closed?0:-Math.ceil(Math.abs(shift))-1, j1=closed?N-1:N+Math.ceil(Math.abs(shift))+1;
+  for(let j=j0;j<=j1;j++){
+    let d=(j+.5+shift)*st;
+    if(closed) d=mod(d,total); else if(d<0||d>total) continue;
+    let lo=0, hi=m-1; while(hi-lo>1){ const mid=(lo+hi)>>1; if(cum[mid]<=d) lo=mid; else hi=mid; }
+    const a=P[lo], b=P[hi], t=(d-cum[lo])/Math.max(1e-9,cum[hi]-cum[lo]);
+    cb(j,[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t],V3.norm(V3.sub(b,a)),lo+t);
+  }
+}
+/* a sphere of n nearly even points (Fibonacci) */
+function fibSphere(n,i){ const y=1-2*(i+.5)/n, r=Math.sqrt(Math.max(0,1-y*y)), a=i*GOLD; return [r*Math.cos(a),y,r*Math.sin(a)]; }
+/* east and north on the unit sphere at p */
+function sphFrame(p){ let e=V3.cross([0,1,0],p); if(V3.len(e)<1e-6) e=[1,0,0]; e=V3.norm(e); return [e,V3.cross(p,e)]; }
+
+/* ---- the letter as a solid: Haim's outline, counters bridged, ear-clipped,
+   extruded to unit depth (scaled by the thickness slider in the shader) ---- */
+function earclip3(poly){
+  const cr=(a,b,c)=>(b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0]);
+  const ins=(a,b,c,p)=>cr(a,b,p)>1e-12&&cr(b,c,p)>1e-12&&cr(c,a,p)>1e-12;
+  const idx=[...poly.keys()], out=[]; let guard=poly.length*poly.length*2;
+  while(idx.length>3&&guard-->0){ let cut=false;
+    for(let i=0;i<idx.length;i++){ const ia=idx[(i-1+idx.length)%idx.length], ib=idx[i], ic=idx[(i+1)%idx.length], a=poly[ia], b=poly[ib], c=poly[ic];
+      if(cr(a,b,c)<=1e-12) continue; let ok=true;
+      for(const j of idx){ if(j===ia||j===ib||j===ic) continue; if(ins(a,b,c,poly[j])){ ok=false; break; } }
+      if(ok){ out.push(ia,ib,ic); idx.splice(i,1); cut=true; break; } }
+    if(!cut) break; }
+  if(idx.length===3) out.push(idx[0],idx[1],idx[2]);
+  return out;
+}
+const area3=c=>{ let a=0; for(let i=0;i<c.length;i++){ const p=c[i], q=c[(i+1)%c.length]; a+=p[0]*q[1]-q[0]*p[1]; } return a/2; };
+function inPoly3(pt,c){ let r=false; for(let i=0,j=c.length-1;i<c.length;j=i++){ const a=c[i], b=c[j];
+  if((a[1]>pt[1])!==(b[1]>pt[1])&&pt[0]<(b[0]-a[0])*(pt[1]-a[1])/(b[1]-a[1])+a[0]) r=!r; } return r; }
+function segX3(p1,p2,p3,p4){ const d=(a,b,c)=>(b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0]);
+  const d1=d(p3,p4,p1), d2=d(p3,p4,p2), d3=d(p1,p2,p3), d4=d(p1,p2,p4);
+  return ((d1>1e-12&&d2<-1e-12)||(d1<-1e-12&&d2>1e-12))&&((d3>1e-12&&d4<-1e-12)||(d3<-1e-12&&d4>1e-12)); }
+function bridge3(outer,hole,others){
+  let m=0; for(let i=1;i<hole.length;i++) if(hole[i][0]>hole[m][0]) m=i;
+  const M=hole[m], edges=[]; for(const c of [outer,hole,...others]) for(let i=0;i<c.length;i++) edges.push([c[i],c[(i+1)%c.length]]);
+  const order=outer.map((p,i)=>[Math.hypot(p[0]-M[0],p[1]-M[1]),i]).sort((x,y)=>x[0]-y[0]);
+  for(const [,i] of order){ const P0=outer[i]; if(edges.some(([a,b])=>segX3(M,P0,a,b))) continue;
+    return [...outer.slice(0,i+1),...hole.slice(m),...hole.slice(0,m+1),...outer.slice(i)]; }
+  return outer;
+}
+function glyphSolid(ch){
+  const H=HAIM_PATHS["ה"].h, cs=glyphPolys(ch).map(c=>{ const q=c.map(([x,y])=>[x/H,-y/H]);
+    /* drop the closing point fontTools repeats */
+    if(q.length>1&&Math.hypot(q[0][0]-q[q.length-1][0],q[0][1]-q[q.length-1][1])<1e-9) q.pop(); return q; });
+  const info=cs.map((c,i)=>({c, hole:cs.filter((d,j)=>j!==i&&inPoly3(c[0],d)).length%2===1}));
+  for(const o of info){ const a=area3(o.c); if((o.hole&&a>0)||(!o.hole&&a<0)) o.c.reverse(); }
+  const pos=[], nrm=[], v=(p,n)=>{ pos.push(...p); nrm.push(...n); };
+  for(const o of info.filter(o=>!o.hole)){
+    const mine=info.filter(h=>h.hole&&inPoly3(h.c[0],o.c)).map(h=>h.c); let poly=o.c;
+    mine.forEach((h,k)=>{ poly=bridge3(poly,h,mine.filter((_,q)=>q!==k)); });
+    const T=earclip3(poly);
+    for(let k=0;k<T.length;k+=3){ const a=poly[T[k]], b=poly[T[k+1]], c=poly[T[k+2]];
+      v([a[0],a[1],.5],[0,0,1]); v([b[0],b[1],.5],[0,0,1]); v([c[0],c[1],.5],[0,0,1]);
+      v([c[0],c[1],-.5],[0,0,-1]); v([b[0],b[1],-.5],[0,0,-1]); v([a[0],a[1],-.5],[0,0,-1]); } }
+  for(const {c} of info) for(let i=0;i<c.length;i++){ const a=c[i], b=c[(i+1)%c.length], n=V3.norm([b[1]-a[1],-(b[0]-a[0]),0]);
+    v([a[0],a[1],.5],n); v([a[0],a[1],-.5],n); v([b[0],b[1],-.5],n); v([a[0],a[1],.5],n); v([b[0],b[1],-.5],n); v([b[0],b[1],.5],n); }
+  return {pos:new Float32Array(pos), nrm:new Float32Array(nrm), count:pos.length/3};
+}
+
+const D3S={ cv:null, gl:null, prog:null, U:{}, vao:{} };
+const VS3=`#version 300 es
+layout(location=0) in vec3 aP; layout(location=1) in vec3 aN;
+layout(location=2) in vec4 iPS; layout(location=3) in vec3 iR; layout(location=4) in vec3 iU; layout(location=5) in vec3 iC;
+uniform mat4 uVP; uniform float uExt; uniform vec3 uCR, uCU;
+out vec3 vN; out vec3 vW; out vec3 vC;
+void main(){ vec3 r=iR, u=iU; if(dot(r,r)<.25){ r=uCR; u=uCU; } vec3 n=normalize(cross(r,u));
+  vec3 w=iPS.xyz+iPS.w*(aP.x*r+aP.y*u+aP.z*uExt*n);
+  vN=aN.x*r+aN.y*u+aN.z*n; vW=w; vC=iC; gl_Position=uVP*vec4(w,1.); }`;
+const FS3=`#version 300 es
+precision highp float; in vec3 vN; in vec3 vW; in vec3 vC; out vec4 o;
+uniform vec3 uEye, uBg, uL, uCR, uCU, uCB; uniform int uMat; uniform float uFog, uNear, uFar;
+void main(){ vec3 N=normalize(vN), V=normalize(uEye-vW); if(dot(N,V)<0.) N=-N; vec3 c;
+  if(uMat==0){ float l=max(dot(N,uL),0.), f=max(dot(N,V),0.); c=vC*(.46+.44*l+.2*f); }
+  else { vec3 R=reflect(-V,N); float rx=dot(R,uCR), ry=dot(R,uCU), rz=dot(R,uCB);
+    float e=.05+1.15*exp(-pow((rx-.16)/.26,2.))*smoothstep(-.15,.55,rz)+.42*exp(-pow((rx+.66)/.11,2.))*smoothstep(0.,.6,rz)
+           +.8*smoothstep(.18,.92,ry)+.1*smoothstep(-.25,-.85,ry);
+    e=e/(1.+.32*e); c=mix(vec3(e),vC*(e*1.35+.06),.5); }
+  float d=length(uEye-vW), fg=clamp((d-uNear)/(uFar-uNear),0.,1.)*uFog; c=mix(c,uBg,fg);
+  o=vec4(clamp(c,0.,1.),1.); }`;
+function d3init(){
+  if(D3S.gl) return true;
+  const c=document.createElement("canvas"), gl=c.getContext("webgl2",{antialias:true,preserveDrawingBuffer:true,alpha:false});
+  if(!gl) return false;
+  const sh=(t,s)=>{ const x=gl.createShader(t); gl.shaderSource(x,s); gl.compileShader(x); if(!gl.getShaderParameter(x,gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(x)); return x; };
+  const p=gl.createProgram(); gl.attachShader(p,sh(gl.VERTEX_SHADER,VS3)); gl.attachShader(p,sh(gl.FRAGMENT_SHADER,FS3)); gl.linkProgram(p);
+  if(!gl.getProgramParameter(p,gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p));
+  for(const n of ["uVP","uExt","uCR","uCU","uCB","uEye","uBg","uL","uMat","uFog","uNear","uFar"]) D3S.U[n]=gl.getUniformLocation(p,n);
+  Object.assign(D3S,{cv:c,gl,prog:p}); return true;
+}
+function d3vao(ch){
+  if(D3S.vao[ch]) return D3S.vao[ch];
+  const gl=D3S.gl, m=glyphSolid(ch), vao=gl.createVertexArray(); gl.bindVertexArray(vao);
+  const b=(data,loc)=>{ const x=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,x); gl.bufferData(gl.ARRAY_BUFFER,data,gl.STATIC_DRAW); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc,3,gl.FLOAT,false,0,0); };
+  b(m.pos,0); b(m.nrm,1);
+  const ib=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,ib);
+  for(const [loc,n,off] of [[2,4,0],[3,3,4],[4,3,7],[5,3,10]]){ gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc,n,gl.FLOAT,false,52,off*4); gl.vertexAttribDivisor(loc,1); }
+  gl.bindVertexArray(null);
+  return D3S.vao[ch]={vao,ib,count:m.count};
+}
+const m4={
+  mul:(a,b)=>{ const o=new Float32Array(16); for(let i=0;i<4;i++) for(let j=0;j<4;j++){ let s=0; for(let k=0;k<4;k++) s+=a[k*4+j]*b[i*4+k]; o[i*4+j]=s; } return o; },
+  persp:(fov,asp,n,f)=>{ const t=1/Math.tan(fov/2), o=new Float32Array(16); o[0]=t/asp; o[5]=t; o[10]=(f+n)/(n-f); o[11]=-1; o[14]=2*f*n/(n-f); return o; },
+  look:(e,c,u)=>{ const z=V3.norm(V3.sub(e,c)), x=V3.norm(V3.cross(u,z)), y=V3.cross(z,x);
+    return new Float32Array([x[0],y[0],z[0],0,x[1],y[1],z[1],0,x[2],y[2],z[2],0,-V3.dot(x,e),-V3.dot(y,e),-V3.dot(z,e),1]); }
+};
+let d3count=0;
+function render3D(ph){
+  if(!d3init()) return false;
+  const gl=D3S.gl, c=D3S.cv, R=RECIPES[ST.recipe], D=ST.d3;
+  if(c.width!==cv.width||c.height!==cv.height){ c.width=cv.width; c.height=cv.height; }
+  const asp=cv.width/cv.height, fovy=30*Math.PI/180, t=Math.tan(fovy/2), dist=1.18/Math.min(t,t*asp)/D.zoom;
+  const yaw=(D.yaw*Math.PI/180)+(ST.motion==="still"?0:D.cam==="orbit"?ph*TAU:D.cam==="rock"?.5*Math.sin(ph*TAU):0), pit=D.pitch*Math.PI/180;
+  const eye=[dist*Math.cos(pit)*Math.sin(yaw),dist*Math.sin(pit),dist*Math.cos(pit)*Math.cos(yaw)];
+  const fw=V3.norm(V3.mul(eye,-1)), cr=V3.norm(V3.cross(fw,[0,1,0])), cu=V3.cross(cr,fw), cb=V3.mul(fw,-1);
+  const E=Emitter3(eye), X=context(ph); X.w=X.S/540;
+  R.d3(E,X); d3count=E.count;
+  gl.viewport(0,0,c.width,c.height); const bg=hex3(ST.inks[0]);
+  gl.clearColor(bg[0],bg[1],bg[2],1); gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT); gl.enable(gl.DEPTH_TEST); gl.disable(gl.CULL_FACE);
+  gl.useProgram(D3S.prog); const U=D3S.U;
+  gl.uniformMatrix4fv(U.uVP,false,m4.mul(m4.persp(fovy,asp,dist*.05,dist*4),m4.look(eye,[0,0,0],[0,1,0])));
+  gl.uniform1f(U.uExt,D.ext); gl.uniform3fv(U.uCR,cr); gl.uniform3fv(U.uCU,cu); gl.uniform3fv(U.uCB,cb); gl.uniform3fv(U.uEye,eye);
+  gl.uniform3fv(U.uBg,bg); gl.uniform3fv(U.uL,V3.norm(V3.add(V3.add(V3.mul(cr,-.55),V3.mul(cu,.8)),V3.mul(cb,.55))));
+  gl.uniform1i(U.uMat,D.mat==="chrome"?1:0); gl.uniform1f(U.uFog,D.fog); gl.uniform1f(U.uNear,dist-1.1); gl.uniform1f(U.uFar,dist+1.3);
+  for(const ch in E.by){ if(!HAIM_PATHS[ch]) continue; const d=E.by[ch], v=d3vao(ch);
+    gl.bindVertexArray(v.vao); gl.bindBuffer(gl.ARRAY_BUFFER,v.ib); gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(d),gl.DYNAMIC_DRAW);
+    gl.drawArraysInstanced(gl.TRIANGLES,0,v.count,d.length/13); }
+  gl.bindVertexArray(null);
+  return true;
+}
+
+/* ---- the 3D equations, one per structure ---- */
+const def3=(id,o)=>Object.assign(RECIPES[id],o);
+const ICO6=(()=>{ const g=(1+Math.sqrt(5))/2; return [[0,1,g],[0,1,-g],[1,g,0],[1,-g,0],[g,0,1],[-g,0,1]].map(V3.norm); })();
+/* real spherical harmonic, unnormalised: P_l^m(cos θ)·cos(mφ), by the usual recurrence */
+function Ylm(l,m,th,ph){
+  const x=Math.cos(th), sx=Math.sqrt(Math.max(0,1-x*x)); let pmm=1, f=1;
+  for(let i=1;i<=m;i++){ pmm*=-f*sx; f+=2; }
+  let P=pmm;
+  if(l>m){ let p1=x*(2*m+1)*pmm; if(l===m+1) P=p1; else { let pl=0; for(let ll=m+2;ll<=l;ll++){ pl=(x*(2*ll-1)*p1-(ll+m-1)*pmm)/(ll-m); pmm=p1; p1=pl; } P=pl; } }
+  return P*Math.cos(m*ph);
+}
+const ylmMax={};
+function ylmNorm(l,m){ const k=l+","+m; if(ylmMax[k]) return ylmMax[k]; let mx=1e-9;
+  for(let i=0;i<=90;i++) mx=Math.max(mx,Math.abs(Ylm(l,m,i/90*Math.PI,0))); return ylmMax[k]=mx; }
+const odeCache={};
+const ODES={
+  lorenz:{l:"לורנץ", f:(x,y,z)=>[10*(y-x),x*(28-z)-y,x*y-8/3*z], dt:.004, p0:[1,1,1], eq:"ẋ = 10(y − x)   ẏ = x(28 − z) − y   ż = xy − 8z/3"},
+  aizawa:{l:"אייזווה", f:(x,y,z)=>[(z-.7)*x-3.5*y,3.5*x+(z-.7)*y,.6+.95*z-z*z*z/3-(x*x+y*y)*(1+.25*z)+.1*z*x*x*x], dt:.006, p0:[.1,0,0], eq:"ẋ = (z − .7)x − 3.5y   ẏ = 3.5x + (z − .7)y   ż = .6 + .95z − z³/3 − (x² + y²)(1 + .25z) + .1zx³"},
+  thomas:{l:"תומס", f:(x,y,z)=>[Math.sin(y)-.208186*x,Math.sin(z)-.208186*y,Math.sin(x)-.208186*z], dt:.04, p0:[1.1,1.1,-.01], eq:"ẋ = sin y − bx   ẏ = sin z − by   ż = sin x − bz   b = .208186"},
+  halvorsen:{l:"הלבורסן", f:(x,y,z)=>[-1.89*x-4*y-4*z-y*y,-1.89*y-4*z-4*x-z*z,-1.89*z-4*x-4*y-x*x], dt:.004, p0:[-1.48,-1.51,2.04], eq:"ẋ = −1.89x − 4y − 4z − y²   (ומחזורית ב־x, y, z)"}
+};
+function odePath(id,len){
+  const key=id+len; if(odeCache[key]) return odeCache[key];
+  const S=ODES[id], f=S.f, h=S.dt; let [x,y,z]=S.p0; const P=[], Vv=[];
+  for(let i=0;i<800;i++){ const k=f(x,y,z); x+=k[0]*h; y+=k[1]*h; z+=k[2]*h; }
+  const n=Math.round(len/h);
+  for(let i=0;i<n;i++){ const k1=f(x,y,z), k2=f(x+k1[0]*h/2,y+k1[1]*h/2,z+k1[2]*h/2), k3=f(x+k2[0]*h/2,y+k2[1]*h/2,z+k2[2]*h/2), k4=f(x+k3[0]*h,y+k3[1]*h,z+k3[2]*h);
+    x+=(k1[0]+2*k2[0]+2*k3[0]+k4[0])*h/6; y+=(k1[1]+2*k2[1]+2*k3[1]+k4[1])*h/6; z+=(k1[2]+2*k2[2]+2*k3[2]+k4[2])*h/6;
+    P.push([x,y,z]); Vv.push(Math.hypot(k1[0],k1[1],k1[2])); }
+  const lo=[1e9,1e9,1e9], hi=[-1e9,-1e9,-1e9]; for(const p of P) for(let a=0;a<3;a++){ lo[a]=Math.min(lo[a],p[a]); hi[a]=Math.max(hi[a],p[a]); }
+  const c=lo.map((v,a)=>(v+hi[a])/2), sc=1.75/Math.max(hi[0]-lo[0],hi[1]-lo[1],hi[2]-lo[2]); let vm=1e-9; for(const v of Vv) vm=Math.max(vm,v);
+  /* the attractor's own z is up: (x, z, y) in a y-up scene */
+  return odeCache[key]={P:P.map(p=>[(p[0]-c[0])*sc,(p[2]-c[2])*sc,(p[1]-c[1])*sc]),V:Vv.map(v=>v/vm)};
+}
+
+def3("harmono",{
+  f3:p=>`x = A·e^(−${p("dmp")}t)·[sin(${p("f1")}t + φ) + ½sin(f₃t)]   y = A·e^(−${p("dmp")}t)·sin(${p("f2")}t)   z = A·e^(−${p("dmp")}t)·sin(${p("f4")}t + φ/2)`,
+  h3:"הרמונוגרף בשלושה צירים: מטוטלת שלישית מושכת את הקו לעומק, והמילה מתפתלת סביב עצמה כמו סליל שדועך פנימה",
+  params3:[{k:"f1",l:"תדר x",min:1,max:7,step:.01,d:3},{k:"f2",l:"תדר y",min:1,max:7,step:.01,d:2},{k:"f4",l:"תדר z",min:1,max:7,step:.01,d:5.01},
+           {k:"dmp",l:"דעיכה",min:0,max:.04,step:.0005,d:.01},{k:"len",l:"אורך",min:20,max:160,step:1,d:80}],
+  d3(E,X){ const {n}=X, f1=X.p("f1"), f2=X.p("f2"), f4=X.p("f4"), dm=X.p("dmp"), T=X.p("len"), f3=(f1+f2)/2*1.006, phi=1.3+(X.mode==="spin"?X.ph*TAU:0), A=.6, pts=[];
+    for(let t=0;t<=T;t+=.01){ const e=Math.exp(-dm*t); pts.push([A*e*(Math.sin(f1*t+phi)+.5*Math.sin(f3*t)),A*e*(Math.sin(f2*t)+.5*Math.sin(f3*t+Math.PI/2)),A*e*Math.sin(f4*t+phi/2)]); }
+    const s=8*X.w*X.sz, sh=X.mode==="drift"?X.ph*(n+1):0, cyc=cycOf(X);
+    along3(pts,s*1.2*X.G,false,sh,n+1,(j,p,T,u)=>{ const ch=wslot(X,j); if(ch) E.cam(ch,p,s,X.ink(1+mod(Math.floor(u/pts.length*X.nb*3)+cyc,X.nb)),T); },5000); }});
+
+def3("quasi",{
+  f3:p=>`f(P) = Σⱼ₌₁⁶ cos(${(+p("k")).toFixed(1)}·(P·aⱼ) + φ)     aⱼ = צירי החמש של האיקוסהדרון     |f| > ${(+p("thr")).toFixed(2)}`,
+  h3:"קוואזי־גביש איקוסהדרלי: שישה גלים מישוריים לאורך צירי החמש של האיקוסהדרון, הסימטריה של הגבישים שגילה שכטמן. האותיות יושבות רק היכן שהסכום חזק, שוכבות על משטחי הגובה שלו",
+  params3:[{k:"k",l:"תדר k",min:2,max:14,step:.1,d:7},{k:"thr",l:"סף",min:.15,max:.8,step:.01,d:.36},{k:"res",l:"רזולוציה",min:12,max:30,step:1,d:22}],
+  d3(E,X){ const {L,ink}=X, k=X.p("k"), thr=X.p("thr"), N=X.p("res"), phi=X.mode==="spin"?X.ph*TAU:0, rot=X.mode==="drift"?X.ph*TAU:0, h=2/N;
+    for(let i=0;i<N;i++) for(let j=0;j<N;j++) for(let q=0;q<N;q++){
+      const P=[-1+(i+.5)*h,-1+(j+.5)*h,-1+(q+.5)*h]; if(V3.len(P)>1) continue; const R0=V3.rotY(P,rot);
+      let f=0, g=[0,0,0]; for(const a of ICO6){ const t=k*V3.dot(R0,a)+phi; f+=Math.cos(t); g=V3.add(g,V3.mul(a,-Math.sin(t)*k)); }
+      f/=6; if(Math.abs(f)<thr) continue;
+      const b=bandOf((f+1)/2*.999,X,1), [r,u]=frame3(V3.rotY(g,-rot),[1,0,0]);
+      E.add(L(b-1),P,h*(.45+1.3*(Math.abs(f)-thr)/(1-thr))*X.sz,ink(b),r,u); } }});
+
+def3("bessel",{
+  f3:p=>`r(θ,φ) = 1 + ${(+p("amp")).toFixed(2)}·Y${sub(p("l"))}^${p("m")}(θ, φ)·cos ωt     Y = P${sub(p("l"))}^${p("m")}(cos θ)·cos(${p("m")}φ)`,
+  h3:"התוף הופך לכדור: ההרמוניות הכדוריות, האופנים שבהם כדור רוטט — וגם צורת האורביטלים באטום. האותיות גדולות על קווי הצומת, והכדור עצמו מתנפח ושוקע לפי הערך",
+  params3:[{k:"l",l:"דרגה l",min:1,max:12,step:1,d:6},{k:"m",l:"סדר m",min:0,max:12,step:1,d:3},{k:"amp",l:"עיוות",min:0,max:.6,step:.01,d:.24},{k:"eps",l:"עובי קו",min:.04,max:.4,step:.01,d:.14}],
+  d3(E,X){ const {L,ink}=X, l=X.p("l"), m=Math.min(X.p("m"),l), mx=ylmNorm(l,m), N=1600, eps=X.p("eps"), amp=X.p("amp"), cyc=cycOf(X);
+    const rot=X.mode==="spin"&&m>0?X.ph*TAU/m:0, vib=X.mode==="drift"||(X.mode==="spin"&&m===0)?Math.cos(X.ph*TAU):1, s0=Math.sqrt(4*Math.PI/N)*.62;
+    const I=k=>ink(1+mod(k-1+cyc,3));
+    for(let i=0;i<N;i++){ const d=fibSphere(N,i), th=Math.acos(d[1]), ph=Math.atan2(d[2],d[0]), v=Ylm(l,m,th,ph-rot)/mx, w=v*vib;
+      const p=V3.mul(d,.72*(1+amp*w)), [e,nn]=sphFrame(d), a=Math.abs(v);
+      if(a<eps) E.add(L(0),p,s0*(1.15-.6*a/eps)*X.sz,I(1),e,nn);
+      else E.add(L(w>=0?1:2),p,s0*(.35+.75*Math.abs(w))*X.sz,I(w>=0?2:3),e,nn); } }});
+
+def3("hyper",{
+  f3:p=>`{${p("p")},${p("q")}} על ההיפרבולואיד  t² − x² − z² = 1     (x, t, z) = (2a, 1 + r², 2b) / (1 − r²)`,
+  h3:"הריצוף ההיפרבולי במודל ההיפרבולואיד — הצורה שממנה דיסק פואנקרה הוא רק צל. כל המצולעים באמת שווים כאן: מה שנדחס בדיסק מתפרש על פני הקערה שנפתחת כלפי מעלה",
+  params3:[{k:"p",l:"צלעות p",min:3,max:10,step:1,d:7},{k:"q",l:"מפגש q",min:3,max:8,step:1,d:3},{k:"top",l:"גובה",min:1.6,max:9,step:.05,d:6}],
+  d3(E,X){ const {L,ink}=X; let p=X.p("p"), q=X.p("q"); while((p-2)*(q-2)<=4) q++;
+    const {tiles,D}=hypTiles(p,q), top=X.p("top"), rmax=Math.sqrt(top*top-1), sc=1.75/Math.max(2*rmax,top-1), cyc=cycOf(X);
+    const spin=X.mode==="spin"?X.ph*TAU/p:X.mode==="drift"?X.ph*TAU:0, rl=Math.tanh(D/4*.62);
+    const lift=z=>{ const r2=z[0]*z[0]+z[1]*z[1], k=1/(1-r2); return [2*z[0]*k*sc,((1+r2)*k-1-(top-1)/2)*sc,2*z[1]*k*sc]; };
+    const s0=sc*.42*X.sz;
+    for(const {M,depth} of tiles){ const ring=1+mod(depth+cyc,3);
+      for(let k=-1-p;k<p;k++){ const inner=k<-1, a0=(inner?k+.5:k)*TAU/p+spin, z0=k===-1?[0,0]:[(inner?rl*.5:rl)*Math.cos(a0),(inner?rl*.5:rl)*Math.sin(a0)];
+        const w=mob(M,z0), r2=w[0]*w[0]+w[1]*w[1]; if((1+r2)/(1-r2)>top) continue;
+        const P=lift(w), dz=mob(M,[z0[0]+1e-4*Math.cos(a0+Math.PI/2),z0[1]+1e-4*Math.sin(a0+Math.PI/2)]), T=V3.sub(lift(dz),P);
+        const n=[-P[0]/sc,(1+r2)/(1-r2),-P[2]/sc], [r,u]=frame3(n,T);
+        E.add(L(k===-1?0:1),P,s0*(k===-1?.9:inner?.5:.7),ink(k===-1?4:inner?1+mod(ring,3):ring),r,u); } } }});
+
+def3("pascal",{
+  f3:p=>`(n choose i, j, k) mod ${p("p")} = n! / (i!·j!·k!)     i + j + k = n ≤ ${p("layers")}`,
+  h3:"הפירמידה של פסקל: כל מספר הוא סכום שלושת המספרים שמעליו. במודולו 2 היא נהיית טטרהדר סרפינסקי — פרקטל שבנוי מארבעה עותקים קטנים של עצמו",
+  params3:[{k:"p",l:"מודולו p",o:[[2,"2"],[3,"3"],[5,"5"],[7,"7"]],d:2},{k:"layers",l:"שכבות",min:6,max:40,step:1,d:28}],
+  d3(E,X){ const {L,ink}=X, p=+X.p("p"), N=X.p("layers"), h=1.7/N, cyc=cycOf(X), rot=X.mode==="spin"?X.ph*TAU/3:0;
+    const A=[1,0,0], B=[-.5,0,Math.sqrt(3)/2], C=[-.5,0,-Math.sqrt(3)/2], dy=h*Math.sqrt(2/3)*1.15, y0=(N-1)*dy/2;
+    let prev=[[1]];
+    for(let n=0;n<N;n++){ const cur=[];
+      for(let i=0;i<=n;i++){ cur.push([]); for(let j=0;j<=n-i;j++){
+        const v=n===0?1:(((prev[i-1]&&prev[i-1][j])||0)+((prev[i]&&prev[i][j-1])||0)+((prev[i]&&prev[i][j])||0))%p; cur[i].push(v);
+        if(!v) continue; const k=n-i-j;
+        const P=V3.rotY([h*(i*A[0]+j*B[0]+k*C[0])*.6,y0-n*dy,h*(i*A[2]+j*B[2]+k*C[2])*.6],rot);
+        E.add(L(v-1),P,h*.85*X.sz,ink(1+mod(v-1+cyc,X.nb)),X.mode==="drift"?[Math.cos(X.ph*TAU*(v%2?1:-1)),0,Math.sin(X.ph*TAU*(v%2?1:-1))]:null,X.mode==="drift"?[0,1,0]:null); } }
+      prev=cur; } }});
+
+def3("lorenz",{
+  f3:p=>ODES[p("sys")].eq,
+  h3:"ארבע מערכות כאוטיות אמיתיות בשלושה ממדים — לורנץ, אייזווה, תומס, הלבורסן. מסלול אחד שלא חוזר על עצמו לעולם, והמילה רצה לאורכו; הצבע לפי המהירות",
+  params3:[{k:"sys",l:"מערכת",o:Object.keys(ODES).map(k=>[k,ODES[k].l]),d:"lorenz"},{k:"len",l:"אורך",min:15,max:120,step:1,d:45}],
+  d3(E,X){ const {n}=X, P=odePath(X.p("sys"),X.p("len")), rot=X.mode==="spin"?X.ph*TAU:0, pts=rot?P.P.map(p=>V3.rotY(p,rot)):P.P;
+    const s=6.6*X.w*X.sz, sh=X.mode==="drift"?X.ph*(n+1):0;
+    along3(pts,s*1.2*X.G,false,sh,n+1,(j,p,T,u)=>{ const ch=wslot(X,j); if(ch) E.cam(ch,p,s,X.ink(bandOf(Math.min(.999,P.V[Math.min(P.V.length-1,Math.round(u))]*1.2),X,1)),T); },6000); }});
+
+def3("flow",{
+  f3:p=>`v = (${(+p("A")).toFixed(2)}·sin z + ${(+p("C")).toFixed(2)}·cos y,  ${(+p("B")).toFixed(2)}·sin x + ${(+p("A")).toFixed(2)}·cos z,  ${(+p("C")).toFixed(2)}·sin y + ${(+p("B")).toFixed(2)}·cos x)`,
+  h3:"זרימת ABC (ארנולד–בלטרמי–צ'ילדרס): פתרון מדויק של משוואות אוילר בקובייה מחזורית, שבו קווי זרם מסודרים ונוזל כאוטי חיים זה לצד זה. המילה זורמת לאורך הקווים",
+  params3:[{k:"A",l:"A",min:0,max:1.5,step:.01,d:1},{k:"B",l:"B",min:0,max:1.5,step:.01,d:.7071},{k:"C",l:"C",min:0,max:1.5,step:.01,d:.5774},{k:"seeds",l:"קווים",min:3,max:8,step:1,d:5}],
+  d3(E,X){ const {n}=X, A=X.p("A"), B=X.p("B"), Cc=X.p("C"), K=X.p("seeds"), key=["abc",A,B,Cc,K].join("|");
+    let lines=flowCache[key];
+    if(!lines){ lines=[]; const f=(x,y,z)=>[A*Math.sin(z)+Cc*Math.cos(y),B*Math.sin(x)+A*Math.cos(z),Cc*Math.sin(y)+B*Math.cos(x)], h=.05;
+      for(let a=0;a<K;a++) for(let b=0;b<K;b++) for(let c=0;c<K;c++){ let x=(a+.5)/K*TAU, y=(b+.5)/K*TAU, z=(c+.5)/K*TAU; const pts=[];
+        for(let st=0;st<260;st++){ const k=f(x,y,z), m=Math.hypot(...k)||1; x+=k[0]/m*h; y+=k[1]/m*h; z+=k[2]/m*h;
+          if(x<0||y<0||z<0||x>TAU||y>TAU||z>TAU) break; pts.push([x/Math.PI-1,z/Math.PI-1,y/Math.PI-1].map(v=>v*.82)); }
+        if(pts.length>20) lines.push(pts); }
+      flowCache[key]=lines; }
+    const rot=X.mode==="spin"?X.ph*TAU:0, s=6*X.w*X.sz, sh=X.mode==="drift"?X.ph*(n+1):0, cyc=cycOf(X);
+    lines.forEach((pts,i)=>{ const P=rot?pts.map(p=>V3.rotY(p,rot)):pts, col=X.ink(1+mod(i+cyc,X.nb));
+      along3(P,s*1.2*X.G,false,sh,n+1,(j,p,T)=>{ const ch=wslot(X,j); if(ch) E.cam(ch,p,s,col,T); },300); }); }});
+
+def3("phyllo",{
+  f3:p=>`θₙ = n·${(+p("alpha")).toFixed(3)}°     hₙ = n/N     על ${({cone:"אצטרובל",dome:"כיפה",cyl:"גליל",bulb:"פקעת"})[p("shape")]}`,
+  h3:"הפילוטקסיס בתלת־ממד — האצטרובל, הקקטוס, ראש הכרובית: אותה זווית זהב, אבל הנקודות עולות לאורך גוף. הספירלות הנגדיות מופיעות שוב, הפעם על פני המשטח",
+  params3:[{k:"alpha",l:"זווית α",min:136.6,max:138.4,step:.001,d:137.508,fmt:v=>(+v).toFixed(3)+"°"},
+           {k:"shape",l:"גוף",o:[["cone","אצטרובל"],["dome","כיפה"],["cyl","גליל"],["bulb","פקעת"]],d:"cone"},
+           {k:"N",l:"נקודות",min:200,max:2600,step:10,d:1100},{k:"arms",l:"זרועות צבע",o:[[5,"5"],[8,"8"],[13,"13"],[21,"21"]],d:13}],
+  d3(E,X){ const {L,ink,n}=X, N=X.p("N"), a=X.p("alpha")*Math.PI/180, shp=X.p("shape"), arms=+X.p("arms"), cyc=cycOf(X);
+    const rot=X.mode==="spin"?X.ph*TAU:0, sh=X.mode==="drift"?X.ph*n:0;
+    const prof=h=>shp==="cone"?[.62*Math.pow(Math.sin(Math.PI*Math.min(1,h*1.02)),.75),.95-1.9*h]
+                :shp==="dome"?[Math.sqrt(Math.max(0,1-(1-h)*(1-h)))*.92,.92*(1-h)-.2]
+                :shp==="cyl"?[.5,.95-1.9*h]:[.8*Math.pow(Math.sin(Math.PI*h),.6)*(1-.35*h),.95-1.9*h];
+    let area=0; for(let i=0;i<60;i++){ const [r0,y0]=prof(i/60), [r1,y1]=prof((i+1)/60); area+=Math.PI*(r0+r1)*Math.hypot(r1-r0,y1-y0); }
+    const s=Math.sqrt(area/N)*.9*X.sz;
+    for(let k=1;k<=N;k++){ const kk=k+sh, h=kk/(N+n), th=kk*a+rot, [r,y]=prof(h); if(r<.01) continue;
+      const [r2,y2]=prof(Math.min(1,h+.002)), P=[r*Math.cos(th),y,r*Math.sin(th)], ax=[Math.cos(th),0,Math.sin(th)];
+      const nrm=V3.norm(V3.add(V3.mul(ax,y2-y),[0,-(r2-r),0])), t=[-Math.sin(th),0,Math.cos(th)];
+      const [rr,uu]=frame3(V3.dot(nrm,ax)<0?V3.mul(nrm,-1):nrm,t);
+      E.add(L(k%n),P,s,ink(1+mod(k%arms+cyc,X.nb)),rr,uu); } }});
+
+def3("sphere",{
+  f3:p=>`${p("shells")} קליפות     zₙ = 1 − 2(n + ½)/Nₛ,  φₙ = n·137.508°,  Nₛ ∝ rₛ²`,
+  h3:"כדורי פיבונאצ'י מקוננים, כמו בצל: כל קליפה מסתובבת לכיוון אחר, והאותיות של הפנימיות נראות מבעד לרווחים של החיצונית",
+  params3:[{k:"shells",l:"קליפות",min:1,max:5,step:1,d:3},{k:"N",l:"נקודות בחוץ",min:200,max:2600,step:10,d:1200},{k:"tilt",l:"הטיית ציר",min:0,max:90,step:1,d:23,fmt:v=>Math.round(v)+"°"}],
+  d3(E,X){ const {L,ink,n}=X, S=X.p("shells"), N0=X.p("N"), tl=X.p("tilt")*Math.PI/180, cyc=cycOf(X);
+    for(let k=0;k<S;k++){ const R=.95*(1-k/(S+.4)), N=Math.max(24,Math.round(N0*R*R)), s=R*Math.sqrt(4*Math.PI/N)*.8*X.sz;
+      const rot=(X.mode==="spin"?X.ph*TAU:0)*(k%2?-1:1), pre=X.mode==="drift"?X.ph*TAU*(k%2?-1:1):0, col=ink(1+mod(k+cyc,X.nb));
+      for(let i=0;i<N;i++){ let d=fibSphere(N,i); d=V3.rotY(d,pre); const [e,nn]=sphFrame(d); const tw=p=>V3.rotY(V3.rotX(p,tl),rot);
+        E.add(L(i%n),V3.mul(tw(d),R),s,col,tw(e),tw(nn)); } } }});
+
+def3("lens",{
+  f3:p=>`y(r) = −2·√(${(+p("rs")).toFixed(2)}·(r − ${(+p("rs")).toFixed(2)}))     המשטח של פלאם — חתך המרחב סביב חור שחור`,
+  h3:"הבור של שוורצשילד: הפרבולואיד של פלאם הוא הצורה שהמרחב מקבל סביב מסה כבדה. שורות של המילה רצות במעגלים סביב הבור, וכמו כוכבים — הפנימיות מהירות יותר",
+  params3:[{k:"rs",l:"רדיוס שוורצשילד",min:.04,max:.4,step:.005,d:.12},{k:"rings",l:"טבעות",min:6,max:40,step:1,d:22},{k:"deep",l:"עומק",min:.3,max:2,step:.01,d:1}],
+  d3(E,X){ const {L,ink,n}=X, rs=X.p("rs"), K=X.p("rings"), dp=X.p("deep")*.55, per=n+1, cyc=cycOf(X), rot=X.mode==="spin"?X.ph*TAU:0;
+    const s=6.6*X.w*X.sz;
+    const yOf=r=>.55-dp*1.6*(1-Math.sqrt(Math.max(0,(r-rs)/(1-rs))));
+    for(let k=0;k<K;k++){ const r=rs+(1-rs)*Math.pow((k+.5)/K,1.4), y=yOf(r), circ=TAU*r, cnt=per*Math.max(1,Math.round(circ/(s*1.2*X.G)/per));
+      const speed=X.mode==="drift"?(k%2?1:-1)*X.ph*per:0, dydr=(yOf(r+.002)-y)/.002, col=ink(1+mod(k+cyc,X.nb));
+      for(let j=0;j<cnt;j++){ const idx=mod(-j,per); if(idx===n) continue; const a=(j+.5+speed)/cnt*TAU+rot, c=Math.cos(a), sn=Math.sin(a);
+        const P=[r*c,y,r*sn], nrm=V3.norm([-dydr*c,1,-dydr*sn]), [rr,uu]=frame3(nrm,[-sn,0,c]); E.add(L(idx),P,s,col,rr,uu); } } }});
+
+def3("torusknot",{
+  f3:p=>`C(t) = ((2 + cos ${p("q")}t)·cos ${p("p")}t,  sin ${p("q")}t,  (2 + cos ${p("q")}t)·sin ${p("p")}t)     P = C + ρ·(N cos a + B sin a)`,
+  h3:"הקשר כצינור אמיתי: הגדילים רצים על פני הצינור שמקיף את הקשר, והאותיות שוכבות עליו. בסיבוב הגדילים מתפתלים סביב הצינור",
+  params3:[{k:"p",l:"p",min:2,max:11,step:1,d:3},{k:"q",l:"q",min:2,max:13,step:1,d:5},{k:"rho",l:"עובי צינור",min:.05,max:.5,step:.005,d:.2},{k:"strands",l:"גדילים",min:2,max:12,step:1,d:6}],
+  d3(E,X){ const {n}=X, p=X.p("p"), q=X.p("q"), rho=X.p("rho"), S=X.p("strands"), M=320*Math.max(p,q), sc=.85/(3+rho), cyc=cycOf(X);
+    const C0=t=>[(2+Math.cos(q*t))*Math.cos(p*t)*sc,Math.sin(q*t)*sc,(2+Math.cos(q*t))*Math.sin(p*t)*sc];
+    const P=[], T=[]; for(let i=0;i<M;i++){ const t=i/M*TAU; P.push(C0(t)); T.push(V3.norm(V3.sub(C0(t+1e-3),C0(t-1e-3)))); }
+    const N=[]; let nn=V3.norm(V3.cross(T[0],[0,1,0])); for(let i=0;i<M;i++){ nn=V3.norm(V3.sub(nn,V3.mul(T[i],V3.dot(nn,T[i])))); N.push(nn); }
+    const tw=X.mode==="spin"?X.ph*TAU:0, s=Math.min(6.4*X.w,rho*sc*TAU/S*.8)*X.sz, sh=X.mode==="drift"?X.ph*(n+1):0;
+    for(let k=0;k<S;k++){ const pts=[], nr=[];
+      for(let i=0;i<M;i++){ const a=k*TAU/S+tw+i/M*TAU*0, B=V3.cross(T[i],N[i]), o=V3.add(V3.mul(N[i],Math.cos(a)),V3.mul(B,Math.sin(a))); pts.push(V3.add(P[i],V3.mul(o,rho*sc))); nr.push(o); }
+      const col=X.ink(1+mod(k+cyc,X.nb));
+      along3(pts,s*1.15*X.G,true,k%2?-sh:sh,n+1,(j,pp,TT,u)=>{ const ch=wslot(X,j); if(!ch) return; const [r,uu]=frame3(nr[Math.floor(u)%M],TT); E.add(ch,pp,s,col,r,uu); },1500); } }});
+
+def3("automaton",{
+  f3:p=>`c(i, j, t+1) = ${({p4:"c(i±1, j) ⊕ c(i, j±1)",p5:"c(i, j) ⊕ c(i±1, j) ⊕ c(i, j±1)",p8:"⊕ של שמונת השכנים"})[p("rule")]}     t = 0…${p("layers")}`,
+  h3:"אוטומט תאי דו־ממדי, והזמן הוא הציר השלישי: כל דור מונח מעל הקודם. כלל הזוגיות בונה מהמילה פירמידות פרקטליות שחוזרות על עצמן בכל קנה מידה",
+  params3:[{k:"rule",l:"כלל",o:[["p4","4 שכנים"],["p5","5 שכנים"],["p8","8 שכנים"]],d:"p4"},{k:"layers",l:"דורות",min:6,max:32,step:1,d:20},{k:"size",l:"רשת",min:15,max:45,step:2,d:31}],
+  d3(E,X){ const {L,ink,all}=X, G=X.p("size"), T=X.p("layers"), rule=X.p("rule"), key=["ca3",G,T,rule,all.join("")].join("|"), cyc=cycOf(X);
+    let gr=caCache[key];
+    if(!gr){ gr=[]; let cur=new Uint8Array(G*G); const c=G>>1, bits=[]; for(const ch of all){ const v=ch.charCodeAt(0)-0x5D0; for(let b=4;b>=0;b--) bits.push((v>>b)&1); }
+      bits.forEach((b,i)=>{ if(!b) return; const o=i-(bits.length>>1); for(const [x,y] of [[c+o,c],[c,c+o]]) if(x>=0&&y>=0&&x<G&&y<G) cur[y*G+x]=1; });
+      gr.push(cur);
+      for(let t=1;t<T;t++){ const nx=new Uint8Array(G*G), at=(x,y)=>x>=0&&y>=0&&x<G&&y<G?cur[y*G+x]:0;
+        for(let y=0;y<G;y++) for(let x=0;x<G;x++){ let v=at(x-1,y)^at(x+1,y)^at(x,y-1)^at(x,y+1);
+          if(rule==="p5") v^=at(x,y); if(rule==="p8") v^=at(x-1,y-1)^at(x+1,y-1)^at(x-1,y+1)^at(x+1,y+1); nx[y*G+x]=v; }
+        gr.push(nx); cur=nx; }
+      caCache[key]=gr; }
+    const h=1.7/G, dy=1.7/T, rot=X.mode==="spin"?X.ph*TAU:0, tw=X.mode==="drift"?X.ph*TAU:0;
+    for(let t=0;t<T;t++) for(let y=0;y<G;y++) for(let x=0;x<G;x++){ if(!gr[t][y*G+x]) continue;
+      const P=V3.rotY([(x-(G-1)/2)*h,-.85+(t+.5)*dy,(y-(G-1)/2)*h],rot), a=tw*((x+y)%2?1:-1)+rot;
+      E.add(L(t%X.n),P,h*.95*X.sz,ink(1+mod(Math.floor(t/2)+cyc,X.nb)),[Math.cos(a),0,-Math.sin(a)],[-Math.sin(a),0,-Math.cos(a)]); } }});
+
+/* ---- curves ---- */
+def3("rose",{
+  f3:p=>`P(θ) = כדור(אורך = θ, רוחב = 90°·sin(${p("n")}θ))     θₖ = k·${(+p("d")).toFixed(1)}°     מיתרים = קשתות של מעגל גדול`,
+  h3:"ורד מאורר על כדור: עלי הכותרת עולים ויורדים בקו רוחב, והמיתרים בין הנקודות הם קשתות של מעגל גדול — הדרך הקצרה ביותר על הכדור. כל מיתר שורה של אותיות",
+  params3:[{k:"n",l:"עלי כותרת n",min:2,max:9,step:1,d:5},{k:"d",l:"צעד d°",min:1,max:179,step:.1,d:71},{k:"pts",l:"נקודות",min:30,max:300,step:1,d:120}],
+  d3(E,X){ const {L,ink}=X, nn=X.p("n"), dd=X.p("d")+(X.mode==="spin"?.6*Math.sin(X.ph*TAU):0), K=X.p("pts"), R=.9, cyc=cycOf(X), rot=X.mode==="drift"?X.ph*TAU:0;
+    const S=th=>{ const lat=Math.PI/2*Math.sin(nn*th)*.92, lon=th+rot; return [Math.cos(lat)*Math.cos(lon),Math.sin(lat),Math.cos(lat)*Math.sin(lon)]; };
+    const s=4.8*X.w*X.sz, slerp=(a,b,t)=>{ const om=Math.acos(Math.max(-1,Math.min(1,V3.dot(a,b)))); if(om<1e-4) return a; const sa=Math.sin(om); return V3.add(V3.mul(a,Math.sin((1-t)*om)/sa),V3.mul(b,Math.sin(t*om)/sa)); };
+    let prev=S(0);
+    for(let k=1;k<=K;k++){ const cur=S(k*dd*Math.PI/180), arc=[]; for(let i=0;i<=24;i++) arc.push(V3.mul(slerp(prev,cur,i/24),R*.985));
+      const col=ink(1+mod(Math.floor(k/10)+cyc,2));
+      along3(arc,s*1.6*X.G,false,0,1,(j,p,T)=>{ const [r,u]=frame3(p,T); E.add(L(0),p,s,col,r,u); },80); prev=cur; }
+    const rose=[]; for(let i=0;i<=720;i++) rose.push(V3.mul(S(i*Math.PI/360),R));
+    along3(rose,s*1.7*1.25*X.G,true,0,1,(j,p,T)=>{ const [r,u]=frame3(p,T); E.add(L(1),p,s*1.7,ink(3),r,u); },1200); }});
+
+def3("spiro",{
+  f3:p=>`x = (R − r)cos t + d·cos(kt)   y = h·sin(kt)   z = (R − r)sin t − d·sin(kt)     k = ${((p("R")-Math.min(p("r"),p("R")-1))/Math.min(p("r"),p("R")-1)).toFixed(3)}`,
+  h3:"ספירוגרף שהעט שלו עולה ויורד עם הגלגל: הלולאות יוצאות מהמישור ונהיות כתר. כל שכבה בגובה אחר וכל אחת מסתובבת לכיוון אחר",
+  params3:[{k:"R",l:"שיני טבעת R",min:24,max:150,step:1,d:105},{k:"r",l:"שיני גלגל r",min:5,max:95,step:1,d:40},
+           {k:"d",l:"עט d",min:.15,max:1.6,step:.01,d:.85},{k:"h",l:"גובה",min:0,max:1,step:.01,d:.45},{k:"layers",l:"שכבות",min:1,max:5,step:1,d:3}],
+  d3(E,X){ const {n}=X, R=X.p("R"), r=Math.min(X.p("r"),R-1), loops=r/gcd(R,r), k=(R-r)/r, H=X.p("h"), cyc=cycOf(X), s=6*X.w*X.sz, sh=X.mode==="drift"?X.ph*(n+1):0;
+    for(let i=0;i<X.p("layers");i++){ const dd=X.p("d")*r*(1-i*.17), A=.88/((R-r)+Math.abs(dd))*(1-i*.08), rot=X.mode==="spin"?(i%2?-1:1)*X.ph*TAU:0;
+      const M=Math.min(16000,Math.ceil(loops*260)), pts=[], y0=(i-(X.p("layers")-1)/2)*.22;
+      for(let q=0;q<M;q++){ const t=q/M*TAU*loops; pts.push(V3.rotY([A*((R-r)*Math.cos(t)+dd*Math.cos(k*t)),y0+H*.35*Math.sin(k*t),A*((R-r)*Math.sin(t)-dd*Math.sin(k*t))],rot)); }
+      along3(pts,s*1.2*X.G,true,i%2?-sh:sh,n+1,(j,p,T)=>{ const ch=wslot(X,j); if(ch) E.cam(ch,p,s,X.ink(1+mod(i+cyc,X.nb)),T); },3000); } }});
+
+const LKNOTS=[[3,2,5],[3,2,7],[2,3,7],[3,4,7],[4,3,5],[5,3,7],[3,5,7],[2,5,3]];
+def3("lissa",{
+  f3:p=>{ const [a,b,c]=LKNOTS[p("knot")]; return `x = sin(${a}t + φ)   y = sin(${b}t + ψ)   z = sin(${c}t)     קשר ליסז'ו (${a},${b},${c})`; },
+  h3:"קשרי ליסז'ו: שלוש תנודות בשלושה צירים, ובתדרים זרים הקו נסגר לקשר אמיתי — לא רק עקומה על דף. בסיבוב הפאזה זזה והקשר מתהפך דרך עצמו",
+  params3:[{k:"knot",l:"קשר",o:LKNOTS.map((k,i)=>[i,k.join(",")]),d:0},{k:"phi",l:"פאזה φ",min:0,max:180,step:1,d:40,fmt:v=>Math.round(v)+"°"},{k:"psi",l:"פאזה ψ",min:0,max:180,step:1,d:72,fmt:v=>Math.round(v)+"°"}],
+  d3(E,X){ const {n}=X, [a,b,c]=LKNOTS[X.p("knot")], phi=X.p("phi")*Math.PI/180+(X.mode==="spin"?X.ph*TAU:0), psi=X.p("psi")*Math.PI/180, pts=[], M=2400;
+    for(let i=0;i<M;i++){ const t=i/M*TAU; pts.push([.85*Math.sin(a*t+phi),.85*Math.sin(b*t+psi),.85*Math.sin(c*t)]); }
+    const s=6.4*X.w*X.sz, sh=X.mode==="drift"?X.ph*(n+1):0, cyc=cycOf(X);
+    along3(pts,s*1.2*X.G,true,sh,n+1,(j,p,T,u)=>{ const ch=wslot(X,j); if(ch) E.cam(ch,p,s,X.ink(1+mod(Math.floor(u/M*X.nb*2)+cyc,X.nb)),T); },3000); }});
+
+def3("superformula",{
+  f3:p=>`P(θ,φ) = r₁(θ)·r₂(φ)·(cos θ cos φ, sin φ / r₁(θ)·…, sin θ cos φ)     r(φ) = (|cos(${p("m")}φ/4)|^${(+p("n2")).toFixed(1)} + |sin(${p("m")}φ/4)|^${(+p("n2")).toFixed(1)})^(−1/${(+p("n1")).toFixed(1)})`,
+  h3:"הסופרפורמולה בתלת־ממד — 'מכפלה כדורית' של שתי סופרפורמולות, אחת לאורך ואחת לרוחב. כך חיליס בנה פרחים, צדפות וגבישים מאותה משוואה. האותיות רצות על קווי הרוחב",
+  params3:[{k:"m",l:"סימטריה m",min:1,max:16,step:1,d:6},{k:"m2",l:"סימטריה לרוחב",min:0,max:12,step:1,d:4},{k:"n1",l:"n₁",min:.2,max:8,step:.01,d:1.2},{k:"n2",l:"n₂ = n₃",min:.2,max:8,step:.01,d:1.6},{k:"rings",l:"טבעות",min:6,max:36,step:1,d:20}],
+  d3(E,X){ const {n}=X, m=X.p("m"), m2=X.p("m2"), n1=X.p("n1"), n2=X.p("n2"), K=X.p("rings"), cyc=cycOf(X);
+    const sf=(mm,f)=>Math.min(6,Math.pow(Math.pow(Math.abs(Math.cos(mm*f/4)),n2)+Math.pow(Math.abs(Math.sin(mm*f/4)),n2),-1/n1));
+    let mx=1e-9; for(let i=0;i<60;i++) for(let j=0;j<30;j++){ const r=sf(m,i/60*TAU)*sf(m2,-Math.PI/2+j/29*Math.PI); mx=Math.max(mx,r); }
+    const sc=.88/mx, rot=X.mode==="spin"?X.ph*TAU:0, s=6*X.w*X.sz, sh=X.mode==="drift"?X.ph*(n+1):0;
+    const P=(th,ph)=>{ const r1=sf(m,th), r2=sf(m2,ph); return V3.rotY([sc*r1*Math.cos(th)*r2*Math.cos(ph),sc*r2*Math.sin(ph),sc*r1*Math.sin(th)*r2*Math.cos(ph)],rot); };
+    for(let k=1;k<K;k++){ const ph=-Math.PI/2+k/K*Math.PI, pts=[]; for(let i=0;i<360;i++) pts.push(P(i/360*TAU,ph));
+      along3(pts,s*1.2*X.G,true,k%2?sh:-sh,n+1,(j,p,T,u)=>{ const ch=wslot(X,j); if(!ch) return; const th=u/360*TAU, nn=V3.cross(V3.sub(P(th,ph+.01),P(th,ph-.01)),T);
+        const [r,uu]=frame3(V3.dot(nn,p)<0?V3.mul(nn,-1):nn,T); E.add(ch,p,s,X.ink(1+mod(k+cyc,X.nb)),r,uu); },500); } }});
+
+def3("fourier",{
+  f3:p=>`y(x, n) = S${sub("n")}(x)     n = 1…${p("rows")} לעומק — נוף של סכומים חלקיים`,
+  h3:"טור פורייה כנוף: כל שורה בעומק אחר מוסיפה איבר אחד, והגלים מתחדדים ככל שמתרחקים — רכסים של גל מרובע שנבנים מסינוסים, עם העודף של גיבס על כל צוק",
+  params3:[{k:"wave",l:"גל",o:[["sq","מרובע"],["saw","משור"],["tri","משולש"]],d:"sq"},{k:"rows",l:"שורות",min:4,max:32,step:1,d:16},{k:"amp",l:"משרעת",min:.1,max:.6,step:.01,d:.28},{k:"per",l:"מחזורים",min:1,max:5,step:.5,d:2}],
+  d3(E,X){ const {n}=X, wave=X.p("wave"), rows=X.p("rows"), A=X.p("amp"), kx=X.p("per")*Math.PI, cyc=cycOf(X);
+    const sh=X.mode==="drift"?X.ph*TAU:0, sp=X.mode==="spin"?X.ph*TAU:0;
+    const term=wave==="sq"?(k,x)=>4/Math.PI*Math.sin((2*k-1)*x+(k-1)*sp)/(2*k-1):wave==="saw"?(k,x)=>2/Math.PI*(k%2?1:-1)*Math.sin(k*x+(k-1)*sp)/k:(k,x)=>8/(Math.PI*Math.PI)*(k%2?1:-1)*Math.sin((2*k-1)*x+(k-1)*sp)/((2*k-1)*(2*k-1));
+    const s=Math.min(.9/rows,6*X.w)*X.sz;
+    for(let r=1;r<=rows;r++){ const z=-.85+1.7*(r-.5)/rows, pts=[];
+      for(let x=-.9;x<=.9;x+=.004){ let v=0; const u=x*kx-sh; for(let k=1;k<=r;k++) v+=term(k,u); pts.push([x,A*v-.1,z]); }
+      const col=X.ink(1+mod(r+cyc,X.nb));
+      along3(pts,s*1.2*X.G,false,0,1,(j,p,T)=>{ const ch=wslot(X,j); if(!ch) return; const [rr,uu]=frame3([0,0,1],T); E.add(ch,p,s,col,rr,uu); },600); } }});
+
+def3("epicycle",{
+  f3:p=>`z(t, N) = Σₖ₌₀^N cₖ·e^(2πikt)     N = 2 … ${p("max")} לאורך העומק`,
+  h3:"קווי המתאר של האות, מפורקים לעיגולים, מסודרים במנהרה: מקדימה שני עיגולים — אליפסה; ככל שמעמיקים יש יותר עיגולים, עד שבסוף המנהרה עומדת האות עצמה",
+  params3:[{k:"layers",l:"שכבות",min:4,max:24,step:1,d:12},{k:"max",l:"הכי הרבה עיגולים",min:16,max:200,step:1,d:96}],
+  d3(E,X){ const {L,n}=X, D=glyphDFT(L(0)); if(!D) return;
+    const K=X.p("layers"), mx=X.p("max"), sc=1.35/650, s=5*X.w*X.sz, sh=X.mode==="drift"?X.ph*(n+1):0, t0=X.mode==="spin"?X.ph:0, cyc=cycOf(X);
+    for(let c=0;c<K;c++){ const N=Math.max(2,Math.round(2*Math.exp(Math.log(mx/2)*c/(K-1)))), z=.85-1.7*c/(K-1);
+      const ev=t=>{ let x=0, y=0; for(let i=0;i<N;i++){ const q=D[i], a=TAU*q.k*t; x+=q.re*Math.cos(a)-q.im*Math.sin(a); y+=q.re*Math.sin(a)+q.im*Math.cos(a); } return [x*sc,-y*sc,z]; };
+      const pts=[]; for(let i=0;i<200;i++) pts.push(ev(i/200));
+      const col=X.ink(1+mod(c+cyc,X.nb));
+      along3(pts,s*1.15*X.G,true,sh,n+1,(j,p,T)=>{ const ch=wslot(X,j); if(ch){ const [r,u]=frame3([0,0,1],T); E.add(ch,p,s,col,r,u); } },260);
+      const pen=ev(t0); E.add(L(0),pen,s*2.2,X.ink(1+mod(c+1+cyc,X.nb)),null,null); } }});
+
+/* ---- fields ---- */
+def3("chladni",{
+  f3:p=>`f = cos(${p("a")}πx)cos(${p("b")}πy)cos(${p("c")}πz) − cos(${p("b")}πx)cos(${p("c")}πy)cos(${p("a")}πz)     |f| < ${(+p("eps")).toFixed(2)}`,
+  h3:"כלדני בתוך קובייה: גלים עומדים בשלושה צירים, ובמקום קווי צומת יש משטחי צומת — קירות שבהם הנפח לא זז. האותיות יושבות על המשטחים ושוכבות לאורכם",
+  params3:[{k:"a",l:"a",min:1,max:8,step:1,d:2},{k:"b",l:"b",min:1,max:8,step:1,d:3},{k:"c",l:"c",min:1,max:8,step:1,d:5},{k:"eps",l:"עובי",min:.03,max:.3,step:.01,d:.06},{k:"res",l:"רזולוציה",min:14,max:34,step:1,d:22}],
+  d3(E,X){ const {L,ink}=X, a=X.p("a"), b=X.p("b"), c=X.p("c"), eps=X.p("eps"), N=X.p("res"), h=1.7/N, cyc=cycOf(X);
+    const sp=X.mode==="spin"?.5-.5*Math.cos(X.ph*TAU):0, rot=X.mode==="drift"?X.ph*TAU:0, PI=Math.PI;
+    const F=(x,y,z)=>{ const f1=Math.cos(a*PI*x)*Math.cos(b*PI*y)*Math.cos(c*PI*z)-Math.cos(b*PI*x)*Math.cos(c*PI*y)*Math.cos(a*PI*z);
+      const f2=Math.cos(c*PI*x)*Math.cos(a*PI*y)*Math.cos(b*PI*z)-Math.cos(a*PI*x)*Math.cos(b*PI*y)*Math.cos(c*PI*z); return (1-sp)*f1+sp*f2; };
+    for(let i=0;i<N;i++) for(let j=0;j<N;j++) for(let k=0;k<N;k++){ const x=(i+.5)/N*2-1, y=(j+.5)/N*2-1, z=(k+.5)/N*2-1, f=F(x,y,z)/2;
+      if(Math.abs(f)>eps) continue; const e=.01, g=[F(x+e,y,z)-F(x-e,y,z),F(x,y+e,z)-F(x,y-e,z),F(x,y,z+e)-F(x,y,z-e)];
+      const [r,u]=frame3(V3.rotY(g,rot),[1,0,0]), side=f>0?1:2;
+      E.add(L(side-1),V3.rotY([x*.85,y*.85,z*.85],rot),h*(1.25-.6*Math.abs(f)/eps)*X.sz,ink(1+mod(side-1+cyc,X.nb)),r,u); } }});
+
+def3("turing",{
+  f3:p=>`∂v/∂t = 0.08·∇²v + u·v² − (${(+p("F")).toFixed(4)} + ${(+p("K")).toFixed(4)})·v     על טורוס`,
+  h3:"התבנית של גריי–סקוט גדלה על רשת שקצותיה נוגעים זה בזה — ורשת כזאת היא בדיוק טורוס. אז היא מוצגת עליו: הכתמים עוטפים את הסופגנייה בלי תפר",
+  heavy3:true,
+  d3(E,X){ const {L,ink,all}=X, gw=120, gh=60, fld=grayScott(all.join(""),X.p("F"),X.p("K"),X.p("steps"),gw,gh), cyc=cycOf(X);
+    const R=.62, r=.3, rot=X.mode==="spin"||X.mode==="drift"?X.ph*TAU:0, flow=X.mode==="drift"?X.ph:0;
+    for(let j=0;j<gh;j++) for(let i=0;i<gw;i++){ const v=fld.v[j*gw+i]; if(v<.08) continue;
+      const u=(i/gw+flow)*TAU, w=j/gh*TAU, nrm=[Math.cos(w)*Math.cos(u+rot),Math.sin(w),Math.cos(w)*Math.sin(u+rot)];
+      const P=[(R+r*Math.cos(w))*Math.cos(u+rot),r*Math.sin(w),(R+r*Math.cos(w))*Math.sin(u+rot)], t=[-Math.sin(u+rot),0,Math.cos(u+rot)];
+      const b=bandOf(Math.min(.999,v/.42),X,1), [rr,uu]=frame3(nrm,t);
+      E.add(L(b-1),P,TAU*(R+r*Math.cos(w))/gw*Math.min(1.6,.6+2.6*v)*X.sz,ink(b),rr,uu); } }});
+RECIPES.turing.params3=RECIPES.turing.params;
+
+def3("riley",{
+  f3:p=>`P(i, y) = (i·w,  y,  ${(+p("A")).toFixed(2)}·sin(2π·k·(y/H)·(1 + g·y/H) + i·δ + φ))     וילון`,
+  h3:"האופ־ארט של ריילי כווילון: העמודות לא זזות הצידה אלא לעומק, והגל מקפל את הדף כמו בד. מהזווית הנכונה העין עדיין רואה את הרטט — ומזווית אחרת את הקפלים",
+  params3:[{k:"A",l:"עומק A",min:0,max:.5,step:.01,d:.22},{k:"k",l:"תדר k",min:.5,max:8,step:.05,d:2.4},{k:"grow",l:"האצה",min:0,max:5,step:.05,d:2},{k:"dph",l:"היסט פאזה",min:0,max:.6,step:.005,d:.12}],
+  d3(E,X){ const {L,ink}=X, A=X.p("A"), k=X.p("k")*TAU, gr=X.p("grow"), dph=X.p("dph"), cols=34, w=1.7/cols, step=w*.9, cyc=cycOf(X);
+    for(let i=0;i<cols;i++){ const phi=X.mode==="spin"?X.ph*TAU:X.mode==="drift"?(i%2?1:-1)*X.ph*TAU:0;
+      for(let y=-1.05;y<1.05;y+=step){ const yy=(y+1.05)/2.1, a=k*yy*(1+gr*yy)+i*dph+phi, z=A*Math.sin(a), dz=A*Math.cos(a)*k*(1+2*gr*yy)/2.1;
+        const P=[-.85+(i+.5)*w,y,z], T=V3.norm([0,1,dz]), nrm=V3.cross([1,0,0],T), [r,u]=frame3(nrm,[1,0,0]);
+        E.add(L(i%X.n),P,w*.92*X.sz,ink(1+mod(i+cyc,X.nb)),r,u); } } }});
+
+def3("interference",{
+  f3:p=>`f(P) = Σᵢ₌₁^${p("N")} cos(k·|P − Sᵢ| − ωt)     גלים כדוריים     f > ${(+p("thr")).toFixed(2)}`,
+  h3:"מקורות של גלים כדוריים בחלל — כמו רמקולים בחדר. היכן שהם מתחזקים נוצרים קליפות בהירות, וביניהן משטחי שקט היפרבוליים. האותיות יושבות על הקליפות",
+  params3:[{k:"N",l:"מקורות",min:1,max:6,step:1,d:2},{k:"k",l:"תדר k",min:4,max:30,step:.5,d:14},{k:"rho",l:"מרחק",min:0,max:.7,step:.01,d:.35},{k:"thr",l:"סף",min:.2,max:.9,step:.01,d:.55}],
+  d3(E,X){ const {L,ink}=X, Ns=X.p("N"), k=X.p("k"), rho=X.p("rho"), thr=X.p("thr"), wt=X.mode==="spin"?X.ph*TAU:0, rot=X.mode==="drift"?X.ph*TAU/Math.max(1,Ns):0, cyc=cycOf(X);
+    const S=[]; for(let i=0;i<Ns;i++){ const a=i*TAU/Ns+rot; S.push(Ns===1?[0,0,0]:[rho*Math.cos(a),0,rho*Math.sin(a)]); }
+    const N=26, h=2/N;
+    for(let i=0;i<N;i++) for(let j=0;j<N;j++) for(let q=0;q<N;q++){ const P=[-1+(i+.5)*h,-1+(j+.5)*h,-1+(q+.5)*h]; if(V3.len(P)>1) continue;
+      let f=0, g=[0,0,0]; for(const s of S){ const d=V3.sub(P,s), r=V3.len(d)||1e-6, a=k*r-wt; f+=Math.cos(a); g=V3.add(g,V3.mul(d,-Math.sin(a)*k/r)); }
+      f/=Ns; if(f<thr) continue; const [r,u]=frame3(g,[0,1,0]), b=bandOf(Math.min(.999,V3.len(P)),X,1);
+      E.add(L(b-1),V3.mul(P,.9),h*(.5+1.1*(f-thr)/(1-thr))*X.sz,ink(b),r,u); } }});
+
+def3("dipole",{
+  f3:p=>`E(P) = Σᵢ qᵢ·(P − Pᵢ)/|P − Pᵢ|³     מטענים על קודקודי ${({tet:"טטרהדר",oct:"אוקטהדר",cube:"קובייה",pair:"זוג"})[p("cfg")]}`,
+  h3:"קווי שדה של מטענים בחלל: חיוביים ושליליים על קודקודי גוף משוכלל, והקווים יוצאים מכל מטען חיובי לכל הכיוונים — כמו שבבי ברזל, אבל בתלת־ממד",
+  params3:[{k:"cfg",l:"סידור",o:[["pair","זוג"],["tet","טטרהדר"],["oct","אוקטהדר"],["cube","קובייה"]],d:"tet"},{k:"lines",l:"קווים למטען",min:6,max:40,step:1,d:22}],
+  d3(E,X){ const {L,n}=X, cfg=X.p("cfg"), nl=X.p("lines"), cyc=cycOf(X);
+    const V=cfg==="pair"?[[.45,0,0],[-.45,0,0]]:cfg==="tet"?[[1,1,1],[1,-1,-1],[-1,1,-1],[-1,-1,1]].map(v=>V3.mul(V3.norm(v),.5))
+          :cfg==="oct"?[[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]].map(v=>V3.mul(v,.5)):[...Array(8)].map((_,i)=>V3.mul([i&1?1:-1,i&2?1:-1,i&4?1:-1],.32));
+    const q=V.map((v,i)=>cfg==="oct"?(i%2?-1:1):cfg==="cube"?((i&1)^((i>>1)&1)^((i>>2)&1)?-1:1):cfg==="tet"?(i<2?1:-1):(i?-1:1));
+    const rot=X.mode==="spin"?X.ph*TAU:0, Q=V.map(v=>V3.rotY(v,rot));
+    const F=p=>{ let e=[0,0,0]; Q.forEach((c,i)=>{ const d=V3.sub(p,c), r=V3.len(d)+1e-6; e=V3.add(e,V3.mul(d,q[i]/(r*r*r))); }); return e; };
+    const s=5.6*X.w*X.sz, sh=X.mode==="drift"?X.ph*(n+1):0, h=.012; let li=0;
+    Q.forEach((c,ci)=>{ if(q[ci]<0) return;
+      for(let k=0;k<nl;k++){ let p=V3.add(c,V3.mul(fibSphere(nl,k),.06)); const pts=[p];
+        for(let st=0;st<500;st++){ let e=V3.norm(F(p)); const m=V3.add(p,V3.mul(e,h/2)); e=V3.norm(F(m)); p=V3.add(p,V3.mul(e,h)); pts.push(p);
+          if(V3.len(p)>1.2||Q.some((c2,j)=>q[j]<0&&V3.len(V3.sub(p,c2))<.05)) break; }
+        const col=X.ink(1+mod(li++ +cyc,3));
+        along3(pts,s*1.2*X.G,false,sh,n+1,(j,pp,T)=>{ const ch=wslot(X,j); if(ch) E.cam(ch,pp,s,col,T); },200); } });
+    Q.forEach((c,i)=>E.add(L(q[i]>0?0:n-1),c,s*3.2,X.ink(4),null,null)); }});
+
+def3("julia",{
+  f3:p=>`qₙ₊₁ = qₙ² + c     q = x + yi + zj + 0k     c = ${(+p("cr")).toFixed(3)}·e^(i·${Math.round(p("ca"))}°)`,
+  h3:"קבוצת ז'וליה בקווטרניונים — מספרים בעלי ארבעה רכיבים, והנוסחה היא אותה z² + c. חותכים את העצם הארבע־ממדי בשלושה ממדים ומקבלים פסל: האותיות יושבות על השפה שבה הנקודות מתחילות לברוח",
+  params3:[{k:"cr",l:"|c|",min:.3,max:.9,step:.001,d:.62},{k:"ca",l:"זווית c",min:0,max:360,step:.5,d:150,fmt:v=>Math.round(v)+"°"},{k:"res",l:"רזולוציה",min:20,max:44,step:1,d:34},{k:"zoom",l:"זום",min:.6,max:1.6,step:.01,d:1}],
+  d3(E,X){ const {L,ink}=X, N=X.p("res"), a=X.p("ca")*Math.PI/180+(X.mode==="spin"?X.ph*TAU:0), c0=X.p("cr")*Math.cos(a), c1=X.p("cr")*Math.sin(a), sc=1.5/X.p("zoom"), IT=14, h=2/N;
+    const rot=X.mode==="drift"?X.ph*TAU:0;
+    const esc=(x,y,z)=>{ let a0=x,a1=y,a2=z,a3=0; for(let i=0;i<IT;i++){ const n0=a0*a0-a1*a1-a2*a2-a3*a3+c0, n1=2*a0*a1+c1, n2=2*a0*a2, n3=2*a0*a3; a0=n0; a1=n1; a2=n2; a3=n3; if(a0*a0+a1*a1+a2*a2+a3*a3>16) return i; } return IT; };
+    const G=new Uint8Array(N*N*N); for(let i=0;i<N;i++) for(let j=0;j<N;j++) for(let k=0;k<N;k++) G[(i*N+j)*N+k]=esc((-1+(i+.5)*h)*sc,(-1+(j+.5)*h)*sc,(-1+(k+.5)*h)*sc);
+    for(let i=1;i<N-1;i++) for(let j=1;j<N-1;j++) for(let k=1;k<N-1;k++){ const v=G[(i*N+j)*N+k]; if(v<IT) continue;
+      const g=[G[((i+1)*N+j)*N+k]-G[((i-1)*N+j)*N+k],G[(i*N+j+1)*N+k]-G[(i*N+j-1)*N+k],G[(i*N+j)*N+k+1]-G[(i*N+j)*N+k-1]];
+      if(V3.len(g)<1) continue;   // inside: only the skin is drawn
+      const P=V3.rotY([-1+(i+.5)*h,-1+(j+.5)*h,-1+(k+.5)*h].map(v=>v*.92),rot), [r,u]=frame3(V3.rotY(V3.mul(g,-1),rot),[0,1,0]), b=bandOf(Math.min(.999,(P[1]+1)/2),X,1.5);
+      E.add(L(b-1),P,h*1.25*X.sz,ink(b),r,u); } }});
+
+def3("newton",{
+  f3:p=>`z ↦ z − a·(z^${p("n")} − 1)/(${p("n")}·z^${p("n")-1})     על כדור רימן: P ↦ z = (x + iz)/(1 − y)`,
+  h3:"שיטת ניוטון על כדור רימן: כל המישור המרוכב, כולל האינסוף, מגולגל לכדור. השורשים יושבים על קו המשווה, והאגנים שלהם עוטפים את הכדור — עם הגבולות הפרקטליים שנפגשים בקטבים",
+  params3:[{k:"n",l:"חזקה n",min:3,max:8,step:1,d:4},{k:"a",l:"ריסון a",min:.6,max:1.5,step:.01,d:1},{k:"N",l:"נקודות",min:800,max:5000,step:50,d:3000}],
+  d3(E,X){ const {L,ink}=X, nn=X.p("n"), N=X.p("N"), A=X.mode==="spin"?[X.p("a")+.25*Math.cos(X.ph*TAU),.25*Math.sin(X.ph*TAU)]:[X.p("a"),0], rot=X.mode==="drift"?X.ph*TAU:0, cyc=cycOf(X), s=Math.sqrt(4*Math.PI/N)*.62*X.sz;
+    for(let i=0;i<N;i++){ const d=fibSphere(N,i), den=1-d[1]; if(den<1e-6) continue; let z=[d[0]/den,d[2]/den], k=0;
+      for(;k<50;k++){ let p=[1,0]; for(let q=0;q<nn-1;q++) p=C.mul(p,z); const zn=C.mul(p,z), f=[zn[0]-1,zn[1]]; if(f[0]*f[0]+f[1]*f[1]<1e-10) break;
+        const st=C.mul(A,C.div(f,[nn*p[0],nn*p[1]])); z=[z[0]-st[0],z[1]-st[1]]; if(!isFinite(z[0])) break; }
+      if(k===50||!isFinite(z[0])) continue; const root=mod(Math.round(C.arg(z)/(TAU/nn)),nn), P=V3.rotY(V3.mul(d,.85),rot), [e,no]=sphFrame(d);
+      E.add(L(root%X.n),P,s*(.55+.7*Math.min(1,k/14)),ink(1+mod(root+k+cyc,X.nb)),V3.rotY(e,rot),V3.rotY(no,rot)); } }});
+
+/* ---- bent space ---- */
+def3("conformal",{
+  f3:p=>`y = log|f(z)|,  צבע = arg f(z)     ${MAPS[p("fn")].f}     הנוף האנליטי`,
+  h3:"הנוף האנליטי: מעל כל נקודה z במישור עולה גובה לפי |f(z)| — אפסים הם בורות, קטבים הם הרים — והצבע הוא הארגומנט, כך שהפסים מסתובבים סביב כל אפס וכל קוטב",
+  params3:[{k:"fn",l:"פונקציה",o:[["exp","eᶻ"],["sq","z²"],["inv","1/z"],["jouk","z+1/z"],["sin","sin z"]],d:"jouk"},{k:"zoom",l:"זום",min:.4,max:2.6,step:.01,d:1},{k:"hgt",l:"גובה",min:0,max:1,step:.01,d:.4},{k:"res",l:"רזולוציה",min:20,max:64,step:1,d:44}],
+  d3(E,X){ const {L,ink}=X, F=MAPS[X.p("fn")].F, Z=2.4/X.p("zoom"), N=X.p("res"), hg=X.p("hgt"), h=1.7/N, rot=X.mode==="drift"?X.ph*TAU:0, sp=X.mode==="spin"?X.ph:0;
+    const Y=(x,y)=>{ const w=F([x*Z,y*Z]); return [hg*Math.tanh(Math.log(Math.max(1e-6,C.abs(w)))/1.6)*.9,C.arg(w)]; };
+    for(let i=0;i<N;i++) for(let j=0;j<N;j++){ const x=-.85+(i+.5)*h, z=-.85+(j+.5)*h, [y,a]=Y(x,z); if(!isFinite(y)) continue;
+      const e=.004, dx=(Y(x+e,z)[0]-y)/e, dz=(Y(x,z+e)[0]-y)/e, nrm=[-dx,1,-dz], b=bandOf(mod(a/TAU+sp,1)*.999,X,1);
+      const [r,u]=frame3(V3.rotY(nrm,rot),V3.rotY([1,0,0],rot)); E.add(L(b-1),V3.rotY([x,y,z],rot),h*.9*X.sz,ink(b),r,u); } }});
+
+def3("droste",{
+  f3:p=>`r(θ) = e^(${(+p("b")).toFixed(2)}θ)     מרכז = (r cos θ, −${(+p("h")).toFixed(1)}·r, r sin θ)     חתך = ${(+p("a")).toFixed(2)}·r`,
+  h3:"הספירלה הלוגריתמית בתלת־ממד היא קונכייה: אותה דמיון עצמי, רק שהצינור גדל יחד עם הסיבוב — כמו נאוטילוס או חילזון. האותיות רצות לאורך הפיתולים",
+  params3:[{k:"b",l:"גדילה b",min:.06,max:.4,step:.005,d:.17},{k:"coils",l:"סיבובים",min:1.5,max:8,step:.1,d:4.2},{k:"a",l:"עובי צינור",min:.15,max:.8,step:.01,d:.42},{k:"h",l:"התחדדות",min:0,max:2,step:.01,d:.9},{k:"whorls",l:"קווים",min:4,max:18,step:1,d:10}]});
+RECIPES.droste.d3=function(E,X){
+  const {n}=X, b=X.p("b"), co=X.p("coils"), a=X.p("a"), hh=X.p("h"), V=X.p("whorls"), cyc=cycOf(X), rot=X.mode==="spin"?X.ph*TAU:0;
+  const t0=-co*TAU, per=n+1, du=X.mode==="drift"?X.ph:0;
+  let sc=1, yc=0; { let lo=1e9, hi=-1e9, rm=0; for(let i=0;i<=60;i++) for(const v of [0,Math.PI/2,Math.PI,3*Math.PI/2]){ const th=t0*i/60, r=Math.exp(b*th), ro=a*r;
+      const y=-hh*r+ro*Math.sin(v); lo=Math.min(lo,y); hi=Math.max(hi,y); rm=Math.max(rm,r+ro); }
+    sc=2/Math.max(2*rm,hi-lo); yc=-(lo+hi)/2; }
+  const P=(th,v)=>{ const r=Math.exp(b*th), c=[r*Math.cos(th),-hh*r+yc,r*Math.sin(th)], rad=[Math.cos(th),0,Math.sin(th)], ro=a*r;
+    return V3.rotY(V3.mul(V3.add(c,V3.add(V3.mul(rad,ro*Math.cos(v)),[0,ro*Math.sin(v),0])),sc),rot); };
+  /* a letter's size and the arc it needs both grow as e^(bθ), so one fixed step in θ spaces them evenly */
+  const s0=a*TAU/V*.8*sc, dth=1.25*s0/(sc*Math.hypot(1,b));
+  for(let k=0;k<V;k++){ const v=k*TAU/V, col=X.ink(1+mod(k+cyc,X.nb));
+    for(let j=Math.floor(t0/dth)-per;j*dth<=0;j++){ const idx=mod(-j,per); if(idx===n) continue; const th=(j+du*per)*dth; if(th<t0||th>0) continue;
+      const r=Math.exp(b*th), s=Math.min(.08,s0*r)*X.sz; if(s<.004) continue;
+      const p=P(th,v), T=V3.norm(V3.sub(P(th+.01,v),p)), [rr,uu]=frame3(V3.sub(p,P(th,v+Math.PI)),T); E.add(X.L(idx),p,s,col,rr,uu); } } };
+
+def3("loxodrome",{
+  f3:p=>`λ(φ) = cot(${Math.round(p("beta"))}°)·ln tan(π/4 + φ/2) + 2πj/${p("m")}     לוקסודרום — קו שחוצה כל מרידיאן באותה זווית`,
+  h3:"הלוקסודרום על הכדור — קו הכיוון הקבוע של הנווטים, שמסתלסל מקוטב לקוטב בלי להגיע אליו. זו בדיוק הספירלה הכפולה של מביוס, מגולגלת חזרה לכדור. המילים זורמות לאורכו",
+  params3:[{k:"m",l:"קווים",min:1,max:16,step:1,d:8},{k:"beta",l:"זווית β",min:4,max:80,step:.5,d:14,fmt:v=>Math.round(v)+"°"},{k:"size",l:"גודל",min:.5,max:1.6,step:.01,d:1}],
+  d3(E,X){ const {n}=X, m=X.p("m"), cb=1/Math.tan(X.p("beta")*Math.PI/180), R=.88, cyc=cycOf(X), rot=X.mode==="spin"?X.ph*TAU:0, sh=X.mode==="drift"?X.ph*(n+1):0, s=6*X.w*X.p("size")*X.sz;
+    for(let j=0;j<m;j++){ const pts=[]; for(let i=1;i<1200;i++){ const ph=-Math.PI/2+Math.PI*i/1200, lam=cb*Math.log(Math.tan(Math.PI/4+ph/2))+TAU*j/m+rot;
+        pts.push([R*Math.cos(ph)*Math.cos(lam),R*Math.sin(ph),R*Math.cos(ph)*Math.sin(lam)]); }
+      const col=X.ink(1+mod(j+cyc,X.nb));
+      along3(pts,s*1.2*X.G,false,sh,n+1,(k,p,T)=>{ const ch=wslot(X,k); if(!ch) return; const [r,u]=frame3(p,T); E.add(ch,p,s*Math.max(.25,Math.sqrt(1-Math.pow(p[1]/R,2))),col,r,u); },1500); } }});
+
+/* ---- tilings, fractals, numbers ---- */
+def3("fractal",{
+  f3:p=>`Aₖ₊₁ = ⋃ { אות ∈ המילה  |  מרכזה בתוך Aₖ }     על קרוסלה של ${p("ring")} מקומות`,
+  h3:"כל אות במילה עומדת על קרוסלה, ענקית, ובנויה מאותיות בינוניות שבנויות מקטנות — אותה מילה בשלושה קני מידה, הפעם בחלל",
+  params3:[{k:"ring",l:"מקומות",min:2,max:9,step:1,d:5},{k:"fill",l:"צפיפות",min:.6,max:1.4,step:.01,d:1}],
+  d3(E,X){ const {L,ink,n}=X, K=X.p("ring"), fill=X.p("fill"), cyc=cycOf(X), rot=X.mode==="spin"?X.ph*TAU/K:X.mode==="drift"?X.ph*TAU:0, Rr=.55, big=.78;
+    let q=0;
+    for(let k=0;k<K;k++){ const a=k*TAU/K+rot, c=[Rr*Math.sin(a),0,Rr*Math.cos(a)], r=[Math.cos(a),0,-Math.sin(a)], u=[0,1,0], ch=L(k%n);
+      const m=glyphMask(ch,240,240), pitch=240/8.5/fill;
+      for(let y=pitch/2;y<240;y+=pitch) for(let x=pitch/2;x<240;x+=pitch){ if(!m(x,y)) continue;
+        const ii=1+mod((q++)+cyc,X.nb), mc=V3.add(c,V3.add(V3.mul(r,(x/240-.5)*big),V3.mul(u,-(y/240-.5)*big))), ms=big/8.5/fill, c2=L((q+k)%n), m2=glyphMask(c2,60,60), p2=60/6.2/fill;
+        for(let y2=p2/2;y2<60;y2+=p2) for(let x2=p2/2;x2<60;x2+=p2){ if(!m2(x2,y2)) continue;
+          E.add(L((x2+y2|0)%n),V3.add(mc,V3.add(V3.mul(r,(x2/60-.5)*ms),V3.mul(u,-(y2/60-.5)*ms))),ms/6.2/fill*.95,ink(ii),r,u); } } } }});
+
+def3("penrose",{
+  f3:p=>`P = Σⱼ ⌈x·eⱼ + γⱼ⌉·eⱼ     גובה = Σⱼ ⌈x·eⱼ + γⱼ⌉·eⱼ⊥     eⱼ⊥ = (cos 4πj/5, sin 4πj/5)`,
+  h3:"ריצוף פנרוז הוא צל של סריג בחמישה ממדים. הממד שנחתך — 'המרחב הפנימי' — מוחזר כאן כגובה: כל מעוין עולה או יורד לפי היכן שהוא יושב בחלון, והריצוף נהיה נוף של טרסות",
+  params3:[{k:"e",l:"גודל מעוין",min:.5,max:2,step:.01,d:1},{k:"hgt",l:"גובה",min:0,max:1,step:.01,d:.45}],
+  d3(E,X){ const {L,ink}=X, es=.075*X.p("e"), K=Math.ceil(.95/(2.5*es))+2, cyc=cycOf(X), hg=X.p("hgt");
+    const Ee=[0,1,2,3,4].map(j=>[Math.cos(j*TAU/5),Math.sin(j*TAU/5)]), Ep=[0,1,2,3,4].map(j=>[Math.cos(2*j*TAU/5),Math.sin(2*j*TAU/5)]);
+    const gm=[.1,.27,-.32,.18,-.23].map((v,j)=>v+(X.mode==="drift"?.42*Math.cos(X.ph*TAU+4*Math.PI*j/5):0)), rot=X.mode==="spin"?X.ph*TAU:0;
+    for(let r=0;r<5;r++) for(let s=r+1;s<5;s++){ const [ax,ay]=Ee[r], [bx,by]=Ee[s], det=ax*by-ay*bx, thick=(s-r)===1||(s-r)===4;
+      for(let kr=-K;kr<=K;kr++) for(let ks=-K;ks<=K;ks++){ const A=kr-gm[r], B=ks-gm[s], x=(A*by-ay*B)/det, y=(ax*B-A*bx)/det;
+        let vx=0, vy=0, px=0;
+        for(let j=0;j<5;j++){ const kj=j===r?kr:j===s?ks:Math.ceil(x*Ee[j][0]+y*Ee[j][1]+gm[j]); vx+=kj*Ee[j][0]; vy+=kj*Ee[j][1]; px+=kj*Ep[j][0]; }
+        const qx=(vx+(ax+bx)/2)*es, qz=(vy+(ay+by)/2)*es; if(qx*qx+qz*qz>.9) continue;
+        const P=V3.rotY([qx,(px/2.2-.2)*hg,qz],rot), dg=thick?[ax+bx,0,ay+by]:[ax-bx,0,ay-by], t=thick?0:1;
+        const [rr,uu]=frame3([0,1,0],V3.rotY(dg,rot)), kk=Math.floor(Math.hypot(qx,qz)/(es*2.6))*2+t;
+        E.add(L(t),P,(thick?.82:.5)*es*X.sz,ink(1+mod(kk+cyc,X.nb)),rr,uu); } } }});
+
+function hilbert3(b,d){
+  const X=[0,0,0];
+  for(let i=0;i<b*3;i++){ const bit=Math.floor(d/Math.pow(2,b*3-1-i))%2; if(bit) X[i%3]|=1<<(b-1-Math.floor(i/3)); }
+  const N=2<<(b-1); let t=X[2]>>1;
+  for(let i=2;i>0;i--) X[i]^=X[i-1]; X[0]^=t;
+  for(let Q=2;Q!==N;Q<<=1){ const P=Q-1; for(let i=2;i>=0;i--){ if(X[i]&Q) X[0]^=P; else { t=(X[0]^X[i])&P; X[0]^=t; X[i]^=t; } } }
+  return X;
+}
+def3("hilbert",{
+  f3:p=>`d ↦ (x, y, z)     H${sub(p("order"))}: 8^${p("order")} = ${8**p("order")} תאים, קו אחד שעובר בכולם (סקילינג)`,
+  h3:"עקומת הילברט בשלושה ממדים: קו אחד שעובר בכל תא של קובייה בלי לחצות את עצמו. הצבע מתחלף לאורכו, ובגלל שהקו שומר על קרבה — יוצאות קוביות בתוך קוביות",
+  params3:[{k:"order",l:"סדר",min:1,max:4,step:1,d:3},{k:"bands",l:"פסי צבע",min:1,max:64,step:1,d:8}],
+  d3(E,X){ const {n}=X, b=X.p("order"), N=1<<b, M=N*N*N, h=1.6/N, pts=[], rot=X.mode==="spin"?X.ph*TAU:0;
+    for(let d=0;d<M;d++){ const c=hilbert3(b,d); pts.push(V3.rotY([(c[0]+.5)*h-.8,(c[1]+.5)*h-.8,(c[2]+.5)*h-.8],rot)); }
+    const s=Math.min(6*X.w,h*.6)*X.sz, sh=X.mode==="drift"?X.ph*(n+1):0, bands=X.p("bands");
+    along3(pts,s*1.15*X.G,false,sh,n+1,(j,p,T,u)=>{ const ch=wslot(X,j); if(ch) E.cam(ch,p,s,X.ink(bandOf(Math.min(.9999,u/(M-1)),X,bands/X.nb)),T); },6000); }});
+
+def3("apollonian",{
+  f3:()=>"(k₁ + … + k₅)² = 3·(k₁² + … + k₅²)     k′ = k₁ + k₂ + k₃ + k₄ − k₅     כדורי סודי",
+  h3:"אריזת כדורים של אפולוניוס: בכל רווח בין ארבעה כדורים משיקים נכנס חמישי, והעקמומיות שלו נקבעת במשפט סודי–גוסט. כל כדור קליפה של אותיות, והקטנים אות אחת",
+  params3:[{k:"min",l:"הכדור הקטן",min:.012,max:.08,step:.001,d:.03},{k:"dens",l:"צפיפות",min:.5,max:2,step:.01,d:1}],
+  d3(E,X){ const {L,ink}=X, rmin=X.p("min"), key="s"+rmin, cyc=cycOf(X);
+    let S=apoCache[key];
+    if(!S){ S=[]; const r=1/(1+Math.sqrt(1.5)), kk=1/r, d=1-r, O={k:-1,c:[0,0,0]};
+      const A=[[1,1,1],[1,-1,-1],[-1,1,-1],[-1,-1,1]].map(v=>({k:kk,c:V3.mul(V3.norm(v),d),gen:0})); S.push(...A);
+      const vj=(q,o)=>{ const k=q.reduce((s,x)=>s+x.k,0)-o.k; let kc=V3.mul(o.c,-o.k); for(const x of q) kc=V3.add(kc,V3.mul(x.c,x.k)); return {k,c:V3.mul(kc,1/k)}; };
+      const rec=(a,b,c,dd,o,g)=>{ const nw=vj([a,b,c,dd],o); if(!(nw.k>0)||1/nw.k<rmin||S.length>4000) return; nw.gen=g; S.push(nw);
+        rec(b,c,dd,nw,a,g+1); rec(a,c,dd,nw,b,g+1); rec(a,b,dd,nw,c,g+1); rec(a,b,c,nw,dd,g+1); };
+      rec(A[0],A[1],A[2],A[3],O,1);
+      for(let i=0;i<4;i++){ const q=A.filter((_,j)=>j!==i); rec(O,q[0],q[1],q[2],A[i],1); }
+      apoCache[key]=S; }
+    const rot=X.mode==="spin"?X.ph*TAU:0, R=.88;
+    /* letters per sphere ∝ its area, scaled so the whole packing stays near 14,000 */
+    let tot=0; for(const sp of S){ const rr=R/sp.k, q=rr*rr*2400*X.p("dens"); tot+=q>=8?Math.min(900,q):1; }
+    const dens=X.p("dens")*Math.min(1,14000/tot);
+    for(const sp of S){ const rr=R/sp.k, c=V3.rotY(V3.mul(sp.c,R),rot), col=ink(1+mod(sp.gen+cyc,X.nb));
+      const N=Math.min(900,Math.floor(rr*rr*2400*dens));
+      if(N<8){ E.add(L(sp.gen%X.n),c,rr*1.3,col,null,null); continue; }
+      const s=rr*Math.sqrt(4*Math.PI/N)*.85;
+      for(let i=0;i<N;i++){ const d=fibSphere(N,i), [e,no]=sphFrame(d); E.add(L(i%X.n),V3.add(c,V3.mul(d,rr)),s,col,V3.rotY(e,rot),V3.rotY(no,rot)); } } }});
+
+def3("ulam",{
+  f3:p=>`n ↦ (√n·cos 2π√n,  h·n/N,  √n·sin 2π√n)     ספירלת זאקס מורמת לסליל     n ≤ ${p("N")}`,
+  h3:"ספירלת זאקס — קרובת המשפחה של אולם, שבה כל ריבוע שלם נופל על אותו קו — מורמת לגובה: כל מספר עולה לפי גודלו, והראשוניים נערמים על עקומות שמתפתלות לאורך החרוט",
+  params3:[{k:"N",l:"מספרים",min:300,max:8000,step:50,d:5000},{k:"h",l:"גובה",min:0,max:1.8,step:.01,d:1.1},{k:"show",l:"פריקים",o:[[1,"נקודה"],[0,"ריק"]],d:0}],
+  d3(E,X){ const {L,ink}=X, N=X.p("N"), hh=X.p("h"), show=+X.p("show"), cyc=cycOf(X), rot=X.mode==="spin"?X.ph*TAU:0, last={1:0,3:1,7:2,9:3};
+    const comp=new Uint8Array(N+2); comp[0]=comp[1]=1; for(let i=2;i*i<=N;i++) if(!comp[i]) for(let j=i*i;j<=N;j+=i) comp[j]=1;
+    const sN=Math.sqrt(N), s=.85/sN*1.9*X.sz;
+    for(let k=1;k<=N;k++){ const r=Math.sqrt(k)/sN*.85, a=TAU*Math.sqrt(k)+rot, P=[r*Math.cos(a),hh*(k/N-.5),r*Math.sin(a)];
+      if(!comp[k]){ const b=last[k%10]??0, sp=X.mode==="drift"?(k%4<2?1:-1)*X.ph*TAU:0;
+        const t=[-Math.sin(a+sp),0,Math.cos(a+sp)], [rr,uu]=frame3([Math.cos(a),0,Math.sin(a)],t); E.add(L(b),P,s,ink(1+mod(b+cyc,X.nb)),rr,uu); }
+      else if(show) E.add(L(0),P,s*.2,ink(1+mod(3+cyc,X.nb)),null,null); } }});
+
+const LSYS3={
+  tree:{l:"עץ", ax:"A", rules:{A:"F[&A]///[&A]///[&A]",F:"SF",S:"F"}, a:28, max:6},
+  bush:{l:"שיח", ax:"F", rules:{F:"F[&+F]F[^-F][/&F]"}, a:24, max:4},
+  coral:{l:"אלמוג", ax:"A", rules:{A:"F[+&A][-&A][^A]",F:"FF"}, a:32, max:6}
+};
+def3("lsystem",{
+  f3:p=>{ const S=LSYS3[p("sys")]; return Object.entries(S.rules).map(([k,v])=>`${k} → ${v}`).join(",  ")+`     ${(S.a+(+p("ang"))).toFixed(1)}°   עומק ${Math.min(S.max,p("depth"))}`; },
+  h3:"מערכות לינדנמאייר עם צב שעף בשלושה צירים: + ו־− פונים, & ו־^ מטים מעלה ומטה, / ו־\\ מגלגלים. כך נבנים העצים התלת־ממדיים של 'היופי האלגוריתמי של הצמחים'",
+  params3:[{k:"sys",l:"מערכת",o:Object.keys(LSYS3).map(k=>[k,LSYS3[k].l]),d:"tree"},{k:"depth",l:"עומק",min:2,max:6,step:1,d:6},{k:"ang",l:"סטיית זווית",min:-12,max:12,step:.1,d:0,fmt:v=>(+v).toFixed(1)+"°"}],
+  d3(E,X){ const {L,ink,n}=X, id=X.p("sys"), S=LSYS3[id], depth=Math.min(S.max,X.p("depth")), key="3"+id+depth;
+    let str=lsCache[key]; if(!str){ let s=S.ax; for(let i=0;i<depth;i++){ let o=""; for(const ch of s) o+=S.rules[ch]||ch; s=o; } str=lsCache[key]=s; }
+    const ang=(S.a+X.p("ang")+(X.mode==="spin"?4*Math.sin(X.ph*TAU):0))*Math.PI/180, cyc=cycOf(X);
+    const rotA=(v,ax,a)=>{ const c=Math.cos(a), s=Math.sin(a); return V3.add(V3.add(V3.mul(v,c),V3.mul(V3.cross(ax,v),s)),V3.mul(ax,V3.dot(ax,v)*(1-c))); };
+    let p=[0,0,0], H=[0,1,0], Lf=[1,0,0], U=[0,0,1], dp=0; const st=[], seg=[];
+    for(const ch of str){
+      if(ch==="F"){ const q=V3.add(p,H); seg.push([p,q,dp]); p=q; }
+      else if(ch==="+"){ H=rotA(H,U,ang); Lf=rotA(Lf,U,ang); } else if(ch==="-"){ H=rotA(H,U,-ang); Lf=rotA(Lf,U,-ang); }
+      else if(ch==="&"){ H=rotA(H,Lf,ang); U=rotA(U,Lf,ang); } else if(ch==="^"){ H=rotA(H,Lf,-ang); U=rotA(U,Lf,-ang); }
+      else if(ch==="/"){ Lf=rotA(Lf,H,ang); U=rotA(U,H,ang); } else if(ch==="\\"){ Lf=rotA(Lf,H,-ang); U=rotA(U,H,-ang); }
+      else if(ch==="["){ st.push([p,H,Lf,U,dp]); dp++; } else if(ch==="]"){ [p,H,Lf,U,dp]=st.pop(); } }
+    let lo=[1e9,1e9,1e9], hi=[-1e9,-1e9,-1e9]; for(const [a,b] of seg) for(const q of [a,b]) for(let i=0;i<3;i++){ lo[i]=Math.min(lo[i],q[i]); hi[i]=Math.max(hi[i],q[i]); }
+    const c=lo.map((v,i)=>(v+hi[i])/2), k=1.7/Math.max(hi[0]-lo[0],hi[1]-lo[1],hi[2]-lo[2]), rot=X.mode==="drift"?X.ph*TAU:0, s=Math.min(6.5*X.w,k*.8)*X.sz;
+    seg.forEach(([a,b,d],i)=>{ const P=V3.rotY(V3.mul(V3.sub(V3.mul(V3.add(a,b),.5),c),k),rot), T=V3.rotY(V3.sub(b,a),rot); E.cam(L(i%n),P,s,ink(1+mod(d+cyc,X.nb)),T); }); }});
+
+def3("collatz",{
+  f3:p=>`n ↦ n/2 (פנייה +${(+p("a")).toFixed(1)}°)     n ↦ 3n + 1 (הטיה −${(p("a")*p("r")).toFixed(1)}°)     n ≤ ${p("N")}`,
+  h3:"האלמוג של קולץ בשלושה ממדים: זוגי פונה הצידה, אי־זוגי מטה למעלה, וכל מסלול חוזר ל־1. הענפים מתאחדים לגזע אחד ומתפצלים לכל הכיוונים",
+  params3:[{k:"N",l:"מספרים",min:100,max:3000,step:10,d:1200},{k:"a",l:"פנייה",min:2,max:16,step:.1,d:7.5,fmt:v=>(+v).toFixed(1)+"°"},{k:"r",l:"יחס הטיה",min:.5,max:3,step:.01,d:1.6}],
+  d3(E,X){ const {L,ink,n}=X, N=X.p("N"), a=(X.p("a")+(X.mode==="spin"?.6*Math.sin(X.ph*TAU):0))*Math.PI/180, b=a*X.p("r");
+    const rotA=(v,ax,t)=>{ const c=Math.cos(t), s=Math.sin(t); return V3.add(V3.add(V3.mul(v,c),V3.mul(V3.cross(ax,v),s)),V3.mul(ax,V3.dot(ax,v)*(1-c))); };
+    const node=new Map(); node.set(1,{p:[0,0,0],H:[0,1,0],U:[0,0,1],d:0}); let maxd=1;
+    for(let v0=2;v0<=N;v0++){ const path=[]; let v=v0; while(!node.has(v)){ path.push(v); v=v%2?3*v+1:v/2; }
+      for(let i=path.length-1;i>=0;i--){ const w=path[i], par=node.get(w%2?3*w+1:w/2); let H=par.H, U=par.U;
+        if(w%2){ const Lf=V3.cross(U,H); H=rotA(H,Lf,-b); U=rotA(U,Lf,-b); } else { H=rotA(H,U,a); }
+        const q={p:V3.add(par.p,H),H,U,d:par.d+1,pp:par.p}; node.set(w,q); if(q.d>maxd) maxd=q.d; } }
+    let lo=[1e9,1e9,1e9], hi=[-1e9,-1e9,-1e9]; for(const q of node.values()) for(let i=0;i<3;i++){ lo[i]=Math.min(lo[i],q.p[i]); hi[i]=Math.max(hi[i],q.p[i]); }
+    const c=lo.map((v,i)=>(v+hi[i])/2), k=1.75/Math.max(hi[0]-lo[0],hi[1]-lo[1],hi[2]-lo[2]), rot=X.mode==="drift"?X.ph*TAU:0, s=Math.min(6*X.w,k*.95)*X.sz;
+    for(const [v,q] of node){ if(v===1) continue; const P=V3.rotY(V3.mul(V3.sub(V3.mul(V3.add(q.p,q.pp),.5),c),k),rot);
+      E.cam(L(mod(q.d,n)),P,s,ink(bandOf(Math.min(.999,q.d/maxd),X,2)),V3.rotY(q.H,rot)); } }});
+
+/* ---- chaos ---- */
+def3("attractor",{
+  f3:p=>`xₙ₊₁ = sin(${p("a")}yₙ) − zₙcos(${p("b")}xₙ)   yₙ₊₁ = zₙsin(${p("c")}xₙ) − cos(${p("d")}yₙ)   zₙ₊₁ = sin xₙ`,
+  h3:"האטרקטור של פיקובר — הדוד התלת־ממדי של קליפורד: נקודה שקופצת בשלושה צירים, ובמקום צבע על דף נוצר ענן. האותיות יושבות בתאים שבהם היא ביקרה הרבה, ופונות לכיוון הזרימה",
+  params3:[{k:"a",l:"a",min:-3,max:3,step:.01,d:2.24},{k:"b",l:"b",min:-3,max:3,step:.01,d:.43},{k:"c",l:"c",min:-3,max:3,step:.01,d:-.65},{k:"d",l:"d",min:-3,max:3,step:.01,d:-2.43}],
+  d3(E,X){ const {L,ink}=X, w=X.mode==="spin"?X.ph*TAU:0, a=X.p("a")+.05*Math.sin(w), b=X.p("b")+.05*Math.cos(w), c=X.p("c"), d=X.p("d"), G=26;
+    const cnt=new Float32Array(G*G*G), vel=new Float32Array(G*G*G*3); let x=.1, y=.1, z=.1;
+    for(let i=0;i<200000;i++){ const nx=Math.sin(a*y)-z*Math.cos(b*x), ny=z*Math.sin(c*x)-Math.cos(d*y), nz=Math.sin(x);
+      if(i>50){ const gi=Math.floor((nx+2.2)/4.4*G), gj=Math.floor((nz+1.1)/2.2*G), gk=Math.floor((ny+2.2)/4.4*G);
+        if(gi>=0&&gj>=0&&gk>=0&&gi<G&&gj<G&&gk<G){ const q=(gi*G+gj)*G+gk; cnt[q]++; vel[q*3]+=nx-x; vel[q*3+1]+=nz-z; vel[q*3+2]+=ny-y; } }
+      x=nx; y=ny; z=nz; }
+    const nz2=[]; for(const v of cnt) if(v) nz2.push(v); nz2.sort((p,q)=>p-q); const ref=Math.log(1+(nz2[Math.floor(nz2.length*.97)]||1));
+    const rot=X.mode==="drift"?X.ph*TAU:0, h=1.7/G;
+    for(let i=0;i<G;i++) for(let j=0;j<G;j++) for(let k=0;k<G;k++){ const q=(i*G+j)*G+k; if(!cnt[q]) continue; const v=Math.min(1,Math.log(1+cnt[q])/ref); if(v<.3) continue;
+      const P=V3.rotY([-.85+(i+.5)*h,-.85+(j+.5)*h,-.85+(k+.5)*h],rot), b2=bandOf(Math.min(.999,v),X,1);
+      E.cam(L(b2-1),P,h*(.5+.9*v)*X.sz,ink(b2),V3.rotY([vel[q*3],vel[q*3+1],vel[q*3+2]],rot)); } }});
+
+const LSEQ={ab:"AB",aabab:"AABAB",b6a6:"BBBBBBAAAAAA",abbab:"ABBAB"};
+const lyaCache={};
+def3("logistic",{
+  f3:p=>`λ(a, b) = ⟨ ln|rₙ·(1 − 2xₙ)| ⟩     rₙ = ${LSEQ[p("seq")]} (A = a, B = b)     a, b ∈ [${(+p("r0")).toFixed(2)}, 4]`,
+  heavy3:true,
+  h3:"פרקטל ליאפונוב (מרקוס–ליאפונוב): המפה הלוגיסטית שמחליפה בין שני ערכי r לפי רצף של A ו־B. הגובה הוא מעריך ליאפונוב — עמקים הם סדר, רמות שטוחות הן כאוס — ונוצר נוף של סנפירים ונוצות",
+  params3:[{k:"seq",l:"רצף",o:Object.keys(LSEQ).map(k=>[k,LSEQ[k]]),d:"ab"},{k:"r0",l:"מתחילים מ־",min:2,max:3.6,step:.01,d:2.6},{k:"hgt",l:"גובה",min:.1,max:1,step:.01,d:.45},{k:"res",l:"רזולוציה",min:20,max:60,step:1,d:44}],
+  d3(E,X){ const {L,ink}=X, seq=LSEQ[X.p("seq")], r0=X.p("r0"), N=X.p("res"), key=[seq,r0,N].join("|");
+    let G=lyaCache[key];
+    if(!G){ G=new Float32Array(N*N);
+      for(let i=0;i<N;i++) for(let j=0;j<N;j++){ const A=r0+(4-r0)*(i+.5)/N, B=r0+(4-r0)*(j+.5)/N; let x=.5, l=0;
+        for(let k=0;k<320;k++){ const r=seq[k%seq.length]==="A"?A:B; x=r*x*(1-x); if(k>=120) l+=Math.log(Math.abs(r*(1-2*x))+1e-12); }
+        G[i*N+j]=Math.max(-2,Math.min(1,l/200)); }
+      lyaCache[key]=G; }
+    const hg=X.p("hgt")*(X.mode==="drift"?1+.3*Math.sin(X.ph*TAU):1), h=1.7/N, rot=X.mode==="spin"?X.ph*TAU:0, cyc=cycOf(X);
+    const Y=(i,j)=>{ i=Math.max(0,Math.min(N-1,i)); j=Math.max(0,Math.min(N-1,j)); return -G[i*N+j]*hg*.5; };
+    for(let i=0;i<N;i++) for(let j=0;j<N;j++){ const l=G[i*N+j], band=l<-.25?0:l<0?1:l<.35?2:3, y=Y(i,j);
+      const nrm=[-(Y(i+1,j)-Y(i-1,j))/(2*h),1,-(Y(i,j+1)-Y(i,j-1))/(2*h)], [r,u]=frame3(V3.rotY(nrm,rot),V3.rotY([1,0,0],rot));
+      E.add(L(band),V3.rotY([-.85+(i+.5)*h,y,-.85+(j+.5)*h],rot),h*.92*X.sz,ink(1+mod(band+cyc,X.nb)),r,u); } }});
+
+def3("standard",{
+  f3:p=>`pₙ₊₁ = pₙ + ${(+p("K")).toFixed(3)}·sin θₙ     θₙ₊₁ = θₙ + pₙ₊₁     (θ, p) על טורוס`,
+  h3:"שני המשתנים של המפה הסטנדרטית הם זוויות, ולכן המרחב שלה הוא טורוס — וכך היא מוצגת: האיים והים הכאוטי עוטפים את הסופגנייה, כל מסלול באות ובדיו משלו",
+  d3(E,X){ const {L,ink,n}=X, K=X.p("K")+(X.mode==="spin"?.12*Math.sin(X.ph*TAU):0), O=X.p("orb"), N=Math.min(X.p("len"),Math.floor(9000/O)), R=.62, r=.3, cyc=cycOf(X), du=X.mode==="drift"?X.ph*TAU:0;
+    const s=4.2*X.w*X.sz;
+    for(let o=0;o<O;o++){ let p=TAU*(o+.5)/O, th=o%2?Math.PI:.4+TAU*o/O/3; const col=ink(1+mod(o+cyc,X.nb));
+      for(let i=0;i<N;i++){ const p2=p+K*Math.sin(th), th2=th+p2, u=th+du, v=p;
+        const P=[(R+r*Math.cos(v))*Math.cos(u),r*Math.sin(v),(R+r*Math.cos(v))*Math.sin(u)], nrm=[Math.cos(v)*Math.cos(u),Math.sin(v),Math.cos(v)*Math.sin(u)];
+        const [rr,uu]=frame3(nrm,[-Math.sin(u),0,Math.cos(u)]); E.add(L(o%n),P,s,col,rr,uu); p=mod(p2,TAU); th=mod(th2,TAU); } } }});
+RECIPES.standard.params3=RECIPES.standard.params;
+
+/* ---- one letter ---- */
+def3("voronoi",{
+  f3:p=>`תאᵢ = { P : |P − sᵢ| < |P − sⱼ| }     sᵢ על ספירלת פיבונאצ'י בכדור,  i < ${p("n")}`,
+  h3:"תאי וורונוי בחלל: מרכזים פזורים בתוך כדור, וכל נקודה שייכת לקרוב שבהם. האותיות יושבות רק על הקירות שבין התאים, ושוכבות לאורכם — כך נראים קצף, עצם, או כוורת",
+  params3:[{k:"n",l:"מרכזים",min:6,max:80,step:1,d:26},{k:"edge",l:"עובי קיר",min:.005,max:.06,step:.001,d:.022}],
+  d3(E,X){ const {L,ink}=X, ns=X.p("n"), ed=X.p("edge"), cyc=cycOf(X), br=X.mode==="drift"?1+.08*Math.sin(X.ph*TAU):1, rot=X.mode==="spin"?X.ph*TAU:0;
+    const S=[]; for(let i=0;i<ns;i++) S.push(V3.mul(fibSphere(ns,i),.92*Math.cbrt((i+.5)/ns)*br));
+    const s=5.4*X.w*X.sz;
+    for(let k=1;k<=9;k++){ const R=.95*k/9, N=Math.round(2200*R*R);
+      for(let i=0;i<N;i++){ const P=V3.mul(fibSphere(N,i),R); let d1=1e9, d2=1e9, i1=0, i2=0;
+        for(let q=0;q<ns;q++){ const d=V3.len(V3.sub(P,S[q])); if(d<d1){ d2=d1; i2=i1; d1=d; i1=q; } else if(d<d2){ d2=d; i2=q; } }
+        const gap=(d2-d1)/2; if(gap>ed) continue;
+        const nrm=V3.sub(S[i2],S[i1]), [r,u]=frame3(V3.rotY(nrm,rot),[0,1,0]);
+        E.add(L(0),V3.rotY(P,rot),s*(1-.5*gap/ed),ink(1+mod(i1+cyc,X.nb)),r,u); } } }});
+
+def3("vortex",{
+  f3:p=>`θ(P) = Σᵢ qᵢ·arg_vᵢ(P)     ${p("N")} מערבולות על הכדור,  Σq = 2 (משפט הכדור השעיר)`,
+  h3:"משפט הכדור השעיר: אי אפשר לסרק כדור בלי שתישאר לפחות מערבולת אחת — סכום המטענים תמיד 2. האות מסורקת על הכדור לפי שדה של מערבולות, והצבע עוקב אחרי הזווית",
+  params3:[{k:"N",l:"מערבולות",min:2,max:12,step:2,d:6},{k:"pts",l:"נקודות",min:400,max:3500,step:50,d:2200},{k:"bands",l:"פסי צבע",min:1,max:9,step:1,d:3}],
+  d3(E,X){ const {L,ink}=X, Nv=X.p("N"), N=X.p("pts"), bands=X.p("bands"), sp=X.mode==="spin"?X.ph*TAU:0, rot=X.mode==="drift"?X.ph*TAU:0;
+    const Vv=[]; for(let i=0;i<Nv;i++){ const v=fibSphere(Nv,i), a=V3.norm(V3.cross(v,Math.abs(v[1])<.9?[0,1,0]:[1,0,0])); Vv.push([v,a,V3.cross(v,a),i<Nv/2+1?1:-1]); }   // charges ±1 summing to 2
+    const s=Math.sqrt(4*Math.PI/N)*.62*X.sz;
+    for(let i=0;i<N;i++){ const d=fibSphere(N,i), [e,no]=sphFrame(d); let th=sp;
+      for(const [v,a,b,q] of Vv) th+=q*Math.atan2(V3.dot(d,b),V3.dot(d,a));
+      const t=V3.add(V3.mul(e,Math.cos(th)),V3.mul(no,Math.sin(th))), [r,u]=frame3(V3.rotY(d,rot),V3.rotY(t,rot));
+      E.add(L(0),V3.rotY(V3.mul(d,.86),rot),s,ink(bandOf(mod(th,TAU)/TAU,X,bands/X.nb)),r,u); } }});
+
+def3("halftone",{
+  f3:p=>`s(P) ∝ ½ + ½·${({bands:"sin(k·y − φ)",spiral:"sin(k·φ_lat + 5λ − φ)",dots:"sin(kx)·sin(ky)·sin(kz)",gyroid:"(sin kx cos ky + sin ky cos kz + sin kz cos kx)/1.5"})[p("f")]}     על כדור`,
+  h3:"רסטר על כדור: רשת אחידה של אותה אות על פני הכדור, וגודל כל אות הוא ערך של פונקציה במרחב — פסים, ספירלה, נקודות, או הג'ירואיד, המשטח המינימלי שמופיע בכנפי פרפרים",
+  params3:[{k:"f",l:"פונקציה",o:[["bands","פסים"],["spiral","ספירלה"],["dots","נקודות"],["gyroid","ג'ירואיד"]],d:"spiral"},{k:"k",l:"תדר k",min:1,max:16,step:.1,d:7},{k:"pts",l:"נקודות",min:600,max:4000,step:50,d:2600}],
+  d3(E,X){ const {L,ink}=X, f=X.p("f"), k=X.p("k"), N=X.p("pts"), phi=X.mode==="spin"?X.ph*TAU:0, rot=X.mode==="drift"?X.ph*TAU:0, s0=Math.sqrt(4*Math.PI/N)*.7;
+    for(let i=0;i<N;i++){ const d=fibSphere(N,i), [x,y,z]=d, lat=Math.asin(y), lon=Math.atan2(z,x);
+      const v=f==="bands"?Math.sin(k*y*2-phi):f==="spiral"?Math.sin(k*lat+5*lon-phi):f==="dots"?Math.sin(k*x-phi)*Math.sin(k*y)*Math.sin(k*z)*2.2:(Math.sin(k*x-phi)*Math.cos(k*y)+Math.sin(k*y)*Math.cos(k*z)+Math.sin(k*z)*Math.cos(k*x))/1.5;
+      const w=Math.max(-1,Math.min(1,v)), [e,no]=sphFrame(d), b=bandOf(Math.min(.999,(1-w)/2),X,1);
+      E.add(L(0),V3.rotY(V3.mul(d,.86),rot),s0*(.12+.95*(w+1)/2)*X.sz,ink(b),V3.rotY(e,rot),V3.rotY(no,rot)); } }});
+
+def3("truchet",{
+  f3:p=>`θᵢⱼₖ = (2π/${p("m")})·(${({sum:"i² + j² + k²",prod:"i·j·k",xor:"i ⊕ j ⊕ k"})[p("rule")]} mod ${p("m")})     ציר = (i + j + k) mod 3`,
+  h3:"טרושה בקובייה: אותה אות בכל תא של סריג תלת־ממדי, מסובבת לפי חשבון של שלושת המספרים שלו, וגם הציר שסביבו היא מסתובבת נקבע מהם. שום דבר לא אקראי",
+  params3:[{k:"rule",l:"כלל",o:[["sum","i²+j²+k²"],["prod","i·j·k"],["xor","i⊕j⊕k"]],d:"sum"},{k:"m",l:"מודולו m",min:2,max:12,step:1,d:4},{k:"n",l:"תאים לצלע",min:4,max:13,step:1,d:9}],
+  d3(E,X){ const {L,ink}=X, m=X.p("m"), N=X.p("n"), rule=X.p("rule"), h=1.6/N, cyc=cycOf(X), rot=X.mode==="drift"?X.ph*TAU:0, c=(N-1)/2;
+    const AX=[[[1,0,0],[0,1,0]],[[0,1,0],[0,0,1]],[[0,0,1],[1,0,0]]];
+    for(let i=0;i<N;i++) for(let j=0;j<N;j++) for(let k=0;k<N;k++){ const a=Math.abs(i-c|0), b=Math.abs(j-c|0), q=Math.abs(k-c|0);
+      const v=mod(rule==="sum"?a*a+b*b+q*q:rule==="prod"?a*b*q:(a^b^q),m), ax=(i+j+k)%3, [r0,u0]=AX[ax], nrm=V3.cross(r0,u0);
+      const th=v*TAU/m+(X.mode==="spin"?(v%2?1:-1)*X.ph*TAU:0), r=V3.add(V3.mul(r0,Math.cos(th)),V3.mul(u0,Math.sin(th))), u=V3.cross(nrm,r);
+      E.add(L(0),V3.rotY([(i-c)*h,(j-c)*h,(k-c)*h],rot),h*.85*X.sz,ink(1+mod(v+cyc,X.nb)),V3.rotY(r,rot),V3.rotY(u,rot)); } }});
+
+const rotM=(ax,a)=>{ ax=V3.norm(ax); const [x,y,z]=ax, c=Math.cos(a), s=Math.sin(a), t=1-c;
+  return [[t*x*x+c,t*x*y-s*z,t*x*z+s*y],[t*x*y+s*z,t*y*y+c,t*y*z-s*x],[t*x*z-s*y,t*y*z+s*x,t*z*z+c]]; };
+const mMul=(A,B)=>A.map((row,i)=>[0,1,2].map(j=>row[0]*B[0][j]+row[1]*B[1][j]+row[2]*B[2][j]));
+const mVec=(A,v)=>[A[0][0]*v[0]+A[0][1]*v[1]+A[0][2]*v[2],A[1][0]*v[0]+A[1][1]*v[1]+A[1][2]*v[2],A[2][0]*v[0]+A[2][1]*v[1]+A[2][2]*v[2]];
+const groupCache={};
+function rotGroup(id){
+  if(groupCache[id]) return groupCache[id];
+  const g=(1+Math.sqrt(5))/2, gens=id==="T"?[rotM([1,1,1],TAU/3),rotM([0,0,1],Math.PI)]:id==="O"?[rotM([0,0,1],Math.PI/2),rotM([1,1,1],TAU/3)]:[rotM([0,1,g],TAU/5),rotM([1,1,1],TAU/3)];
+  const I=[[1,0,0],[0,1,0],[0,0,1]], key=M=>M.flat().map(v=>Math.round(v*1e4)).join(","), out=[I], seen=new Set([key(I)]);
+  for(let i=0;i<out.length&&out.length<120;i++) for(const G of gens){ const M=mMul(out[i],G), k=key(M); if(!seen.has(k)){ seen.add(k); out.push(M); } }
+  return groupCache[id]=out;
+}
+def3("wallpaper",{
+  f3:p=>`P ↦ g·P,  g ∈ ${({T:"T — הטטרהדר (12 סיבובים)",O:"O — הקובייה (24)",I:"I — האיקוסהדר (60)"})[p("grp")]}`,
+  h3:"קבוצות הטפט של הכדור: כל הסיבובים שמחזירים גוף משוכלל לעצמו — 12 של טטרהדר, 24 של קובייה, 60 של איקוסהדר. אות אחת, וכל העותקים שלה תחת הקבוצה. בסיבוב היא נודדת, והקליידוסקופ זז איתה",
+  params3:[{k:"grp",l:"קבוצה",o:[["T","T · 12"],["O","O · 24"],["I","I · 60"]],d:"I"},{k:"lat",l:"קו רוחב",min:-85,max:85,step:1,d:28,fmt:v=>Math.round(v)+"°"},{k:"lon",l:"קו אורך",min:0,max:360,step:1,d:40,fmt:v=>Math.round(v)+"°"},{k:"motif",l:"אותיות במוטיב",min:1,max:6,step:1,d:4},{k:"size",l:"גודל",min:.3,max:1.6,step:.01,d:.9}],
+  d3(E,X){ const {L,ink}=X, Gr=rotGroup(X.p("grp")), K=X.p("motif"), cyc=cycOf(X), s=.2*X.p("size")*X.sz*Math.sqrt(24/Gr.length);
+    const la=X.p("lat")*Math.PI/180, lo=X.p("lon")*Math.PI/180+(X.mode==="spin"?X.ph*TAU:0), self=X.mode==="drift"?X.ph*TAU:0;
+    for(let m=0;m<K;m++){ const R=.88-m*.13, l2=la+m*.12, d=[Math.cos(l2)*Math.cos(lo+m*.2),Math.sin(l2),Math.cos(l2)*Math.sin(lo+m*.2)], [e,no]=sphFrame(d);
+      const r0=V3.add(V3.mul(e,Math.cos(self+m)),V3.mul(no,Math.sin(self+m))), u0=V3.cross(d,r0);
+      Gr.forEach((M,gi)=>E.add(L(0),V3.mul(mVec(M,d),R),s*(1-m*.12),ink(1+mod(m+gi%3+cyc,X.nb)),mVec(M,r0),mVec(M,u0))); } }});
+
+function bayer3(x,y,z,L){ const M2=[[[0,4],[6,2]],[[3,7],[5,1]]]; let v=0; for(let l=L-1;l>=0;l--) v=v*8+M2[(z>>l)&1][(y>>l)&1][(x>>l)&1]; return v; }
+def3("dither",{
+  f3:p=>`אות ⇔ f(P) > (B³(i, j, k) + ½)/${8**p("lv")}     f = ${({rad:"1 − r",waves:"½ + ½·sin kx·sin ky·sin kz",gyroid:"½ + ½·(sin kx cos ky + sin ky cos kz + sin kz cos kx)/1.5"})[p("f")]}`,
+  h3:"דיתור מסודר בנפח: מטריצת באייר בשלושה ממדים נותנת לכל תא בקובייה סף משלו, ואות מופיעה רק היכן שהשדה עובר אותו. הגוונים הופכים לצפיפות של פסל",
+  params3:[{k:"f",l:"שדה",o:[["rad","כדור"],["waves","גלים"],["gyroid","ג'ירואיד"]],d:"gyroid"},{k:"lv",l:"מטריצה",o:[[1,"2³"],[2,"4³"]],d:2},{k:"n",l:"תאים לצלע",min:8,max:22,step:1,d:16},{k:"k",l:"תדר k",min:1,max:10,step:.1,d:4.5}],
+  d3(E,X){ const {L,ink}=X, N=X.p("n"), lv=+X.p("lv"), f=X.p("f"), k=X.p("k"), h=1.6/N, c=(N-1)/2, phi=X.mode==="spin"?X.ph*TAU:0, rot=X.mode==="drift"?X.ph*TAU:0, D=Math.pow(8,lv);
+    for(let i=0;i<N;i++) for(let j=0;j<N;j++) for(let q=0;q<N;q++){ const x=(i-c)/c, y=(j-c)/c, z=(q-c)/c;
+      const v=f==="rad"?1-Math.hypot(x,y,z)/1.5+.15*Math.sin(phi):f==="waves"?.5+.5*Math.sin(k*x-phi)*Math.sin(k*y)*Math.sin(k*z):.5+.5*(Math.sin(k*x-phi)*Math.cos(k*y)+Math.sin(k*y)*Math.cos(k*z)+Math.sin(k*z)*Math.cos(k*x))/1.5;
+      if(v<=(bayer3(i,j,q,lv)+.5)/D) continue;
+      E.add(L(0),V3.rotY([(i-c)*h,(j-c)*h,(q-c)*h],rot),h*.92*X.sz,ink(bandOf(Math.min(.999,Math.max(0,v)),X,1)),V3.rotY([1,0,0],rot),[0,1,0]); } }});
+
+def3("moire",{
+  f3:p=>`L₂ = R(${(+p("a")).toFixed(2)}°)·L₁ + (0, 0, ${(+p("gap")).toFixed(2)})     שני מישורים, ההפרש הוא בעומק`,
+  h3:"מואר עם עומק: שני סריגים של אותה אות במישורים מקבילים, אחד מעט מסובב ומעט מאחור. כשהמצלמה זזה, הפרלקסה מזיזה את הסריגים זה מול זה — והפסים הענקיים זורמים על פני הדף",
+  params3:[{k:"a",l:"זווית α",min:0,max:15,step:.05,d:2.2,fmt:v=>(+v).toFixed(2)+"°"},{k:"gap",l:"מרווח",min:0,max:.6,step:.01,d:.18},{k:"cell",l:"גודל תא",min:.5,max:2,step:.01,d:1}],
+  d3(E,X){ const {L,ink}=X, p=.052*X.p("cell"), gap=X.p("gap")*(X.mode==="cycle"?1+.6*Math.sin(X.ph*TAU):1), e2=[p/2,p*Math.sqrt(3)/2], nj=Math.ceil(1.05/e2[1]), ni=Math.ceil(1.05/p)+nj, cyc=cycOf(X);
+    for(let l=0;l<2;l++){ const a=l?(X.p("a")+(X.mode==="spin"?1.2*Math.sin(X.ph*TAU):0))*Math.PI/180:0, t=l&&X.mode==="drift"?X.ph*p:0, z=l?-gap/2:gap/2, col=ink(1+mod(l+cyc,X.nb));
+      const ca=Math.cos(a), sa=Math.sin(a);
+      for(let j=-nj;j<=nj;j++) for(let i=-ni;i<=ni;i++){ const gx=i*p+j*e2[0]+t, gy=j*e2[1]; if(gx*gx+gy*gy>1) continue;
+        E.add(L(0),[gx*ca-gy*sa,gx*sa+gy*ca,z],p*.82*X.sz,col,[ca,sa,0],[-sa,ca,0]); } } }});
+
+def3("warp",{
+  f3:p=>`P′ = P + (${(+p("A")).toFixed(2)}/k)·(sin(ky + φ), sin(kz + φ), sin(kx + φ))     האות מסובבת סביב ∇×d`,
+  h3:"סריג קובייה של אות אחת, וכל נקודה מוזזת בשדה של סינוסים בשלושת הצירים. כל אות מסתובבת סביב הרוטור של העיוות — הסיבוב המקומי של החלל — והצבע לפי עוצמתו",
+  params3:[{k:"A",l:"עוצמה A",min:0,max:1.6,step:.01,d:.9},{k:"k",l:"תדר k",min:1,max:10,step:.1,d:4},{k:"n",l:"תאים לצלע",min:5,max:14,step:1,d:10}],
+  d3(E,X){ const {L,ink}=X, A=X.p("A"), k=X.p("k"), N=X.p("n"), h=1.5/N, c=(N-1)/2, phi=X.mode==="spin"?X.ph*TAU:0, amp=A/k*.35, rot=X.mode==="drift"?X.ph*TAU:0;
+    const rotA=(v,ax,t)=>{ const cc=Math.cos(t), s=Math.sin(t); return V3.add(V3.add(V3.mul(v,cc),V3.mul(V3.cross(ax,v),s)),V3.mul(ax,V3.dot(ax,v)*(1-cc))); };
+    for(let i=0;i<N;i++) for(let j=0;j<N;j++) for(let q=0;q<N;q++){ const x=(i-c)*h, y=(j-c)*h, z=(q-c)*h, K=k*2.2;
+      const P=[x+amp*Math.sin(K*y+phi),y+amp*Math.sin(K*z+phi),z+amp*Math.sin(K*x+phi)], cu=V3.mul([Math.cos(K*z+phi),Math.cos(K*x+phi),Math.cos(K*y+phi)],-A*.8), m=V3.len(cu);
+      let r=[1,0,0], u=[0,1,0]; if(m>1e-6){ const ax=V3.mul(cu,1/m); r=rotA(r,ax,m/2); u=rotA(u,ax,m/2); }
+      E.add(L(0),V3.rotY(P,rot),h*.8*X.sz,ink(bandOf(Math.min(.999,m/(A*.8*1.74+1e-9)),X,1)),V3.rotY(r,rot),V3.rotY(u,rot)); } }});
+
+def3("galaxy",{
+  f3:p=>`θ = ${p("w")}·φ + k·${(+p("tw")).toFixed(1)}°     טבעת k מוטה ב־${(+p("warp")).toFixed(1)}°·k — דיסקה מעוותת`,
+  h3:"גלקסיה של אות אחת: טבעות שהולכות ומתעקמות כמו הדיסקה המעוותת של שביל החלב, וכל אות מסובבת לפי מיקומה על הטבעת. הליפוף w קובע מה יושב במרכז",
+  params3:[{k:"w",l:"ליפוף w",min:-4,max:4,step:1,d:2},{k:"tw",l:"פיתול בין טבעות",min:0,max:60,step:.5,d:9,fmt:v=>v+"°"},{k:"warp",l:"עיוות הדיסקה",min:0,max:8,step:.1,d:2.4,fmt:v=>(+v).toFixed(1)+"°"},{k:"rings",l:"טבעות",min:6,max:30,step:1,d:20}],
+  d3(E,X){ const {L,ink}=X, K=X.p("rings"), w=X.p("w"), tw=X.p("tw")*Math.PI/180, wp=X.p("warp")*Math.PI/180, bands=3, d=.9/K;
+    for(let k=1;k<=K;k++){ const r=k*d, nk=Math.max(1,Math.round(TAU*r/(d*.95))), pr=X.mode==="spin"?(k%2?1:-1)*X.ph*TAU:X.mode==="drift"?X.ph*TAU:0;
+      const tilt=k*wp, az=k*.35;
+      for(let i=0;i<nk;i++){ const a=i*TAU/nk+pr, P0=[r*Math.cos(a),0,r*Math.sin(a)], tan0=[-Math.sin(a),0,Math.cos(a)], rad0=[Math.cos(a),0,Math.sin(a)];
+        const th=w*a+k*tw, t=V3.add(V3.mul(tan0,Math.cos(th)),V3.mul(rad0,Math.sin(th))), xf=v=>V3.rotY(V3.rotX(V3.rotY(v,-az),tilt),az);
+        const [rr,uu]=frame3(xf([0,1,0]),xf(t)); E.add(L(0),xf(P0),d*.84*X.sz,ink(bandOf(mod(th,TAU)/TAU,X,bands/X.nb)),rr,uu); } } }});
+
+def3("selfsim",{
+  f3:p=>`האות = ⋃ { האות, מוקטנת, בכל נקודה שלה }     ${p("layers")} שכבות, פיתול ${Math.round(p("twist"))}° בין שכבה לשכבה`,
+  h3:"האות בנויה מעצמה — ועכשיו גם בעומק: היא נערמת בשכבות, כל שכבה מסובבת מעט מזו שלפניה, וכל שכבה עשויה מאותה אות בקטן. מהצד רואים עמוד שמתפתל",
+  params3:[{k:"layers",l:"שכבות",min:1,max:12,step:1,d:7},{k:"twist",l:"פיתול",min:0,max:30,step:.5,d:6,fmt:v=>v+"°"},{k:"fill",l:"צפיפות",min:.6,max:1.5,step:.01,d:1}],
+  d3(E,X){ const {L,ink}=X, ch=L(0), K=X.p("layers"), tw=X.p("twist")*Math.PI/180*(X.mode==="drift"?1+.5*Math.sin(X.ph*TAU):1), fill=X.p("fill"), cyc=cycOf(X), rot=X.mode==="spin"?X.ph*TAU:0;
+    const big=1.3, m=glyphMask(ch,300,300), pitch=300/15/fill, s=big/15/fill*.92*X.sz, dz=K>1?1/(K-1)*.9:0;
+    for(let k=0;k<K;k++){ const a=(k-(K-1)/2)*tw+rot, z=(k-(K-1)/2)*dz, col=ink(1+mod(k+cyc,X.nb)), r=[Math.cos(a),0,-Math.sin(a)];
+      for(let y=pitch/2;y<300;y+=pitch) for(let x=pitch/2;x<300;x+=pitch){ if(!m(x,y)) continue;
+        const lx=(x/300-.5)*big, ly=-(y/300-.5)*big; E.add(ch,V3.rotY([lx,ly,z],a),s,col,r,[0,1,0]); } } }});
+
+def3("weyl",{
+  f3:p=>`θᵢⱼₖ = 2π·frac(i·${(+p("a")).toFixed(4)} + j·${(+p("b")).toFixed(4)} + k·${(+p("c")).toFixed(4)})     סיבוב סביב הציר האנכי`,
+  h3:"סריג קובייה שבו כל אות מסתובבת סביב הציר האנכי לפי החלק השברי של צירוף ליניארי של שלושת המספרים שלה. ערכים אי־רציונליים נותנים גלים שעוברים דרך הנפח בלי לחזור",
+  params3:[{k:"a",l:"α",min:0,max:1,step:.0001,d:.0618,fmt:v=>(+v).toFixed(4)},{k:"b",l:"β",min:0,max:1,step:.0001,d:.1035,fmt:v=>(+v).toFixed(4)},{k:"c",l:"γ",min:0,max:1,step:.0001,d:.0414,fmt:v=>(+v).toFixed(4)},{k:"n",l:"תאים לצלע",min:5,max:14,step:1,d:10}],
+  d3(E,X){ const {L,ink}=X, a=X.p("a"), b=X.p("b"), cc=X.p("c"), N=X.p("n"), h=1.55/N, c=(N-1)/2, bands=3;
+    for(let i=0;i<N;i++) for(let j=0;j<N;j++) for(let k=0;k<N;k++){ const f=mod(i*a+j*b+k*cc,1), th=f*TAU+(X.mode==="spin"?X.ph*TAU:X.mode==="drift"?(1+mod(i+j+k,2))*X.ph*TAU:0);
+      E.add(L(0),[(i-c)*h,(j-c)*h,(k-c)*h],h*.85*X.sz,ink(bandOf(f,X,bands/X.nb)),[Math.cos(th),0,-Math.sin(th)],[0,1,0]); } }});
+
 /* six shelves in the gallery, by what the equation does to the letters */
 const GROUPS=[["single","אות אחת — רק מקום, גודל, זווית ודיו"],["curve","עקומות — האותיות רצות לאורך משוואה פרמטרית"],["field","שדות — כל אות קוראת את ערך הפונקציה במקומה"],
   ["space","מרחב מעוקם — המישור עצמו מתכופף"],["tiling","ריצופים, פרקטלים ומספרים"],["chaos","כאוס — מערכות דינמיות"]];
@@ -2326,11 +3217,16 @@ function context(ph){
     /* a formula with no meaning for a motion borrows one it has, so no
        motion button ever leaves the sheet standing still */
     ph, mode:(R.modeMap&&R.modeMap[ST.motion])||ST.motion, spin:ST.motion==="spin"?ph:0, seed:ST.seed,
-    p:k=>param(ST.recipe,k), nb:R.nb||nInks(R) };
+    p:k=>param(pkey(),k), nb:R.nb||nInks(R) };
 }
-/* a formula's parameter: what this design set, else the recipe's default */
+/* a formula's parameter: what this design set, else the recipe's default.
+   In 3D a structure has its own equation and its own parameters, kept under
+   "<id>@3" so switching back and forth loses neither */
+const is3=()=>!!(ST.d3&&ST.d3.on&&RECIPES[ST.recipe]&&RECIPES[ST.recipe].d3);
+const pkey=()=>is3()?ST.recipe+"@3":ST.recipe;
+function plist(id){ if(id.endsWith("@3")){ const R=RECIPES[id.slice(0,-2)]; return R&&(R.params3||R.params); } const R=RECIPES[id]; return R&&R.params; }
 function param(id,k){
-  const R=RECIPES[id], q=(R.params||[]).find(x=>x.k===k), v=ST.fp&&ST.fp[id]?ST.fp[id][k]:undefined;
+  const q=(plist(id)||[]).find(x=>x.k===k), v=ST.fp&&ST.fp[id]?ST.fp[id][k]:undefined;
   return v!==undefined?v:q?q.d:undefined;
 }
 
@@ -2403,7 +3299,9 @@ function drawFrame(t){
   const Ls=loopSecs(), ph = Ls ? ((t%Ls)/Ls+1)%1 : 0;
   const R=RECIPES[ST.recipe];
   ctx.setTransform(1,0,0,1,0,0); ctx.fillStyle=ST.inks[0]; ctx.fillRect(0,0,cv.width,cv.height);
-  if(R.direct){
+  if(is3()&&render3D(ph)){
+    ctx.setTransform(1,0,0,1,0,0); ctx.drawImage(D3S.cv,0,0,cv.width,cv.height);
+  } else if(R.direct){
     base(ctx,K,K); R.direct(ctx,context(ph),RW/K,RH/K); ctx.globalCompositeOperation="source-over";
   } else {
     renderTile(ph);
@@ -2551,11 +3449,51 @@ $("b_randLetters").onclick=()=>{ const R=RECIPES[ST.recipe], n=R.word?3+((Math.r
 bound.push(()=>{
   const R=RECIPES[ST.recipe], list=letterList();
   rc.querySelectorAll("[data-r]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.r===ST.recipe)));
-  hint.textContent=R.hint;
+  hint.textContent=(is3()&&R.h3)||R.hint;
   if(document.activeElement!==lt) lt.value=ST.letters;
   roles.innerHTML=R.word ? `<span><b>${list.join("")}</b>המילה כולה</span>` : R.roles.map((r,i)=>`<span><b>${list[i%list.length]}</b>${r}</span>`).join("")
     + (R.roles[R.roles.length-1].endsWith("←") && list.length>R.roles.length ? `<span><b>${list.slice(R.roles.length).join("")}</b></span>`:"");
 });
+
+/* ---- 3D ---- */
+const CAM_HE={fixed:"מצלמה קבועה",orbit:"מקיפה",rock:"מתנדנדת"};
+const s3=section("תלת־ממד",true,()=>is3()?`${ST.d3.mat==="chrome"?"כרום":"דיו"} · ${CAM_HE[ST.d3.cam]}`:"דו־ממד");
+const segD=document.createElement("div"); segD.className="seg"; segD.setAttribute("role","group"); segD.setAttribute("aria-label","ממד");
+segD.innerHTML=`<button type="button" data-d="0">דו־ממד<small>הנוסחה על הדף</small></button><button type="button" data-d="1">תלת־ממד<small>הנוסחה במרחב</small></button>`;
+s3.appendChild(segD);
+segD.querySelectorAll("button").forEach(b=>b.onclick=()=>{ ST.d3.on=b.dataset.d==="1"; changed(); });
+const box3=document.createElement("div"); s3.appendChild(box3);
+function d3chips(label,key,opts){
+  box3.appendChild(labeled(label));
+  const row=document.createElement("div"); row.className="chips"; box3.appendChild(row);
+  for(const [v,l,t] of opts){ const b=document.createElement("button"); b.className="chip"; b.type="button"; b.textContent=l; b.dataset.v=v; if(t) b.title=t;
+    b.onclick=()=>{ ST.d3[key]=v; changed(); }; row.appendChild(b); }
+  bound.push(()=>row.querySelectorAll(".chip").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.v===String(ST.d3[key])))));
+}
+function d3slider(key,label,min,max,step,fmt){
+  const row=document.createElement("div"); row.className="r";
+  row.innerHTML=`<label for="d3_${key}">${label}</label><input type="range" id="d3_${key}" min="${min}" max="${max}" step="${step}"><span class="v mono"></span>`;
+  const el=row.querySelector("input"), vv=row.querySelector(".v");
+  el.oninput=()=>{ ST.d3[key]=parseFloat(el.value); vv.textContent=fmt(ST.d3[key]); fills(el); changed(); };
+  bound.push(()=>{ el.value=ST.d3[key]; vv.textContent=fmt(ST.d3[key]); fills(el); });
+  box3.appendChild(row);
+}
+d3chips("חומר","mat",[["ink","דיו","האות בצבע הדיו שלה, מוארת מלמעלה"],["chrome","כרום","מראה מתכתית שמקבלת גוון מהדיו"]]);
+d3chips("מצלמה","cam",[["fixed","קבועה"],["orbit","מקיפה","סיבוב אחד מסביב בכל לולאה"],["rock","מתנדנדת","הלוך וחזור, 30° לכל צד"]]);
+d3slider("yaw","זווית",-180,180,1,v=>Math.round(v)+"°");
+d3slider("pitch","הטיה",-30,85,1,v=>Math.round(v)+"°");
+d3slider("zoom","זום",.4,3,.01,v=>"×"+num(v));
+d3slider("ext","עובי אות",.02,1.2,.01,v=>num(v));
+d3slider("fog","ערפל עומק",0,1,.01,v=>num(v));
+const n3=document.createElement("div"); n3.className="note"; n3.textContent="גררו על הדף כדי לסובב את המצלמה. ייצוא SVG והפרדות זמינים בדו־ממד בלבד.";
+box3.appendChild(n3);
+bound.push(()=>{ segD.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String((b.dataset.d==="1")===!!ST.d3.on))); box3.style.display=ST.d3.on?"":"none"; });
+/* drag on the sheet turns the camera */
+let drag3=null;
+cv.addEventListener("pointerdown",e=>{ if(!is3()) return; drag3={x:e.clientX,y:e.clientY,yaw:ST.d3.yaw,pitch:ST.d3.pitch}; cv.setPointerCapture(e.pointerId); });
+cv.addEventListener("pointermove",e=>{ if(!drag3) return;
+  ST.d3.yaw=mod(drag3.yaw+(e.clientX-drag3.x)*.4+180,360)-180; ST.d3.pitch=Math.max(-30,Math.min(85,drag3.pitch+(e.clientY-drag3.y)*.3)); changed(); });
+for(const ev of ["pointerup","pointercancel"]) cv.addEventListener(ev,()=>{ drag3=null; });
 
 /* ---- formula ---- */
 /* The equation the structure is drawn by, written out with its live values,
@@ -2566,23 +3504,23 @@ const fRows=document.createElement("div"); sForm.appendChild(fRows);
 const fg=document.createElement("div"); fg.className="grid2";
 fg.innerHTML=`<button class="b" type="button" id="b_fdice">${svg("dice")}פרמטרים אקראיים</button><button class="b" type="button" id="b_freset">ערכי מקור</button>`;
 sForm.appendChild(fg);
-function setParam(k,v){ ST.fp=ST.fp||{}; (ST.fp[ST.recipe]=ST.fp[ST.recipe]||{})[k]=v; changed(); }
-function diceParams(id){ const R=RECIPES[id]; if(!R.params) return; const o=(ST.fp[id]={});
-  for(const q of R.params){ if(q.o){ o[q.k]=q.o[(Math.random()*q.o.length)|0][0]; continue; }
+function setParam(k,v){ ST.fp=ST.fp||{}; const id=pkey(); (ST.fp[id]=ST.fp[id]||{})[k]=v; changed(); }
+function diceParams(id){ const L0=plist(id); if(!L0) return; const o=(ST.fp[id]={});
+  for(const q of L0){ if(q.o){ o[q.k]=q.o[(Math.random()*q.o.length)|0][0]; continue; }
     /* around the default, not across the whole range: the interesting
        regions of these equations are narrow, and a uniform draw mostly
        lands in noise */
     const span=(q.max-q.min)*.35, v=q.d+(Math.random()*2-1)*span;
     o[q.k]=+Math.min(q.max,Math.max(q.min,Math.round(v/q.step)*q.step)).toFixed(4); } }
-$("b_fdice").onclick=()=>{ diceParams(ST.recipe); changed(); };
-$("b_freset").onclick=()=>{ if(ST.fp) delete ST.fp[ST.recipe]; changed(); };
+$("b_fdice").onclick=()=>{ diceParams(pkey()); changed(); };
+$("b_freset").onclick=()=>{ if(ST.fp) delete ST.fp[pkey()]; changed(); };
 function paramRow(q){
   if(q.o){
     const wrap=document.createElement("div"); wrap.appendChild(labeled(q.l));
     const row=document.createElement("div"); row.className="chips"; wrap.appendChild(row);
     for(const [v,l] of q.o){ const b=document.createElement("button"); b.className="chip"; b.type="button"; b.textContent=l;
       b.onclick=()=>setParam(q.k,v); b.dataset.v=String(v); row.appendChild(b); }
-    wrap._sync=()=>row.querySelectorAll(".chip").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.v===String(param(ST.recipe,q.k)))));
+    wrap._sync=()=>row.querySelectorAll(".chip").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.v===String(param(pkey(),q.k)))));
     return wrap;
   }
   const row=document.createElement("div"); row.className="r";
@@ -2590,9 +3528,10 @@ function paramRow(q){
   const el=row.querySelector("input"), vv=row.querySelector(".v"), fmt=q.fmt||(v=>num(v,q.step<.01?4:2));
   /* a structure that simulates (Turing: half a second per run) follows the
      slider's label while it moves and only re-runs when it is let go */
-  el.oninput=()=>{ vv.textContent=fmt(+el.value); fills(el); if(!RECIPES[ST.recipe].heavy) setParam(q.k,+el.value); };
-  el.onchange=()=>{ if(RECIPES[ST.recipe].heavy) setParam(q.k,+el.value); };
-  row._sync=()=>{ const v=param(ST.recipe,q.k); if(document.activeElement!==el) el.value=v; vv.textContent=fmt(+v); fills(el); };
+  const heavy=()=>is3()?RECIPES[ST.recipe].heavy3:RECIPES[ST.recipe].heavy;
+  el.oninput=()=>{ vv.textContent=fmt(+el.value); fills(el); if(!heavy()) setParam(q.k,+el.value); };
+  el.onchange=()=>{ if(heavy()) setParam(q.k,+el.value); };
+  row._sync=()=>{ const v=param(pkey(),q.k); if(document.activeElement!==el) el.value=v; vv.textContent=fmt(+v); fills(el); };
   return row;
 }
 let fFor="";
@@ -2600,8 +3539,9 @@ bound.push(()=>{
   const R=RECIPES[ST.recipe], det=sForm.parentElement;
   det.style.display=R.formula?"":"none";
   if(!R.formula) return;
-  fBox.textContent=R.formula(k=>param(ST.recipe,k));
-  if(fFor!==ST.recipe){ fFor=ST.recipe; fRows.innerHTML=""; for(const q of R.params||[]) fRows.appendChild(paramRow(q)); }
+  const id=pkey();
+  fBox.textContent=(is3()?R.f3:R.formula)(k=>param(id,k));
+  if(fFor!==id){ fFor=id; fRows.innerHTML=""; for(const q of plist(id)||[]) fRows.appendChild(paramRow(q)); }
   for(const r of fRows.children) r._sync&&r._sync();
 });
 
@@ -2835,8 +3775,8 @@ function adopt(o){
   for(const k of ["scale","size","spacing","speed","smear","seed"]) if(typeof o[k]==="number"&&isFinite(o[k])) d[k]=o[k];
   if(["still","drift","spin","cycle"].includes(o.motion)) d.motion=o.motion;
   if(FORMATS[o.format]) d.format=o.format;
-  if(o.fp&&typeof o.fp==="object") for(const id in o.fp){ const R=RECIPES[id]; if(!R||!R.params||!o.fp[id]) continue;
-    for(const q of R.params){ const v=o.fp[id][q.k]; if(v===undefined) continue;
+  if(o.fp&&typeof o.fp==="object") for(const id in o.fp){ const L0=plist(id); if(!L0||!o.fp[id]) continue;
+    for(const q of L0){ const v=o.fp[id][q.k]; if(v===undefined) continue;
       if(q.o){ if(q.o.some(([ov])=>String(ov)===String(v))) (d.fp[id]=d.fp[id]||{})[q.k]=v; }
       else if(typeof v==="number"&&isFinite(v)) (d.fp[id]=d.fp[id]||{})[q.k]=Math.min(q.max,Math.max(q.min,v)); } }
   if(o.title&&typeof o.title==="object"){ const T=o.title, D=d.title;
@@ -2845,12 +3785,16 @@ function adopt(o){
     if(["top","center","bottom"].includes(T.pos)) D.pos=T.pos;
     if(["box","halo","plain"].includes(T.style)) D.style=T.style;
     if(Number.isInteger(T.ink)&&T.ink>=0&&T.ink<6) D.ink=T.ink; }
+  if(o.d3&&typeof o.d3==="object"){ const T=o.d3, D=d.d3; D.on=!!T.on;
+    if(["ink","chrome"].includes(T.mat)) D.mat=T.mat; if(["fixed","orbit","rock"].includes(T.cam)) D.cam=T.cam;
+    for(const [k,lo,hi] of [["yaw",-360,360],["pitch",-30,85],["zoom",.4,3],["ext",.02,1.2],["fog",0,1]]) if(typeof T[k]==="number"&&isFinite(T[k])) D[k]=Math.min(hi,Math.max(lo,T[k])); }
   return d;
 }
 $("b_load").onclick=()=>{
   try{ ST=adopt(JSON.parse($("e_json").value)); setFormat(ST.format); changed(); }
   catch(e){ $("b_load").textContent="JSON לא תקין"; setTimeout(()=>$("b_load").textContent="טען",1500); }
 };
+bound.push(()=>{ const d=is3(); for(const id of ["b_svg","b_seps"]){ $(id).disabled=d; } });
 $("b_svg").onclick=()=>download(new Blob([sheetSVG()],{type:"image/svg+xml"}),`${fileBase()}-${stamp()}.svg`);
 $("b_seps").onclick=async()=>{
   const b=$("b_seps"); b.disabled=true; b.textContent="מפריד גלילים…";
