@@ -58,10 +58,6 @@
     box-shadow:0 1px 2px #00000066, 0 32px 80px -24px #000000cc, 0 0 0 1px #ffffff0f;
     transition:width var(--fast) var(--ease),height var(--fast) var(--ease)}
   #cv{display:block;width:100%;height:100%}
-  /* the press takes over the tray entirely: it draws its own bed and panel */
-  #pressframe{position:absolute;inset:0;width:100%;height:100%;border:0;z-index:2}
-  #stage:has(#pressframe){padding:0}
-  #stage:has(#pressframe)::before,#stage:has(#pressframe)::after{display:none}
   /* One strip, one weight, tabular figures so the numbers stop twitching as
      they update. Two separate readouts at opposite corners read as chrome; a
      single line under the sheet reads as a caption. */
@@ -95,7 +91,7 @@
      for. A dock does not depend on scrolling at all. */
   #dock{flex:none;border-block-start:1px solid var(--line);background:var(--surf);
     padding:10px 12px calc(10px + env(safe-area-inset-bottom));
-    display:grid;grid-template-columns:1fr 1fr 1fr 1.2fr;gap:6px;
+    display:grid;grid-template-columns:1fr 1fr 1.2fr;gap:6px;
     box-shadow:0 -8px 24px -12px #000c}
   #dock button{font:12px/1 var(--ui);padding:11px 6px;cursor:pointer;border-radius:6px;
     display:inline-flex;align-items:center;justify-content:center;gap:5px;
@@ -809,7 +805,7 @@ global.RISOKIT = {
       </div>
       <p class="k">מילים בעברית שבנויות לחפצים שהן מתארות</p>
     </div>
-    <p class="d">אגרטל שעשוי מהמילה אגרטל, כוס מהמילה כוס — מעוצבים, מסתובבים מול פטרן של אותה מילה, ומודפסים. נדרש קוד כניסה.</p>
+    <p class="d">אגרטל שעשוי מהמילה אגרטל, כוס מהמילה כוס — בכרום על נייר הגהה, נפרסים לרצועות ונבנים מחדש. נדרש קוד כניסה.</p>
     <input id="code" inputmode="numeric" autocomplete="off" maxlength="8"
            aria-label="קוד כניסה" placeholder="····">
     <div id="gatemsg" role="status" aria-live="polite"></div>
@@ -848,7 +844,7 @@ global.RISOKIT = {
   <div class="head">
     <h1>אובייקטים</h1>
     <p>מילים בעברית שבנויות לחפצים שהן מתארות — האגרטל עשוי מהמילה אגרטל</p>
-    <nav class="tabs" aria-label="Systems"><a href="../?v=fb89ca4">ריזו<small>מכונת דפוס</small></a><a href="../gradient/?v=fb89ca4">פטרנים<small>פטרנים מאותיות</small></a><a href="./" aria-current="page">אובייקטים<small>מילים כחפצים</small></a></nav><div class="build" title="Build version">25.10 14:22 · fb89ca4</div>
+    <nav class="tabs" aria-label="Systems"><a href="../?v=d0134f8">ריזו<small>מכונת דפוס</small></a><a href="../gradient/?v=d0134f8">פטרנים<small>פטרנים מאותיות</small></a><a href="./" aria-current="page">אובייקטים<small>מילים כחפצים</small></a></nav><div class="build" title="Build version">26.10 10:30 · d0134f8</div>
     <div class="seg" role="group" aria-label="פורמט">
       <button id="f_post" aria-pressed="true">פוסט<small>1080 × 1350</small></button>
       <button id="f_story" aria-pressed="false">סטורי<small>1080 × 1920</small></button>
@@ -882,10 +878,41 @@ global.RISOKIT = {
   <details class="sec"><summary><span class="nm">אותיות</span><span class="sm" id="sm_let"></span><i class="chev"></i></summary>
    <div class="body" id="rows_let"></div></details>
 
-  <details class="sec" open><summary><span class="nm">רקע</span><span class="sm" id="sm_bg"></span><i class="chev"></i></summary>
+  <details class="sec" open><summary><span class="nm">תנועה</span><span class="sm" id="sm_mot"></span><i class="chev"></i></summary>
+   <div class="body">
+    <div class="chips" id="motchips" role="group" aria-label="תנועה">
+      <button class="chip" data-m="slice">פרוסות</button><button class="chip" data-m="both">פרוסות וסיבוב</button><button class="chip" data-m="turn">סיבוב</button>
+    </div>
+    <div id="slicebox">
+     <div class="lab">קצב</div>
+     <div class="chips" id="envchips" role="group" aria-label="קצב">
+       <button class="chip" data-e="build">נבנה וחוזר</button><button class="chip" data-e="wave">גל רציף</button>
+     </div>
+     <div id="rows_mot"></div>
+     <button class="b" id="b_bands" style="width:100%;margin-block-start:6px">חיתוך אחר</button>
+    </div>
+    <div id="rows_len"></div>
+    <p class="note" id="motnote"></p>
+   </div>
+  </details>
+
+  <details class="sec" open><summary><span class="nm">חומר</span><span class="sm" id="sm_mat"></span><i class="chev"></i></summary>
+   <div class="body">
+    <div class="chips" id="matchips" role="group" aria-label="חומר">
+      <button class="chip" data-t="chrome">כרום</button><button class="chip" data-t="clay">חימר</button>
+    </div>
+    <div id="rows_mat"></div>
+    <div class="lab">סימני רישום</div>
+    <div class="chips" id="markchips" role="group" aria-label="סימני רישום">
+      <button class="chip" data-k="1">כן</button><button class="chip" data-k="0">לא</button>
+    </div>
+   </div>
+  </details>
+
+  <details class="sec"><summary><span class="nm">רקע</span><span class="sm" id="sm_bg"></span><i class="chev"></i></summary>
    <div class="body">
     <div class="chips" id="bgchips" role="group" aria-label="רקע">
-      <button class="chip" data-b="grad">פטרן של המילה</button><button class="chip" data-b="studio">לולאת סטודיו</button>
+      <button class="chip" data-b="paper">נייר</button><button class="chip" data-b="grad">פטרן של המילה</button><button class="chip" data-b="studio">לולאת סטודיו</button>
     </div>
     <div class="grid3" id="gradbtns">
       <button class="b" id="b_mine" title="לטעון את הפטרן האחרון שעיצבת בטאב פטרנים">הפטרן שלי</button>
@@ -909,7 +936,6 @@ global.RISOKIT = {
   </details>
  </div>
  <div id="dock" role="group" aria-label="פעולות">
-   <button id="d_riso" aria-pressed="false" title="להדפיס את החפץ המסתובב במכונת הריזו">ריזו</button>
    <button id="d_play" title="Space"></button>
    <button id="d_png" class="solid" title="S">PNG</button>
    <button id="d_rec" class="rec" title="מקליט בדיוק לולאה אחת">הקלטה</button>
@@ -1371,7 +1397,11 @@ const LETTERS = new Set(Object.keys(GLYPHS));
 const $ = id => document.getElementById(id);
 const FORMATS = { post:{w:1080,h:1350,l:"פוסט"}, story:{w:1080,h:1920,l:"סטורי"} };
 const PNAME = { vase:"אגרטל", planter:"עציץ", cup:"כוס", bowl:"קערה", candle:"פמוט" };
-let FMT = "post", BG = "grad", SOFT = 0, DIM = 0;
+let FMT = "post", BG = "paper", SOFT = 0, DIM = 0;
+/* the look and the motion are view settings, like the backdrop: not part of
+   the object, its history or its STL */
+let MOT = "slice", ENV = "build", MAT = "chrome", MARKS = 1, BSEED = 0, LEN = 4;
+const V = { bands: 9, shift: .3, twist: 14, steps: 0, grain: .085 };
 const f0 = v => Math.round(v).toString(), f1 = v => (+v).toFixed(1);
 
 /* ---- history: P carries word and product, so one snapshot is the object -- */
@@ -1428,6 +1458,25 @@ for (const [k, l, mx, st] of [["soft","ריכוך",6,.1],["dim","עמעום",.7,
 }
 const fnOf = () => P.cavity === "socket" ? "socket" : (P.drain_mm > 0 ? "drain" : "full");
 const fill = (el, v, mn, mx) => el.style.setProperty("--fill", ((v-mn)/(mx-mn)*100).toFixed(1)+"%");
+for (const [k, l, mn, mx, st, box, fmt] of [
+    ["bands","פרוסות",2,24,1,"mot",v=>f0(v)], ["shift","הזזה",0,.7,.01,"mot",v=>(+v).toFixed(2)],
+    ["twist","פיתול",0,90,1,"mot",v=>f0(v)+"°"], ["steps","צעדים",0,24,1,"mot",v=>+v?f0(v):"רציף"],
+    ["grain","גרעין",0,.25,.005,"mat",v=>(+v).toFixed(3)]]){
+  const row = document.createElement("div"); row.className = "r";
+  row.innerHTML = `<label for="m_${k}">${l}</label><input type="range" id="m_${k}" min="${mn}" max="${mx}" step="${st}" value="${V[k]}"><span class="v mono" id="mv_${k}"></span>`;
+  $("rows_" + box).appendChild(row);
+  const rng = row.querySelector("input"), out = row.querySelector(".v");
+  const show = ()=>{ out.textContent = fmt(V[k]); fill(rng, V[k], mn, mx); };
+  rng.addEventListener("input", ()=>{ V[k] = +rng.value; show(); syncMot(); });
+  show();
+}
+{ const row = document.createElement("div"); row.className = "r";
+  row.innerHTML = `<label for="m_len">אורך לולאה</label><input type="range" id="m_len" min="2" max="12" step=".5" value="${LEN}"><span class="v mono" id="mv_len"></span>`;
+  $("rows_len").appendChild(row);
+  const rng = row.querySelector("input");
+  const show = ()=>{ $("mv_len").textContent = LEN.toFixed(1) + " ש׳"; fill(rng, LEN, 2, 12); };
+  rng.addEventListener("input", ()=>{ LEN = +rng.value; show(); pushGrad(); });
+  show(); }
 
 function syncRows(s){
   const fn = fnOf();
@@ -1620,7 +1669,7 @@ pc.addEventListener("contextmenu", e=>{ e.preventDefault(); const [x,y]=ppos(e);
 
 /* ═══════════════════════════════════════════════════════════════════
    STAGE. One canvas, the sheet itself: backdrop, then the object, at the
-   format's real pixel size, so PNG, Record and the press all take exactly
+   format's real pixel size, so PNG and Record take exactly
    what is on screen.
    ═══════════════════════════════════════════════════════════════════ */
 const cv = $("cv"), board = $("board"), stage = $("stage");
@@ -1632,21 +1681,43 @@ let progM, progB, vaoM, vaoB, vbuf, nbuf, tex, U = {};
 let playing = !matchMedia("(prefers-reduced-motion: reduce)").matches;
 let tLoop = 0, LOOP = 5, scrub = false;
 
+/* One slice of the object per draw: turned by uRot about the axis and slid
+   by uDz along it; the fragment shader keeps only what lands in its band. */
 const VS = `#version 300 es
 layout(location=0) in vec3 aPos; layout(location=1) in vec3 aNrm;
-uniform mat4 uMVP; out vec3 vN; out vec3 vP;
-void main(){ vN=aNrm; vP=aPos; gl_Position=uMVP*vec4(aPos,1.); }`;
+uniform mat4 uMVP; uniform float uDz, uRot; out vec3 vN; out vec3 vP;
+void main(){ float c=cos(uRot), s=sin(uRot);
+  vec3 p=vec3(c*aPos.x-s*aPos.y, s*aPos.x+c*aPos.y, aPos.z+uDz);
+  vN=vec3(c*aNrm.x-s*aNrm.y, s*aNrm.x+c*aNrm.y, aNrm.z); vP=p; gl_Position=uMVP*vec4(p,1.); }`;
 const FS = `#version 300 es
 precision highp float; in vec3 vN; in vec3 vP; out vec4 o;
-uniform vec3 uCam, uBase, uTint, uL[5]; uniform float uW[5];
+uniform vec3 uCam, uBase, uTint, uL[5], uRt, uUp, uBk, uMid; uniform float uW[5], uGrain, uEnvR; uniform vec2 uClip; uniform int uMat;
 vec3 enc(vec3 c){ return mix(c*12.92,1.055*pow(c,vec3(1./2.4))-.055,step(.0031308,c)); }
+float grain(vec2 p){ return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453)-.5; }
 void main(){
+  if(vP.z<uClip.x||vP.z>=uClip.y) discard;
   vec3 N=normalize(vN), V=normalize(uCam-vP); if(dot(N,V)<0.) N=-N;
-  vec3 c=uBase*uTint*.16;
-  for(int i=0;i<5;i++) c+=uBase*uW[i]*max(dot(N,uL[i]),0.);
-  c+=vec3(.10)*pow(max(dot(N,normalize(uL[0]+V)),0.),36.);
-  c+=uTint*.08*pow(1.-max(dot(N,V),0.),3.);
-  o=vec4(enc(clamp(c,0.,1.)),1.);
+  vec3 c;
+  if(uMat==1){
+    /* chrome: no colour of its own, only the studio it reflects — a soft
+       strip just right of the lens, a thin kicker on the left, a big top light
+       and a dark room. Lathe forms turn the strip into one bright band down
+       the body, and the top light into rims on every ledge. */
+    /* the studio is a sphere a few radii away, not at infinity: a flat letter
+       face then sweeps across the strip instead of reflecting one flat value */
+    vec3 R=normalize(vP-uMid+reflect(-V,N)*uEnvR); float rx=dot(R,uRt), ry=dot(R,uUp), rz=dot(R,uBk);
+    float strip=exp(-pow((rx-.16)/.26,2.))*smoothstep(-.15,.55,rz);
+    float kick=.42*exp(-pow((rx+.66)/.11,2.))*smoothstep(0.,.6,rz);
+    float top=smoothstep(.18,.92,ry), floor_=.10*smoothstep(-.25,-.85,ry);
+    float e=.05+1.15*strip+kick+.8*top+floor_+.1*max(dot(N,uUp),0.)+.06*max(dot(N,uBk),0.);
+    c=vec3(e)*vec3(1.,.985,.965); c=c/(1.+.32*c);
+  } else {
+    c=uBase*uTint*.16;
+    for(int i=0;i<5;i++) c+=uBase*uW[i]*max(dot(N,uL[i]),0.);
+    c+=vec3(.10)*pow(max(dot(N,normalize(uL[0]+V)),0.),36.);
+    c+=uTint*.08*pow(1.-max(dot(N,V),0.),3.);
+  }
+  o=vec4(enc(clamp(c,0.,1.))+grain(gl_FragCoord.xy)*uGrain,1.);
 }`;
 const BVS = `#version 300 es
 void main(){ vec2 p=vec2((gl_VertexID<<1)&2, gl_VertexID&2); gl_Position=vec4(p*2.-1.,0.,1.); }`;
@@ -1656,7 +1727,7 @@ void main(){ vec2 p=vec2((gl_VertexID<<1)&2, gl_VertexID&2); gl_Position=vec4(p*
 const BFS = `#version 300 es
 precision highp float; out vec4 o;
 uniform sampler2D uTex; uniform int uMode; uniform vec2 uRes;
-uniform float uSoft, uDim, uAng, uHue, uAsp;
+uniform float uSoft, uDim, uAng, uHue, uAsp, uGrain; uniform int uMarks;
 vec3 rgb2hsv(vec3 c){ vec4 K=vec4(0.,-1./3.,2./3.,-1.);
   vec4 p=mix(vec4(c.bg,K.wz),vec4(c.gb,K.xy),step(c.b,c.g)); vec4 q=mix(vec4(p.xyw,c.r),vec4(c.r,p.yzx),step(p.x,c.r));
   float d=q.x-min(q.w,q.y),e=1e-10; return vec3(abs(q.z+(q.w-q.y)/(6.*d+e)),d/(q.x+e),q.x); }
@@ -1665,6 +1736,13 @@ vec3 enc(vec3 c){ return mix(c*12.92,1.055*pow(c,vec3(1./2.4))-.055,step(.003130
 void main(){
   vec2 uv=gl_FragCoord.xy/uRes; vec3 c;
   if(uMode==0){ c=textureLod(uTex,uv,uSoft).rgb; }
+  else if(uMode==2){
+    /* paper, with the six registration squares of a print proof */
+    c=vec3(.918,.902,.894);
+    if(uMarks==1){ vec2 px=gl_FragCoord.xy, m=vec2(uRes.x*.0115);
+      for(int i=0;i<6;i++){ vec2 q=vec2(i<3?.12:.88, i%3==0?.085:i%3==1?.5:.915)*uRes;
+        if(all(lessThan(abs(px-q),m*.5))) c=vec3(.16,.16,.165); } }
+  }
   else {
     float f=clamp(((uv.x-.5)*uAsp*cos(uAng)+(uv.y-.5)*sin(uAng))*1.15+.5,0.,1.);
     vec3 a=vec3(1.,.62,.38), m=vec3(.99,.88,.74), b=vec3(.42,.52,.98);
@@ -1672,7 +1750,8 @@ void main(){
     vec3 h=rgb2hsv(l); h.x=fract(h.x+uHue); h.y=clamp(h.y*1.25,0.,1.);
     c=enc(clamp(hsv2rgb(h),0.,1.));
   }
-  o=vec4(mix(c,vec3(.03,.03,.04),uDim),1.);
+  float g=fract(sin(dot(gl_FragCoord.xy,vec2(12.9898,78.233)))*43758.5453)-.5;
+  o=vec4(mix(c,vec3(.03,.03,.04),uDim)+g*uGrain,1.);
 }`;
 
 function initGL(){
@@ -1682,8 +1761,8 @@ function initGL(){
   const pr=(v,f)=>{ const p=gl.createProgram(); gl.attachShader(p,sh(gl.VERTEX_SHADER,v)); gl.attachShader(p,sh(gl.FRAGMENT_SHADER,f));
     gl.linkProgram(p); if(!gl.getProgramParameter(p,gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p)); return p; };
   progM = pr(VS,FS); progB = pr(BVS,BFS);
-  for (const n of ["uMVP","uCam","uBase","uTint","uL","uW"]) U[n] = gl.getUniformLocation(progM,n);
-  for (const n of ["uTex","uMode","uRes","uSoft","uDim","uAng","uHue","uAsp"]) U["b"+n] = gl.getUniformLocation(progB,n);
+  for (const n of ["uMVP","uCam","uBase","uTint","uL","uW","uRt","uUp","uBk","uGrain","uClip","uMat","uDz","uRot","uMid","uEnvR"]) U[n] = gl.getUniformLocation(progM,n);
+  for (const n of ["uTex","uMode","uRes","uSoft","uDim","uAng","uHue","uAsp","uGrain","uMarks"]) U["b"+n] = gl.getUniformLocation(progB,n);
   vaoB = gl.createVertexArray();
   vaoM = gl.createVertexArray(); gl.bindVertexArray(vaoM);
   vbuf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,vbuf); gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
@@ -1727,10 +1806,9 @@ function gradConfig(){
   return b;
 }
 function pushGrad(){
-  if (!TILE) return;
-  TILE.setConfig(gradConfig()); TILE.setScale(1);
-  const g = TILE.loopSeconds();
-  LOOP = BG === "grad" && g > 0 ? g * Math.max(1, Math.round(5/g)) : 5;   // a whole number of gradient loops
+  if (TILE){ TILE.setConfig(gradConfig()); TILE.setScale(1); }
+  const g = TILE ? TILE.loopSeconds() : 0;
+  LOOP = BG === "grad" && g > 0 ? g * Math.max(1, Math.round(LEN/g)) : LEN;   // a whole number of pattern loops
   tLoop %= LOOP; dirty = true; syncBg();
 }
 function loadGrad(){
@@ -1752,12 +1830,47 @@ function syncBg(){
   $("gradbtns").style.display = BG === "grad" ? "" : "none";
   $("bgv_soft").textContent = SOFT.toFixed(1); $("bgv_dim").textContent = DIM.toFixed(2);
   fill($("bg_soft"), SOFT, 0, 6); fill($("bg_dim"), DIM, 0, .7);
-  $("sm_bg").textContent = (BG === "grad" ? "פטרן המילה" : "סטודיו") + " · " + LOOP.toFixed(1) + " ש׳";
+  $("sm_bg").textContent = ({paper:"נייר", grad:"פטרן המילה", studio:"סטודיו"})[BG] + " · " + LOOP.toFixed(1) + " ש׳";
   if (BG === "grad" && TILE) noteBg(`הרקע הוא הפטרן מטאב הפטרנים, בנוי מהמילה ${P.word}. הוא חוזר כל ${TILE.loopSeconds().toFixed(2)} ש׳, והחפץ מסתובב פעם אחת כל ${LOOP.toFixed(2)} ש׳ — שניהם נסגרים על אותו פריים.`);
+  else if (BG === "grad") noteBg("טוען את הפטרן מטאב הפטרנים…");
+  else if (BG === "paper") noteBg("נייר הגהה אפור־חם, עם ששת ריבועי הרישום של הדפס. הלולאה נסגרת כל " + LOOP.toFixed(1) + " ש׳.");
   else if (BG === "studio") noteBg("הרקע של סרטוני הלולאה מבלנדר: זווית הגרדיאנט מסתובבת פעם אחת והגוון שלו מקיף פעם אחת בכל לולאה.");
   dirty = true;
 }
-document.querySelectorAll("#bgchips .chip").forEach(b => b.addEventListener("click", ()=>{ BG = b.dataset.b; pushGrad(); syncBg(); }));
+document.querySelectorAll("#bgchips .chip").forEach(b => b.addEventListener("click", ()=>{ BG = b.dataset.b; if (BG === "grad" && !gf) loadGrad(); pushGrad(); syncBg(); }));
+
+/* ---- motion: the object cut into horizontal bands. Each band shows the
+   object from a different height (slid along the axis) and turned a little
+   about it, so ledges repeat and step — the way a lathe-turned form looks
+   when its slices are pulled out of register. "Builds" starts clean, pulls
+   apart over the loop and snaps back; "wave" breathes and never cuts. ---- */
+function hash1(n){ let t = (Math.imul(n, 0x6D2B79F5) + Math.imul(BSEED + 1, 0x9E3779B1))|0;
+  t = Math.imul(t ^ t>>>15, 1|t); t ^= t + Math.imul(t ^ t>>>7, 61|t); return ((t ^ t>>>14)>>>0)/4294967296; }
+function bands(){
+  const n = V.bands, w = []; let sum = 0;
+  for (let k=0;k<n;k++){ const x = .45 + hash1(k*3+1); w.push(x); sum += x; }
+  const e = [0]; let acc = 0; for (const x of w){ acc += x/sum; e.push(acc); }
+  return { e, r: w.map((_,k)=>2*hash1(k*3+2)-1), q: w.map((_,k)=>2*hash1(k*3+3)-1) };
+}
+const MNAME = {slice:"פרוסות", both:"פרוסות וסיבוב", turn:"סיבוב"};
+function syncMot(){
+  document.querySelectorAll("#motchips .chip").forEach(b => b.setAttribute("aria-pressed", b.dataset.m === MOT));
+  document.querySelectorAll("#envchips .chip").forEach(b => b.setAttribute("aria-pressed", b.dataset.e === ENV));
+  document.querySelectorAll("#matchips .chip").forEach(b => b.setAttribute("aria-pressed", b.dataset.t === MAT));
+  document.querySelectorAll("#markchips .chip").forEach(b => b.setAttribute("aria-pressed", b.dataset.k === String(MARKS)));
+  $("slicebox").style.display = MOT === "turn" ? "none" : "";
+  $("sm_mot").textContent = MNAME[MOT] + (MOT === "turn" ? "" : " · " + V.bands);
+  $("sm_mat").textContent = (MAT === "chrome" ? "כרום" : "חימר") + (V.grain > 0 ? " · גרעין" : "");
+  $("motnote").textContent = MOT === "turn" ? "החפץ מסתובב סביב עצמו פעם אחת בלולאה."
+    : ENV === "build" ? "החפץ מתחיל שלם, נפרס לרצועות שכל אחת מראה אותו מגובה אחר, וקופץ חזרה לשלם בסוף הלולאה."
+    : "כל רצועה נושמת לאורך הציר ובסיבוב סביבו, בקצב משלה — הלולאה נסגרת בלי קפיצה.";
+  dirty = true;
+}
+document.querySelectorAll("#motchips .chip").forEach(b => b.addEventListener("click", ()=>{ MOT = b.dataset.m; syncMot(); }));
+document.querySelectorAll("#envchips .chip").forEach(b => b.addEventListener("click", ()=>{ ENV = b.dataset.e; syncMot(); }));
+document.querySelectorAll("#matchips .chip").forEach(b => b.addEventListener("click", ()=>{ MAT = b.dataset.t; syncMot(); }));
+document.querySelectorAll("#markchips .chip").forEach(b => b.addEventListener("click", ()=>{ MARKS = +b.dataset.k; syncMot(); }));
+$("b_bands").onclick = ()=>{ BSEED++; dirty = true; };
 $("b_mine").onclick = ()=>{ gradBase = myGradient(); pushGrad(); };
 $("b_shuffle").onclick = ()=>{ if (!TILE) return; TILE.randomize(); gradBase = TILE.config(); pushGrad(); };
 
@@ -1801,7 +1914,8 @@ function draw(){
     }
   } else tint = [.75,.72,.78];
   gl.disable(gl.DEPTH_TEST); gl.useProgram(progB); gl.bindVertexArray(vaoB);
-  gl.uniform1i(U.buMode, useTex ? 0 : 1); gl.uniform1i(U.buTex, 0);
+  gl.uniform1i(U.buMode, useTex ? 0 : BG === "paper" ? 2 : 1); gl.uniform1i(U.buTex, 0);
+  gl.uniform1f(U.buGrain, V.grain); gl.uniform1i(U.buMarks, MARKS);
   gl.uniform2f(U.buRes, RW, RH); gl.uniform1f(U.buSoft, SOFT); gl.uniform1f(U.buDim, DIM);
   gl.uniform1f(U.buAng, 2*Math.PI*phase); gl.uniform1f(U.buHue, phase); gl.uniform1f(U.buAsp, RW/RH);
   gl.drawArrays(gl.TRIANGLES, 0, 3);
@@ -1809,7 +1923,7 @@ function draw(){
   // the camera of loop_scene.py: level with the middle, height fills 73.5%, width capped at 80%
   const asp = RW/RH, Hv = meshTop, cz = Hv/2;
   const d = Math.max(Hv/(2*TAN*.735), 2*meshR/(2*TAN*asp*.80));
-  const a = -Math.PI/2 + 2*Math.PI*phase, eye = [d*Math.cos(a), d*Math.sin(a), cz];
+  const a = -Math.PI/2 + (MOT === "slice" ? 0 : 2*Math.PI*phase), eye = [d*Math.cos(a), d*Math.sin(a), cz];
   const mvp = mul(persp(FOV, asp, d*.05, d*6), lookAt(eye, [0,0,cz], [0,0,1]));
   const f = nrm(sub3([0,0,cz], eye)), rt = nrm(cross(f,[0,0,1])), up = cross(rt,f), bk = [-f[0],-f[1],-f[2]];
   const L = (r,u,b) => nrm([r*rt[0]+u*up[0]+b*bk[0], r*rt[1]+u*up[1]+b*bk[1], r*rt[2]+u*up[2]+b*bk[2]]);
@@ -1818,7 +1932,28 @@ function draw(){
   gl.uniform3f(U.uBase, .80, .775, .735); gl.uniform3fv(U.uTint, new Float32Array(tint));
   gl.uniform3fv(U.uL, new Float32Array([L(-4.6,4.05,4.6), L(5,.75,3.6), L(-5.4,2.45,-3.4), L(5.4,2.45,-3.4), [0,0,1]].flat()));
   gl.uniform1fv(U.uW, new Float32Array([.82,.20,.22,.22,.22]));
-  gl.drawArrays(gl.TRIANGLES, 0, meshCount);
+  gl.uniform3fv(U.uRt, new Float32Array(rt)); gl.uniform3fv(U.uUp, new Float32Array(up)); gl.uniform3fv(U.uBk, new Float32Array(bk));
+  gl.uniform1i(U.uMat, MAT === "chrome" ? 1 : 0); gl.uniform1f(U.uGrain, V.grain);
+  gl.uniform3f(U.uMid, 0, 0, cz); gl.uniform1f(U.uEnvR, 2.6*Math.max(meshR, Hv/2));
+  if (MOT === "turn"){
+    gl.uniform2f(U.uClip, -1e9, 1e9); gl.uniform1f(U.uDz, 0); gl.uniform1f(U.uRot, 0);
+    gl.drawArrays(gl.TRIANGLES, 0, meshCount);
+    return;
+  }
+  const B = bands(), q = V.steps ? Math.floor(phase*V.steps)/V.steps : phase;
+  /* the bands cover the object's own height and each may only borrow from
+     inside it, so the silhouette never grows and no band comes up empty */
+  const lo = -.005*Hv, hi = 1.005*Hv, sm = x => x*x*(3-2*x);
+  const env = sm(Math.min(1, Math.max(0, (q - .08)/.62)));
+  for (let k=0;k<B.r.length;k++){
+    const m  = ENV === "build" ? env*B.r[k] : B.r[k]*Math.sin(2*Math.PI*(q + .5 + .5*B.q[k]));
+    const mr = ENV === "build" ? env*B.q[k] : B.q[k]*Math.sin(2*Math.PI*(q + .5*B.r[k]));
+    const a0 = lo + (hi-lo)*B.e[k], a1 = lo + (hi-lo)*B.e[k+1];
+    const sh = Math.min(Hv - a1, Math.max(-a0, m*V.shift*Hv));
+    gl.uniform2f(U.uClip, a0, a1);
+    gl.uniform1f(U.uDz, -sh); gl.uniform1f(U.uRot, mr*V.twist*Math.PI/180);
+    gl.drawArrays(gl.TRIANGLES, 0, meshCount);
+  }
 }
 
 /* ---- clock -------------------------------------------------------------- */
@@ -1845,23 +1980,8 @@ board.addEventListener("pointermove", e=>{ if (!scrub) return;
 const endScrub = ()=>{ scrub = false; };
 board.addEventListener("pointerup", endScrub); board.addEventListener("pointercancel", endScrub);
 
-/* ---- the press: the real press page in a frame, fed this canvas ---------- */
-let pressFrame = null, pressOn = false, pressTimer = 0;
-function pressToggle(on){
-  pressOn = on; $("d_riso").setAttribute("aria-pressed", String(on));
-  if (!on){ clearInterval(pressTimer); pressTimer = 0; if (pressFrame){ pressFrame.remove(); pressFrame = null; } return; }
-  const f = document.createElement("iframe"); f.id = "pressframe"; f.src = "../?embed=1"; f.title = "מכונת הריזו";
-  f.style.cssText = "width:100%;height:100%;border:0;display:block;background:#0c0c0e";
-  stage.appendChild(f); pressFrame = f;
-  f.addEventListener("load", ()=>{ let tries = 0;
-    const hand = ()=>{ const w = f.contentWindow;
-      if (!w || !w.PRESS || !w.PRESS.ready()){ if (++tries < 80) setTimeout(hand, 100); return; }
-      w.PRESS.setSource(cv);
-      pressTimer = setInterval(()=>{ try{ if (pressOn && w.PRESS.ready()) w.PRESS.refresh(); }catch(e){} }, 1000/12);
-    };
-    hand(); });
-}
-$("d_riso").onclick = ()=> pressToggle(!pressOn);
+/* The press is its own page: a PNG or a recorded loop from here is carried to
+   it by hand. Nothing on this page waits on it. */
 
 /* ---- record exactly one loop, from its first frame, so the file loops ---- */
 let rec = null, recEl = 0, recChunks = [], recExt = "webm";
@@ -1933,9 +2053,8 @@ try { glOK = initGL(); } catch(err){ console.error(err); }
 if (!glOK) stage.insertAdjacentHTML("beforeend", '<p class="note" style="position:absolute">WebGL2 לא זמין בדפדפן הזה.</p>');
 new ResizeObserver(()=>{ fitBoard(); }).observe(stage);
 new ResizeObserver(()=>{ sizeProf(); drawProf(mmPerU()); }).observe(pc);
-sizeProf(); setPlaying(playing); setFormat("post"); syncBg();
+sizeProf(); setPlaying(playing); setFormat("post"); syncBg(); syncMot();
 update(); commit();
-loadGrad();
 requestAnimationFrame(loop);
 
 </script>

@@ -71,10 +71,6 @@
     box-shadow:0 1px 2px #00000066, 0 32px 80px -24px #000000cc, 0 0 0 1px #ffffff0f;
     transition:width var(--fast) var(--ease),height var(--fast) var(--ease)}
   #cv{display:block;width:100%;height:100%}
-  /* the press takes over the tray entirely: it draws its own bed and panel */
-  #pressframe{position:absolute;inset:0;width:100%;height:100%;border:0;z-index:2}
-  #stage:has(#pressframe){padding:0}
-  #stage:has(#pressframe)::before,#stage:has(#pressframe)::after{display:none}
   /* One strip, one weight, tabular figures so the numbers stop twitching as
      they update. Two separate readouts at opposite corners read as chrome; a
      single line under the sheet reads as a caption. */
@@ -108,7 +104,7 @@
      for. A dock does not depend on scrolling at all. */
   #dock{flex:none;border-block-start:1px solid var(--line);background:var(--surf);
     padding:10px 12px calc(10px + env(safe-area-inset-bottom));
-    display:grid;grid-template-columns:1fr 1fr 1fr 1.2fr;gap:6px;
+    display:grid;grid-template-columns:1fr 1fr 1.2fr;gap:6px;
     box-shadow:0 -8px 24px -12px #000c}
   #dock button{font:12px/1 var(--ui);padding:11px 6px;cursor:pointer;border-radius:6px;
     display:inline-flex;align-items:center;justify-content:center;gap:5px;
@@ -876,7 +872,7 @@ global.RISOKIT = {
   <div class="head">
     <h1>פטרנים</h1>
     <p>פטרנים שבנויים כולם מאותיות חיים — כל קו, מסגרת ומילוי הוא אות</p>
-    <nav class="tabs" aria-label="Systems"><a href="../?v=fb89ca4">ריזו<small>מכונת דפוס</small></a><a href="./" aria-current="page">פטרנים<small>פטרנים מאותיות</small></a><a href="../objects/?v=fb89ca4">אובייקטים<small>מילים כחפצים</small></a></nav><div class="build" title="Build version">25.10 14:22 · fb89ca4</div>
+    <nav class="tabs" aria-label="Systems"><a href="../?v=d0134f8">ריזו<small>מכונת דפוס</small></a><a href="./" aria-current="page">פטרנים<small>פטרנים מאותיות</small></a><a href="../objects/?v=d0134f8">אובייקטים<small>מילים כחפצים</small></a></nav><div class="build" title="Build version">26.10 10:30 · d0134f8</div>
     <div class="seg" role="group" aria-label="פורמט">
       <button id="f_post" aria-pressed="true">פוסט<small>1080 × 1350</small></button>
       <button id="f_story" aria-pressed="false">סטורי<small>1080 × 1920</small></button>
@@ -886,7 +882,6 @@ global.RISOKIT = {
   <div id="sections"></div>
  </div>
  <div id="dock" role="group" aria-label="פעולות">
-   <button id="d_riso" aria-pressed="false" title="להדפיס את מה שעל המסך במכונת הריזו">ריזו</button>
    <button id="d_play" title="Space"></button>
    <button id="d_png" class="solid" title="S">PNG</button>
    <button id="d_rec" class="rec">הקלטה</button>
@@ -2232,10 +2227,7 @@ let ptimer=0;
 const LSK="gradient-word-system:v2";       // the key the Objects page reads "my pattern" from
 const persist=()=>{ try{ localStorage.setItem(LSK, JSON.stringify(ST)); }catch{} };
 const saveDebounced=()=>{ clearTimeout(ptimer); ptimer=setTimeout(persist,400); };
-let inkT=0;
-/* the press re-separates on every ink change; while a slider is dragged that
-   is dozens a second, so it waits for the hand to stop */
-function changed(){ tileKey=""; syncAll(); saveDebounced(); snapSoon(); if(pressOn){ clearTimeout(inkT); inkT=setTimeout(pressInks,220); } }
+function changed(){ tileKey=""; syncAll(); saveDebounced(); snapSoon(); }
 
 function section(nm,open,sum){
   const d=document.createElement("details"); d.className="sec"; d.open=open;
@@ -2545,7 +2537,7 @@ eb.innerHTML=`
   </div>
   <textarea id="e_json" spellcheck="false" aria-label="הגדרות JSON"></textarea>
   <div class="note"><kbd>Space</kbd> נגן / עצור · <kbd>S</kbd> PNG · <kbd>R</kbd> אקראי · <kbd>1</kbd>/<kbd>2</kbd> פורמט · <kbd>⌘Z</kbd> בטל<br>
-  כל תנועה נסגרת בדיוק על לולאה אחת, כך שלולאה מוקלטת חוזרת בלי קפיצה. כשהריזו דולק, ה-PNG והווידאו יוצאים מהמכונה, עם ההדפסה.</div>`;
+  כל תנועה נסגרת בדיוק על לולאה אחת, כך שלולאה מוקלטת חוזרת בלי קפיצה. להדפסה בריזו — שמרו PNG או וידאו וגררו אותם לטאב ריזו.</div>`;
 exp.appendChild(eb); secWrap.appendChild(exp);
 
 function playIcon(){ $("b_play").innerHTML=svg(playing?"pause":"play")+(playing?"עצור":"נגן"); if(window.syncDock) syncDock(); }
@@ -2563,8 +2555,6 @@ function download(blob,name){ if(!blob) return; const a=document.createElement("
 function stamp(){ const d=new Date(), p=n=>String(n).padStart(2,"0"); return `${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`; }
 const fileBase=()=>`patterns-${ST.recipe}-${ST.format}`;
 $("b_png").onclick=async()=>{
-  const pc=await pressOut();
-  if(pc){ pc.toBlob(b=>download(b,`${fileBase()}-riso-${stamp()}.png`),"image/png"); return; }
   const sc=parseInt($("e_scale").value,10);
   if(sc!==1){ K=sc; setupCanvases(); }
   drawFrame(clock);
@@ -2581,13 +2571,10 @@ $("b_rec").onclick=()=>{
   const mime=($("e_vfmt").value==="mp4"?MP4:WEBM).find(ok)||[...MP4,...WEBM].find(ok);
   if(!mime){ alert("הדפדפן הזה לא יכול להקליט וידאו"); return; }
   const ext=mime.startsWith("video/mp4")?"mp4":"webm"; if(ext!==$("e_vfmt").value) $("e_vfmt").value=ext;
-  const chunks=[], pw=pressOn&&pressFrame&&pressFrame.contentWindow, pc=pw&&pw.PRESS&&pw.PRESS.ready()?pw.PRESS.canvas():null;
-  /* with the Riso key down the film is the printed sheet; the press is pumped
-     at 30 a second for the length of the take, then dropped back to 12 */
-  if(pc) pressRate(30);
-  rec=new MediaRecorder((pc||cv).captureStream(pc?30:60),{mimeType:mime,videoBitsPerSecond:20e6});
+  const chunks=[];
+  rec=new MediaRecorder(cv.captureStream(60),{mimeType:mime,videoBitsPerSecond:20e6});
   rec.ondataavailable=e=>e.data.size&&chunks.push(e.data);
-  rec.onstop=()=>{ download(new Blob(chunks,{type:mime}),`${fileBase()}${pc?"-riso":""}-${stamp()}.${ext}`); if(pc&&pressOn) pressRate(PRESS_FPS);
+  rec.onstop=()=>{ download(new Blob(chunks,{type:mime}),`${fileBase()}-${stamp()}.${ext}`);
     rec=null; clearInterval(recT); $("recdot").style.display="none"; $("b_rec").innerHTML=svg("rec")+"הקלטת וידאו"; $("b_rec").classList.add("rec"); };
   clock=0; if(!playing){ playing=true; playIcon(); }
   rec.start();
@@ -2838,65 +2825,11 @@ function fromHash(){ const m=location.hash.match(/#p=([A-Za-z0-9_-]+)/); if(!m) 
 const HIST=[], REDO=[]; let histT=0, lastSnap="";
 function snapshot(){ const s=JSON.stringify(ST); if(s===lastSnap) return; if(lastSnap) HIST.push(lastSnap); if(HIST.length>80) HIST.shift(); REDO.length=0; lastSnap=s; }
 const snapSoon=()=>{ clearTimeout(histT); histT=setTimeout(snapshot,280); };
-function undo(){ clearTimeout(histT); snapshot(); if(!HIST.length) return; REDO.push(lastSnap); lastSnap=HIST.pop(); ST=adopt(JSON.parse(lastSnap)); setFormat(ST.format); tileKey=""; syncAll(); saveDebounced(); if(pressOn) pressInks(); }
-function redo(){ if(!REDO.length) return; HIST.push(lastSnap); lastSnap=REDO.pop(); ST=adopt(JSON.parse(lastSnap)); setFormat(ST.format); tileKey=""; syncAll(); saveDebounced(); if(pressOn) pressInks(); }
+function undo(){ clearTimeout(histT); snapshot(); if(!HIST.length) return; REDO.push(lastSnap); lastSnap=HIST.pop(); ST=adopt(JSON.parse(lastSnap)); setFormat(ST.format); tileKey=""; syncAll(); saveDebounced(); }
+function redo(){ if(!REDO.length) return; HIST.push(lastSnap); lastSnap=REDO.pop(); ST=adopt(JSON.parse(lastSnap)); setFormat(ST.format); tileKey=""; syncAll(); saveDebounced(); }
 
-/* ================= the press, on this page =================
-   The actual press page in a same-origin frame, fed this canvas through the
-   window.PRESS seam it publishes. Twelve sheets a second: the press is a
-   multi-pass WebGL simulation and printing every frame starves the animation. */
-let pressFrame=null, pressOn=false, pressTimer=0;
-const PRESS_FPS=12;
-function pressRate(fps){ if(pressTimer) clearInterval(pressTimer); pressTimer=setInterval(pressPump,1000/fps); }
-/* the press's own output, freshly printed from the current frame — what the
-   exports take while the Riso key is down */
-async function pressOut(){
-  const w=pressFrame&&pressFrame.contentWindow;
-  if(!pressOn||!w||!w.PRESS||!w.PRESS.ready()) return null;
-  drawFrame(clock); w.PRESS.refresh();
-  await new Promise(r=>w.requestAnimationFrame(()=>w.requestAnimationFrame(r)));
-  return w.PRESS.canvas();
-}
-/* The press is given this page's own drums, so it prints the pattern in the
-   inks it was designed in instead of separating it into whatever it had
-   loaded. A ground that is a paper becomes the sheet; a flooded ground is one
-   more drum. Unused slots (—) are left out, duplicates once. */
-function pressInks(){
-  const w=pressFrame&&pressFrame.contentWindow;
-  if(!w||!w.PRESS||!w.PRESS.setInks) return;
-  const R=RECIPES[ST.recipe], g=ST.inks[0].toUpperCase();
-  const isPaper=PAPERS.some(p=>p[1].toUpperCase()===g)||g===PAPER.toUpperCase();
-  const used=[]; ST.inks.forEach((h,i)=>{ if(i===0&&isPaper) return; if(R.inkRoles[i]==="—") return;
-    if(!used.some(u=>u.toUpperCase()===h.toUpperCase())) used.push(h); });
-  /* overprinted structures keep the press's colour mapping, so the inks that
-     cross still print as two drums on top of each other */
-  w.PRESS.setInks(isPaper?ST.inks[0]:PAPER, used, R.overprint?"lut":"spot");
-}
-/* a still sheet is printed once, not twelve times a second: the press is a
-   multi-pass WebGL simulation and reprinting an unchanged frame was pure load */
-let pumped=-1;
-function pressPump(){
-  if(!pressOn||!pressFrame||exporting||pumped===drawCount) return;
-  const w=pressFrame.contentWindow;
-  if(!w||!w.PRESS||!w.PRESS.ready()) return;
-  pumped=drawCount;
-  try{ w.PRESS.refresh(); }catch(e){}
-}
-const RISO_KEY="risomitus.patterns.riso";
-function pressToggle(on){
-  pressOn=on; $("d_riso").setAttribute("aria-pressed",String(on));
-  if(!EMBED) try{ localStorage.setItem(RISO_KEY,on?"1":"0"); }catch{}
-  if(!on){ if(pressTimer){ clearInterval(pressTimer); pressTimer=0; } if(pressFrame){ pressFrame.remove(); pressFrame=null; } return; }
-  const f=document.createElement("iframe"); f.id="pressframe"; f.src="../?embed=1"; f.setAttribute("title","מכונת הריזו");
-  f.style.cssText="width:100%;height:100%;border:0;display:block;background:#0c0c0e";
-  stage.appendChild(f); pressFrame=f;
-  f.addEventListener("load",()=>{ let tries=0;
-    const hand=()=>{ const w=f.contentWindow;
-      if(!w||!w.PRESS||!w.PRESS.ready()){ if(++tries<80) setTimeout(hand,100); return; }
-      w.PRESS.setSource(cv); pressInks(); pressRate(PRESS_FPS); };
-    hand(); });
-}
-$("d_riso").onclick=()=>pressToggle(!pressOn);
+/* The press is its own page now. What leaves here — PNG, video, SVG,
+   separations — is carried to it by hand, so this page never waits on it. */
 
 /* ═══════════════════════════════════════════════════════════════════
    KEYS · EMBED · BOOT
@@ -2938,7 +2871,6 @@ if(!EMBED){ const h=fromHash(); if(h) ST=adopt(h);
   else try{ const s=localStorage.getItem(LSK); if(s){ const o=JSON.parse(s); if(o&&o.recipe) ST=adopt(o); } }catch{} }
 lastSnap=JSON.stringify(ST);
 setFormat(ST.format); syncAll(); playIcon();
-if(!EMBED){ let r="1"; try{ r=localStorage.getItem(RISO_KEY)||"1"; }catch{} if(r!=="0") pressToggle(true); }
 $("exsum").textContent="PNG · SVG · הפרדות · וידאו";
 /* every ink box is measured from Haim itself — measuring before the face has
    arrived would cache the fallback font's metrics for the life of the page */
