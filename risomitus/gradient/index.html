@@ -872,7 +872,7 @@ global.RISOKIT = {
   <div class="head">
     <h1>פטרנים</h1>
     <p>פטרנים שבנויים כולם מאותיות חיים — כל קו, מסגרת ומילוי הוא אות</p>
-    <nav class="tabs" aria-label="Systems"><a href="../?v=cfd3823">ריזו<small>מכונת דפוס</small></a><a href="./" aria-current="page">פטרנים<small>פטרנים מאותיות</small></a><a href="../objects/?v=cfd3823">אובייקטים<small>מילים כחפצים</small></a></nav><div class="build" title="Build version">09.11 10:59 · cfd3823</div>
+    <nav class="tabs" aria-label="Systems"><a href="../?v=6d39c5c">ריזו<small>מכונת דפוס</small></a><a href="./" aria-current="page">פטרנים<small>פטרנים מאותיות</small></a><a href="../objects/?v=6d39c5c">אובייקטים<small>מילים כחפצים</small></a></nav><div class="build" title="Build version">09.11 21:48 · 6d39c5c</div>
     <div class="seg" role="group" aria-label="פורמט">
       <button id="f_post" aria-pressed="true">פוסט<small>1080 × 1350</small></button>
       <button id="f_story" aria-pressed="false">סטורי<small>1080 × 1920</small></button>
@@ -927,8 +927,7 @@ const DEF = () => ({ format:"post", recipe:"quasi", letters:"ושמא",
   scale:1, size:1, spacing:1, motion:"spin", speed:1, smear:0, seed:7, fp:{},
   title:{text:"",size:1,pos:"center",style:"box",ink:1,track:.06},
   d3:{on:false,mat:"ink",cam:"orbit",yaw:-28,pitch:20,zoom:1,ext:.25,fog:.3},
-  big:0,
-  fx:{on:true,field:"melt",soft:.62,grain:2.4,panels:5,seed:3,letters:.9,lmode:"next",tex:"paper",air:.2,flow:.5,rings:3} });
+  big:0 });
 let ST = DEF();
 
 /* ---- the type primitive ---- */
@@ -3189,173 +3188,6 @@ def3("weyl",{
     for(let i=0;i<N;i++) for(let j=0;j<N;j++) for(let k=0;k<N;k++){ const f=mod(i*a+j*b+k*cc,1), th=f*TAU+(X.mode==="spin"?X.ph*TAU:X.mode==="drift"?(1+mod(i+j+k,2))*X.ph*TAU:0);
       E.add(L(0),[(i-c)*h,(j-c)*h,(k-c)*h],h*.85*X.sz,ink(bandOf(f,X,bands/X.nb)),[Math.cos(th),0,-Math.sin(th)],[0,1,0]); } }});
 
-/* ═══════════════════════════════════════════════════════════════════
-   GRAIN — the printed look, on every structure in 2D and 3D.
-
-   The sheet the formula drew is read back as ink coverage (a mask per drum),
-   each mask is blurred on its own — blurring colours would average pink and
-   teal into grey — and every grain cell then picks ONE ink at random, with
-   odds set by the local coverage. So the colour melts between drums the way
-   a stippled print does, every pixel is still a pure ink (the separations
-   stay true), and the colour field is the formula's own. The letters are put
-   back on top from the sharp masks. A guillotine cut splits the sheet into
-   panels, each one a different crop of the same sheet: moved, zoomed, turned
-   by quarter turns (never mirrored — a mirrored letter is not a letter).
-   ═══════════════════════════════════════════════════════════════════ */
-const FX={cv:null,gl:null,W:0,H:0,P:{}};
-let fxSep=null;                     // a drum's hex while separations are printed
-const fxOn=()=>!!(ST.fx&&ST.fx.on);
-const VSF=`#version 300 es
-void main(){ vec2 p=vec2((gl_VertexID<<1)&2,gl_VertexID&2); gl_Position=vec4(p*2.-1.,0.,1.); }`;
-const FS_CLASS=`#version 300 es
-precision highp float; uniform sampler2D uS; uniform vec3 uInk[5]; uniform int uUse[5]; out vec4 o;
-/* colour plus hue: a letter shaded by 3D light is darker than its ink but the same hue */
-vec3 hue(vec3 c){ return c/(max(c.r,max(c.g,c.b))+.001); }
-void main(){ vec3 c=texelFetch(uS,ivec2(gl_FragCoord.xy),0).rgb; int b=0; float bd=1e9;
-  for(int i=0;i<5;i++){ if(uUse[i]==0) continue; vec3 a=c-uInk[i], h=hue(c)-hue(uInk[i]); float d=dot(a,a)+.6*dot(h,h); if(d<bd){ bd=d; b=i; } }
-  o=vec4(b==1?1.:0.,b==2?1.:0.,b==3?1.:0.,b==4?1.:0.); }`;
-const FS_DOWN=`#version 300 es
-precision highp float; uniform sampler2D uT; uniform vec2 uR; out vec4 o;
-void main(){ o=textureLod(uT,gl_FragCoord.xy/uR,3.); }`;
-const FS_BLUR=`#version 300 es
-precision highp float; uniform sampler2D uT; uniform vec2 uR, uD; uniform float uSig; out vec4 o;
-void main(){ vec2 uv=gl_FragCoord.xy/uR; vec4 s=vec4(0.); float w=0.; int r=int(ceil(uSig*3.));
-  for(int i=-r;i<=r;i++){ float g=exp(-float(i*i)/(2.*uSig*uSig)); s+=texture(uT,uv+uD*float(i))*g; w+=g; } o=s/w; }`;
-const FS_FX=`#version 300 es
-precision highp float; precision highp int; out vec4 o;
-uniform sampler2D uC, uL1, uL2, uN; uniform vec2 uRes; uniform vec3 uOut[5];
-uniform float uG, uAir, uRings, uLet, uFlow, uSeed, uHalo; uniform int uField, uLMode, uTex, uCnt, uAct[4], uPos[5], uNP;
-uniform vec4 uPR[16], uPS[16]; uniform vec2 uPE[16];
-float nz(ivec2 p,int k){ return texelFetch(uN,ivec2((p.x+k*83)&255,(p.y+k*47)&255),0).r; }
-int panel(vec2 q){ for(int i=0;i<uNP;i++) if(q.x>=uPR[i].x&&q.y>=uPR[i].y&&q.x<uPR[i].z&&q.y<uPR[i].w) return i; return 0; }
-vec2 mapP(vec2 px,int i){ vec2 c=.5*(uPR[i].xy+uPR[i].zw)*uRes, d=px-c; int r=int(uPS[i].w+.5);
-  d=r==1?vec2(d.y,-d.x):r==2?-d:r==3?vec2(-d.y,d.x):d; return (uPS[i].xy*uRes+d*uPS[i].z)/uRes; }
-void main(){
-  vec2 px=vec2(gl_FragCoord.x,uRes.y-gl_FragCoord.y), cp, lc; ivec2 cell;
-  if(uTex==2){ /* knit: rows of stitches, every other row half a stitch over */
-    vec2 st=vec2(uG*2.1,uG*2.7); float row=floor(px.y/st.y), hs=.5*mod(row,2.), x0=px.x/st.x+hs;
-    cell=ivec2(int(floor(x0)),int(row)); lc=vec2(fract(x0),fract(px.y/st.y)); cp=vec2((float(cell.x)+.5-hs)*st.x,(row+.5)*st.y);
-  } else { vec2 q=floor(px/uG); cell=ivec2(q); cp=(q+.5)*uG; lc=fract(px/uG); }
-  int pi=panel(cp/uRes); vec2 uv=mapP(cp,pi), uvx=mapP(uTex==2?cp:px,pi);
-  /* the field wanders a little, and each drum leans toward its own large
-     regions, so a pattern with evenly mixed inks still opens into colour fields */
-  vec2 w=uv+uFlow*.045*vec2(sin(uv.y*9.+uSeed)+.5*sin(uv.y*23.+uv.x*7.+uSeed*2.),sin(uv.x*8.+uSeed*1.7)+.5*sin(uv.x*19.-uv.y*11.+uSeed*.6));
-  vec4 mean=textureLod(uC,vec2(.5),12.); float M=mean.r+mean.g+mean.b+mean.a;
-  vec4 c=mix(texture(uL1,w),texture(uL2,w),uPE[pi].y)+mean*.03; float S=c.r+c.g+c.b+c.a, p=clamp(S/(M*1.15+.012),0.,1.);
-  vec4 h=c/(S+1e-5); h=h*h*sqrt(h);
-  h*=1.+uFlow*vec4(sin(w.x*5.+w.y*3.+uSeed),sin(w.x*-4.+w.y*6.+uSeed*1.3),sin(w.x*7.-w.y*2.+uSeed*2.1),sin(w.x*3.+w.y*-7.+uSeed*.7));
-  h=max(h,vec4(0.)); h/=h.r+h.g+h.b+h.a+1e-5;
-  float n=nz(cell,0), n1=nz(cell,1); int k=0;
-  int sh=int(uPE[pi].x+.5);
-  if(uField==1){ /* contours of the letters' density, dithered into each other */
-    int cnt=uCnt+1, idx=int(floor(S/(M*1.15+.012)*uRings+uFlow*sin(w.x*6.+w.y*4.+uSeed)+(n-.5)*.95+64.)); idx=(idx+sh)%cnt;
-    k=idx==0?0:uAct[idx-1];
-  } else {
-    float wi=p+(1.-p)*(1.-uAir), t=n, g=(1.-p)*uAir;
-    if(t>=g){ t=(t-g)/max(wi,1e-5); float a=0.; k=4; for(int i=0;i<4;i++){ a+=h[i]; if(t<a){ k=i+1; break; } } }
-    if(k>0&&uPos[k]>=0) k=uAct[(uPos[k]+sh)%uCnt];
-  }
-  /* the sharp letters, set back on top */
-  float lod=max(0.,log2(uPS[pi].z)); vec4 L=textureLod(uC,uvx,lod); float LS=L.r+L.g+L.b+L.a;
-  if(LS>.5&&n1<uLet){ int b=1; float bm=L.r; if(L.g>bm){bm=L.g;b=2;} if(L.b>bm){bm=L.b;b=3;} if(L.a>bm){bm=L.a;b=4;}
-    if(uLMode==1) k=0; else if(uPos[b]>=0) k=uAct[(uPos[b]+sh+(uLMode==0?1:0))%uCnt]; }
-  /* at the large sizes each letter is cut clear of the grain by a thin edge */
-  if(uHalo>=0.&&LS<=.5){ vec4 Q=textureLod(uC,uvx,uHalo); if(Q.r+Q.g+Q.b+Q.a>.2) k=uLMode==1?uAct[sh%uCnt]:0; }
-  vec3 col=uOut[k];
-  if(uTex==1){ ivec2 f=ivec2(px); float a=nz(f,2), b=nz(f/3,3); col*=1.+(a-.5)*.075+(b-.5)*.06; if(a>.9972) col=mix(col,vec3(.96,.94,.9),.8); }
-  else if(uTex==2){ float vv=abs(lc.x-.5)*2., y=lc.y-(.08+vv*.5); col*=.66+.46*smoothstep(.0,.3,y)*smoothstep(.68,.3,y)+.1*(nz(cell,2)-.5); }
-  o=vec4(col,1.);
-}`;
-function fxInit(){
-  if(FX.gl) return true;
-  const c=document.createElement("canvas"), gl=c.getContext("webgl2",{antialias:false,preserveDrawingBuffer:true,alpha:false});
-  if(!gl) return false;
-  const sh=(t,s)=>{ const x=gl.createShader(t); gl.shaderSource(x,s); gl.compileShader(x); if(!gl.getShaderParameter(x,gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(x)); return x; };
-  const prog=fs=>{ const p=gl.createProgram(); gl.attachShader(p,sh(gl.VERTEX_SHADER,VSF)); gl.attachShader(p,sh(gl.FRAGMENT_SHADER,fs)); gl.linkProgram(p);
-    if(!gl.getProgramParameter(p,gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p));
-    const U={}, n=gl.getProgramParameter(p,gl.ACTIVE_UNIFORMS); for(let i=0;i<n;i++){ const a=gl.getActiveUniform(p,i).name.replace("[0]",""); U[a]=gl.getUniformLocation(p,a); } return {p,U}; };
-  FX.P={cls:prog(FS_CLASS),down:prog(FS_DOWN),blur:prog(FS_BLUR),fx:prog(FS_FX)};
-  FX.vao=gl.createVertexArray(); FX.src=gl.createTexture();
-  /* noise with its low frequencies removed, then flattened to a uniform
-     histogram: speckle without the clumps of plain white noise. Fixed, so
-     the grain sits still while the colour moves through it */
-  const Z=256, r=rng(90127); let f=new Float32Array(Z*Z); for(let i=0;i<Z*Z;i++) f[i]=r();
-  for(let it=0;it<3;it++){ const q=new Float32Array(Z*Z);
-    for(let y=0;y<Z;y++) for(let x=0;x<Z;x++){ let a=0; for(let dy=-2;dy<=2;dy++) for(let dx=-2;dx<=2;dx++) a+=f[((y+dy+Z)%Z)*Z+(x+dx+Z)%Z]; q[y*Z+x]=f[y*Z+x]-a/25; } f=q; }
-  const ord=[...f.keys()].sort((a,b)=>f[a]-f[b]), N=new Uint8Array(Z*Z); ord.forEach((v,i)=>{ N[v]=Math.floor(i/(Z*Z)*256); });
-  FX.nz=gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D,FX.nz); gl.pixelStorei(gl.UNPACK_ALIGNMENT,1);
-  gl.texImage2D(gl.TEXTURE_2D,0,gl.R8,Z,Z,0,gl.RED,gl.UNSIGNED_BYTE,N);
-  for(const [k,v] of [[gl.TEXTURE_MIN_FILTER,gl.NEAREST],[gl.TEXTURE_MAG_FILTER,gl.NEAREST]]) gl.texParameteri(gl.TEXTURE_2D,k,v);
-  Object.assign(FX,{cv:c,gl}); return true;
-}
-function fxTarget(w,h,mip){ const gl=FX.gl, t=gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D,t);
-  gl.texStorage2D(gl.TEXTURE_2D,mip?1+Math.floor(Math.log2(Math.max(w,h))):1,gl.RGBA8,w,h);
-  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,mip?gl.LINEAR_MIPMAP_LINEAR:gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
-  const f=gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER,f); gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,t,0);
-  return {t,f,w,h}; }
-/* the guillotine cut, then each panel's crop of the sheet */
-function fxPanels(cnt){
-  const F=ST.fx, r=rng(F.seed*6151+7), minS=.16; let R=[[0,0,1,1]];
-  const asp=FORMATS[ST.format].h/FORMATS[ST.format].w;
-  for(let guard=0;R.length<F.panels&&guard<200;guard++){
-    let b=0, ba=-1; R.forEach((q,i)=>{ const a=(q[2]-q[0])*(q[3]-q[1])*(.55+.9*r()); if(a>ba){ ba=a; b=i; } });
-    const [x0,y0,x1,y1]=R[b], w=x1-x0, h=y1-y0, cut=.3+.4*r();
-    if(w>=h*asp){ if(w*cut<minS||w*(1-cut)<minS) continue; R.splice(b,1,[x0,y0,x0+w*cut,y1],[x0+w*cut,y0,x1,y1]); }
-    else { if(h*cut<minS||h*(1-cut)<minS) continue; R.splice(b,1,[x0,y0,x1,y0+h*cut],[x0,y0+h*cut,x1,y1]); } }
-  const pr=[], ps=[], pe=[];
-  R.forEach(([x0,y0,x1,y1],i)=>{
-    const one=R.length===1, roll=[0,0,2,1,3,0][Math.floor(r()*6)], rot=one||ST.big?0:roll, w=(x1-x0), h=(y1-y0)*asp;
-    const sw=rot%2?h:w, sh=(rot%2?w:h)/asp;       // the crop's size on the source, as fractions of width and height
-    const zMax=Math.min(1/sw,1/sh,1.6), zr=r(), z=one||ST.big?1:Math.min(zMax,.72+.9*zr), hw=sw*z/2, hh=sh*z/2;
-    const cx=one?.5:hw+(1-2*hw)*r(), cy=one?.5:hh+(1-2*hh)*r();
-    pr.push(x0,y0,x1,y1); ps.push(cx,cy,z,rot); pe.push(one||i===0?0:Math.floor(r()*Math.max(1,cnt)),one?.6:.35+.65*r()); });
-  return {n:R.length,pr,ps,pe};
-}
-function fxApply(){
-  if(!fxInit()) return false;
-  const gl=FX.gl, W=cv.width, H=cv.height, F=ST.fx, P=FX.P, R=RECIPES[ST.recipe];
-  if(FX.W!==W||FX.H!==H){ FX.W=W; FX.H=H; FX.cv.width=W; FX.cv.height=H;
-    for(const k of ["C","L0","L1","L2","T"]) if(FX[k]){ gl.deleteTexture(FX[k].t); gl.deleteFramebuffer(FX[k].f); }
-    const lw=Math.max(8,W>>3), lh=Math.max(8,H>>3); FX.C=fxTarget(W,H,true); for(const k of ["L0","L1","L2","T"]) FX[k]=fxTarget(lw,lh,false); }
-  gl.bindVertexArray(FX.vao); gl.disable(gl.BLEND); gl.disable(gl.DEPTH_TEST);
-  const quad=(tg,w,h)=>{ gl.bindFramebuffer(gl.FRAMEBUFFER,tg?tg.f:null); gl.viewport(0,0,w,h); gl.drawArrays(gl.TRIANGLES,0,3); };
-  const bind=(unit,t,loc)=>{ gl.activeTexture(gl.TEXTURE0+unit); gl.bindTexture(gl.TEXTURE_2D,t); gl.uniform1i(loc,unit); };
-  const inks=ST.inks.slice(0,5).map(hex3), use=[0,1,2,3,4].map(i=>i===0||R.inkRoles[i]!=="—"?1:0);
-  /* while separations are read off, the coverage is frozen after the composite:
-     Chrome rasterises letter edges slightly differently from one frame to the
-     next, and drums that disagree by a pixel would leave holes on the press */
-  if(!FX.keep){
-  /* 1 · the sheet as coverage of each drum */
-  gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D,FX.src); gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,false);
-  gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,cv);
-  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.NEAREST); gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.NEAREST);
-  gl.useProgram(P.cls.p); gl.uniform1i(P.cls.U.uS,0); gl.uniform3fv(P.cls.U.uInk,inks.flat()); gl.uniform1iv(P.cls.U.uUse,use);
-  quad(FX.C,W,H); gl.bindTexture(gl.TEXTURE_2D,FX.C.t); gl.generateMipmap(gl.TEXTURE_2D);
-  /* 2 · each drum blurred on its own, at two widths */
-  const lw=FX.L0.w, lh=FX.L0.h, sig=Math.max(.7,F.soft*W*.075/8);
-  gl.useProgram(P.down.p); bind(0,FX.C.t,P.down.U.uT); gl.uniform2f(P.down.U.uR,lw,lh); quad(FX.L0,lw,lh);
-  gl.useProgram(P.blur.p); gl.uniform2f(P.blur.U.uR,lw,lh);
-  for(const [out,s] of [[FX.L1,sig],[FX.L2,Math.min(26,sig*2.8)]]){ gl.uniform1f(P.blur.U.uSig,s);
-    bind(0,FX.L0.t,P.blur.U.uT); gl.uniform2f(P.blur.U.uD,1/lw,0); quad(FX.T,lw,lh);
-    bind(0,FX.T.t,P.blur.U.uT); gl.uniform2f(P.blur.U.uD,0,1/lh); quad(out,lw,lh); }
-  }
-  /* 3 · one ink per grain cell */
-  const act=[], pos=[-1,-1,-1,-1,-1]; for(let i=1;i<5;i++) if(use[i]){ pos[i]=act.length; act.push(i); }
-  const cnt=Math.max(1,act.length); while(act.length<4) act.push(act[0]||0);
-  const Pn=fxPanels(cnt), U=P.fx.U; gl.useProgram(P.fx.p);
-  const out=fxSep?ST.inks.slice(0,5).map(h=>h.toUpperCase()===fxSep?[0,0,0]:[1,1,1]):inks;
-  bind(0,FX.C.t,U.uC); bind(1,FX.L1.t,U.uL1); bind(2,FX.L2.t,U.uL2); bind(3,FX.nz,U.uN);
-  gl.uniform2f(U.uRes,W,H); gl.uniform3fv(U.uOut,out.flat()); gl.uniform1f(U.uG,Math.max(1,F.grain*K*Math.min(W/K,1080)/1080));
-  gl.uniform1f(U.uAir,F.air); gl.uniform1f(U.uRings,F.rings); gl.uniform1f(U.uLet,ST.big?1:F.letters); gl.uniform1f(U.uHalo,ST.big?Math.max(.5,Math.log2(2.6*(ST.big+1)*W/1080)):-1); gl.uniform1f(U.uFlow,F.flow); gl.uniform1f(U.uSeed,F.seed*1.37);
-  gl.uniform1i(U.uField,F.field==="contour"?1:0); gl.uniform1i(U.uLMode,{next:0,ground:1,own:2}[F.lmode]); gl.uniform1i(U.uTex,fxSep?0:{plain:0,paper:1,knit:2}[F.tex]);
-  gl.uniform1i(U.uCnt,cnt); gl.uniform1iv(U.uAct,act); gl.uniform1iv(U.uPos,pos); gl.uniform1i(U.uNP,Pn.n);
-  gl.uniform4fv(U.uPR,Pn.pr); gl.uniform4fv(U.uPS,Pn.ps); gl.uniform2fv(U.uPE,Pn.pe);
-  quad(null,W,H);
-  ctx.setTransform(1,0,0,1,0,0); ctx.globalCompositeOperation="source-over"; ctx.drawImage(FX.cv,0,0);
-  return true;
-}
-
 /* ---- letter size. Most structures take it from one scale; the ones whose
    letters are sized by their own density (rows, order, points) say what to
    thin out, level by level. A value the designer set on a slider still wins. ---- */
@@ -3505,8 +3337,7 @@ function drawFrame(t){
     ctx.setTransform(1,0,0,1,0,0); ctx.fillStyle=p; ctx.fillRect(0,0,cv.width,cv.height);
   }
   smear();
-  if(fxOn()&&fxApply()&&fxSep){ const s=ST.inks; ST.inks=s.map(h=>h.toUpperCase()===fxSep?"#000000":"#FFFFFF"); drawTitle(); ST.inks=s; }
-  else drawTitle();
+  drawTitle();
 }
 
 function fitBoard(){
@@ -3650,45 +3481,12 @@ bound.push(()=>{
     + (R.roles[R.roles.length-1].endsWith("←") && list.length>R.roles.length ? `<span><b>${list.slice(R.roles.length).join("")}</b></span>`:"");
 });
 
-/* ---- look ---- */
-const sFx=section("מראה",true,()=>(fxOn()?`גרעין · ${ST.fx.panels>1?ST.fx.panels+" פאנלים":"דף אחד"}`:"נקי")+(ST.big?` · אותיות ${ST.big>1?"ענק":"גדול"}`:""));
-const segF=document.createElement("div"); segF.className="seg"; segF.setAttribute("role","group"); segF.setAttribute("aria-label","מראה");
-segF.innerHTML=`<button type="button" data-f="0">נקי<small>אותיות ודיו</small></button><button type="button" data-f="1">גרעין<small>צבע שנמס בנקודות</small></button>`;
-sFx.appendChild(segF); segF.querySelectorAll("button").forEach(b=>b.onclick=()=>{ ST.fx.on=b.dataset.f==="1"; changed(); });
-sFx.appendChild(labeled("גודל אותיות"));
-const bigRow=document.createElement("div"); bigRow.className="chips"; sFx.appendChild(bigRow);
+/* ---- letter size ---- */
+const sBig=section("גודל אותיות",true,()=>["רגיל","גדול","ענק"][ST.big|0]);
+const bigRow=document.createElement("div"); bigRow.className="chips"; sBig.appendChild(bigRow);
 for(const [v,l,t] of [[0,"רגיל","הצפיפות המקורית של כל נוסחה"],[1,"גדול","פחות אותיות וגדולות יותר, נקראות בבירור"],[2,"ענק","האותיות הן הדף"]]){
   const b=document.createElement("button"); b.className="chip"; b.type="button"; b.textContent=l; b.title=t; b.dataset.v=v; b.onclick=()=>{ ST.big=v; changed(); }; bigRow.appendChild(b); }
 bound.push(()=>bigRow.querySelectorAll(".chip").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.v===(ST.big|0)))));
-const boxF=document.createElement("div"); sFx.appendChild(boxF);
-function fxChips(label,key,opts){ boxF.appendChild(labeled(label));
-  const row=document.createElement("div"); row.className="chips"; boxF.appendChild(row);
-  for(const [v,l,t] of opts){ const b=document.createElement("button"); b.className="chip"; b.type="button"; b.textContent=l; b.dataset.v=v; if(t) b.title=t; b.onclick=()=>{ ST.fx[key]=v; changed(); }; row.appendChild(b); }
-  bound.push(()=>row.querySelectorAll(".chip").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.v===String(ST.fx[key]))))); }
-function fxSlider(key,label,min,max,step,fmt){ const row=document.createElement("div"); row.className="r";
-  row.innerHTML=`<label for="fx_${key}">${label}</label><input type="range" id="fx_${key}" min="${min}" max="${max}" step="${step}"><span class="v mono"></span>`;
-  const el=row.querySelector("input"), vv=row.querySelector(".v");
-  el.oninput=()=>{ ST.fx[key]=parseFloat(el.value); vv.textContent=fmt(ST.fx[key]); fills(el); changed(); };
-  bound.push(()=>{ el.value=ST.fx[key]; vv.textContent=fmt(ST.fx[key]); fills(el); }); boxF.appendChild(row); return row; }
-fxChips("שדה הצבע","field",[["melt","נמס","כל דיו נפרשת מהמקום שבו האותיות שלה נמצאות, ונמסה לשכנות שלה בגרעין"],["contour","קווי גובה","פסים של דיו סביב המקומות הצפופים באותיות, כמו מפה טופוגרפית זוהרת"]]);
-fxSlider("soft","נמיסה",0,1,.01,v=>num(v));
-const rowRings=fxSlider("rings","פסים",1,12,.1,v=>num(v));
-fxSlider("air","רקע בשדה",0,1,.01,v=>num(v));
-fxSlider("flow","זרימה",0,1,.01,v=>num(v));
-fxSlider("grain","גודל גרעין",1,8,.1,v=>num(v));
-fxChips("מרקם","tex",[["paper","נייר"],["knit","סריגה","התפרים של צעיף"],["plain","חלק"]]);
-fxSlider("panels","פאנלים",1,16,1,v=>String(v));
-const bCut=document.createElement("button"); bCut.className="b"; bCut.type="button"; bCut.style.cssText="width:100%;margin-block-start:6px"; bCut.textContent="חיתוך אחר";
-bCut.onclick=()=>{ ST.fx.seed=ST.fx.seed%99+1; changed(); }; boxF.appendChild(bCut);
-fxChips("האותיות בתוך השדה","lmode",[["next","בדיו הבאה"],["ground","בצבע הרקע"],["own","בדיו שלהן"]]);
-fxSlider("letters","חדות אותיות",0,1,.01,v=>num(v));
-boxF.appendChild(labeled("דיואים חמים"));
-const hotRow=document.createElement("div"); hotRow.className="inksets"; boxF.appendChild(hotRow);
-for(const set of [["#000000","#FF48B0","#00838A","#FFB511","#765BA7"],["#000000","#F15060","#5EC8E5","#765BA7","#FF48B0"],["#62A8E5","#FF48B0","#FF6C2F","#D5E4C0","#F984CA"],["#D5E4C0","#765BA7","#FF6C2F","#67B346","#FFB511"]]){
-  const b=document.createElement("div"); b.className="inkset"; b.setAttribute("role","button"); b.tabIndex=0; b.title=set.map(inkName).join(" · ");
-  b.innerHTML=set.map(h=>`<i style="background:${h}"></i>`).join("");
-  b.onclick=()=>{ ST.inks=[...set,ST.inks[5]]; changed(); }; b.onkeydown=e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); b.click(); } }; hotRow.appendChild(b); }
-bound.push(()=>{ segF.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String((b.dataset.f==="1")===fxOn()))); boxF.style.display=fxOn()?"":"none"; rowRings.style.display=ST.fx.field==="contour"?"":"none"; });
 
 /* ---- 3D ---- */
 const CAM_HE={fixed:"מצלמה קבועה",orbit:"מקיפה",rock:"מתנדנדת"};
@@ -3720,7 +3518,7 @@ d3slider("pitch","הטיה",-30,85,1,v=>Math.round(v)+"°");
 d3slider("zoom","זום",.4,3,.01,v=>"×"+num(v));
 d3slider("ext","עובי אות",.02,1.2,.01,v=>num(v));
 d3slider("fog","ערפל עומק",0,1,.01,v=>num(v));
-const n3=document.createElement("div"); n3.className="note"; n3.textContent="גררו על הדף כדי לסובב את המצלמה. ייצוא SVG זמין רק במראה נקי בדו־ממד.";
+const n3=document.createElement("div"); n3.className="note"; n3.textContent="גררו על הדף כדי לסובב את המצלמה. ייצוא SVG והפרדות זמינים בדו־ממד בלבד.";
 box3.appendChild(n3);
 bound.push(()=>{ segD.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String((b.dataset.d==="1")===!!ST.d3.on))); box3.style.display=ST.d3.on?"":"none"; });
 /* drag on the sheet turns the camera */
@@ -3899,7 +3697,7 @@ function randomize(){
   ST.inks=(own&&Math.random()<.6?own.inks:pick(INKSETS)).slice();
   ST.scale=+(.75+Math.random()*.8).toFixed(2); ST.size=+(.85+Math.random()*.4).toFixed(2);
   ST.spacing=+(.9+Math.random()*.4).toFixed(2); ST.motion=pick(["drift","spin","cycle"]);
-  ST.smear=Math.random()<.35?1+((Math.random()*4)|0):0; ST.seed=1+((Math.random()*98)|0);
+  ST.smear=0; ST.seed=1+((Math.random()*98)|0);
   changed();
 }
 
@@ -4021,9 +3819,6 @@ function adopt(o){
     if(["box","halo","plain"].includes(T.style)) D.style=T.style;
     if(Number.isInteger(T.ink)&&T.ink>=0&&T.ink<6) D.ink=T.ink; }
   if([0,1,2].includes(o.big)) d.big=o.big;
-  if(o.fx&&typeof o.fx==="object"){ const T=o.fx, D=d.fx; if(typeof T.on==="boolean") D.on=T.on;
-    if(["melt","contour"].includes(T.field)) D.field=T.field; if(["next","ground","own"].includes(T.lmode)) D.lmode=T.lmode; if(["plain","paper","knit"].includes(T.tex)) D.tex=T.tex;
-    for(const [k,lo,hi] of [["soft",0,1],["grain",1,8],["panels",1,16],["seed",1,99],["letters",0,1],["air",0,1],["flow",0,1],["rings",1,12]]) if(typeof T[k]==="number"&&isFinite(T[k])) D[k]=Math.min(hi,Math.max(lo,T[k])); }
   if(o.d3&&typeof o.d3==="object"){ const T=o.d3, D=d.d3; D.on=!!T.on;
     if(["ink","chrome"].includes(T.mat)) D.mat=T.mat; if(["fixed","orbit","rock"].includes(T.cam)) D.cam=T.cam;
     for(const [k,lo,hi] of [["yaw",-360,360],["pitch",-30,85],["zoom",.4,3],["ext",.02,1.2],["fog",0,1]]) if(typeof T[k]==="number"&&isFinite(T[k])) D[k]=Math.min(hi,Math.max(lo,T[k])); }
@@ -4033,9 +3828,7 @@ $("b_load").onclick=()=>{
   try{ ST=adopt(JSON.parse($("e_json").value)); setFormat(ST.format); changed(); }
   catch(e){ $("b_load").textContent="JSON לא תקין"; setTimeout(()=>$("b_load").textContent="טען",1500); }
 };
-bound.push(()=>{ const a=$("b_svg"), b=$("b_seps");
-  a.disabled=is3()||fxOn(); a.title=a.disabled?"וקטור קיים רק למראה נקי בדו־ממד":"הדף כולו בקווי המתאר של חיים — נפתח באילוסטרייטור";
-  b.disabled=is3()&&!fxOn(); });
+bound.push(()=>{ const d=is3(); for(const id of ["b_svg","b_seps"]){ $(id).disabled=d; } });
 $("b_svg").onclick=()=>download(new Blob([sheetSVG()],{type:"image/svg+xml"}),`${fileBase()}-${stamp()}.svg`);
 $("b_seps").onclick=async()=>{
   const b=$("b_seps"); b.disabled=true; b.textContent="מפריד גלילים…";
@@ -4175,17 +3968,16 @@ async function separationsZip(sc){
   exporting=true;
   try{
     if(sc!==K){ K=sc; setupCanvases(); }
-    tileKey=""; drawFrame(clock); files.push({name:"00-composite.png",data:await bytesOf(cv)}); if(fxOn()) FX.keep=true;
+    tileKey=""; drawFrame(clock); files.push({name:"00-composite.png",data:await bytesOf(cv)});
     for(const [n,h] of drums.entries()){
       const H=h.toUpperCase(), map=x=>x.toUpperCase()===H?"#000000":"#FFFFFF";
-      /* in the grain look every pixel is already one ink: the drum is read off the composite pass */
-      if(fxOn()) fxSep=H; else ST.inks=save.map(map);
+      ST.inks=save.map(map);
       if(saveTitle) ST.title={...saveTitle};
       tileKey=""; drawFrame(clock);
       files.push({name:`${String(n+1).padStart(2,"0")}-${inkName(h).replace(/[^A-Za-z0-9]+/g,"-")}.png`,data:await bytesOf(cv)});
     }
   } finally {
-    fxSep=null; FX.keep=false; ST.inks=save; ST.title=saveTitle; if(K!==k0){ K=k0; setupCanvases(); } tileKey=""; still=""; exporting=false;
+    ST.inks=save; ST.title=saveTitle; if(K!==k0){ K=k0; setupCanvases(); } tileKey=""; still=""; exporting=false;
   }
   const lines=["RISOMITUS · Patterns — separations",
     `${RECIPES[ST.recipe].name} · ${letterList().join("")} · ${FORMATS[ST.format].w*sc}×${FORMATS[ST.format].h*sc}px`,
