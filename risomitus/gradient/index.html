@@ -872,7 +872,7 @@ global.RISOKIT = {
   <div class="head">
     <h1>פטרנים</h1>
     <p>פטרנים שבנויים כולם מאותיות חיים — כל קו, מסגרת ומילוי הוא אות</p>
-    <nav class="tabs" aria-label="Systems"><a href="../?v=bfb20f9">ריזו<small>מכונת דפוס</small></a><a href="./" aria-current="page">פטרנים<small>פטרנים מאותיות</small></a><a href="../objects/?v=bfb20f9">אובייקטים<small>מילים כחפצים</small></a></nav><div class="build" title="Build version">09.11 10:42 · bfb20f9</div>
+    <nav class="tabs" aria-label="Systems"><a href="../?v=cfd3823">ריזו<small>מכונת דפוס</small></a><a href="./" aria-current="page">פטרנים<small>פטרנים מאותיות</small></a><a href="../objects/?v=cfd3823">אובייקטים<small>מילים כחפצים</small></a></nav><div class="build" title="Build version">09.11 10:59 · cfd3823</div>
     <div class="seg" role="group" aria-label="פורמט">
       <button id="f_post" aria-pressed="true">פוסט<small>1080 × 1350</small></button>
       <button id="f_story" aria-pressed="false">סטורי<small>1080 × 1920</small></button>
@@ -927,6 +927,7 @@ const DEF = () => ({ format:"post", recipe:"quasi", letters:"ושמא",
   scale:1, size:1, spacing:1, motion:"spin", speed:1, smear:0, seed:7, fp:{},
   title:{text:"",size:1,pos:"center",style:"box",ink:1,track:.06},
   d3:{on:false,mat:"ink",cam:"orbit",yaw:-28,pitch:20,zoom:1,ext:.25,fog:.3},
+  big:0,
   fx:{on:true,field:"melt",soft:.62,grain:2.4,panels:5,seed:3,letters:.9,lmode:"next",tex:"paper",air:.2,flow:.5,rings:3} });
 let ST = DEF();
 
@@ -1152,7 +1153,7 @@ Object.assign(RECIPES,{
     inkRoles:["רקע","זרוע 1","זרוע 2","זרוע 3","זרוע 4","—"],
     look:{inks:["#000000","#FF48B0","#FFE800","#44D62C","#FF7477","#000000"],motion:"spin"},
     direct(g,X,W,H){
-      const {L,ink,n}=X, cx=W/2, cy=H/2, Rm=Math.hypot(W,H)/2+20, N=Math.round(1500/(X.G*X.G)/(ST.scale*ST.scale));
+      const {L,ink,n}=X, cx=W/2, cy=H/2, Rm=Math.hypot(W,H)/2+20, N=Math.round(1500/(X.G*X.G)/(ST.scale*ST.scale)/(X.bf*X.bf));
       const a=(X.p("alpha")+(X.mode==="spin"?.22*Math.sin(X.ph*TAU):0))*Math.PI/180, rot0=X.mode==="drift"?X.ph*TAU:0;
       const c=Rm/Math.sqrt(N), s=c*1.5*X.sz, arms=+X.p("arms");
       for(let k=1;k<=N;k++){ const th=k*a+rot0, r=c*Math.sqrt(k), x=cx+r*Math.cos(th), y=cy+r*Math.sin(th);
@@ -1215,7 +1216,7 @@ Object.assign(RECIPES,{
           if(mp.hole&&Math.hypot(x,y)<mp.hole) continue;
           if(mp.disc&&Math.hypot(x,y)>mp.disc) continue;
           const z=[x,y], w=F(z), d=Dv(z), s=p*.8*C.abs(d)*sc*X.sz;
-          if(!isFinite(s)||s<2||s>Math.min(W,H)*.45) continue;
+          if(!isFinite(s)||s<(X.bf>1?X.bf*12:2)||s>Math.min(W,H)*.45) continue;
           const px=cx+sc*(w[0]*cs-w[1]*sn), py=cy+sc*(w[0]*sn+w[1]*cs);
           if(px<-s||py<-s||px>W+s||py>H+s) continue;
           put(g,L(idx),px,py,s,ink(1+mod(r+cyc,X.nb)),C.arg(d)+spin); } }
@@ -1233,7 +1234,7 @@ Object.assign(RECIPES,{
       const cyc=X.mode==="cycle"?Math.floor(X.ph*X.nb):0;
       for(let k=0;k<N;k++){ const tk=TAU*k/N+rot;
         for(let j=Math.floor((uMin-shift)/du)-1;j<=Math.ceil((uMax-shift)/du)+1;j++){
-          const uu=j*du+shift, r=Math.exp(uu), s=r*sig; if(s<1.4) continue;
+          const uu=j*du+shift, r=Math.exp(uu), s=r*sig; if(s<(X.bf>1?X.bf*10:1.4)) continue;
           const idx=mod(-j,per); if(idx===n) continue;
           const th=uu/b+tk, ct=Math.cos(th), st=Math.sin(th), x=cx+r*ct, y=cy+r*st;
           if(x<-s||y<-s||x>W+s||y>H+s) continue;
@@ -1254,10 +1255,10 @@ Object.assign(RECIPES,{
         const ring=byDepth?1+mod(depth+cyc,3):1;
         for(let k=-1;k<p;k++){
           const z=k<0?[0,0]:[rl*Math.cos(k*TAU/p),rl*Math.sin(k*TAU/p)], w=mob(M,z), d=mobD(M,z), s=base*C.abs(d)*(k<0?.55:.42);
-          if(s<1.3) continue;
+          if(s<(X.bf>1?X.bf*9:1.3)) continue;
           const x=cx+R*(w[0]*cs-w[1]*sn), y=cy+R*(w[0]*sn+w[1]*cs);
           put(g,L(k<0?0:1),x,y,s,ink(k<0?4:ring),C.arg(d)+spin+(k<0?0:k*TAU/p+Math.PI/2)); } }
-      const nb=Math.round(TAU*R/(base*.16)); for(let k=0;k<nb;k++){ const a=k*TAU/nb; put(g,L(0),cx+R*1.01*Math.cos(a),cy+R*1.01*Math.sin(a),base*.1,ink(4),a+Math.PI/2); }
+      const nb=X.bf>1?0:Math.round(TAU*R/(base*.16)); for(let k=0;k<nb;k++){ const a=k*TAU/nb; put(g,L(0),cx+R*1.01*Math.cos(a),cy+R*1.01*Math.sin(a),base*.1,ink(4),a+Math.PI/2); }
     }},
   turing:{ name:"טיורינג", group:"formula", word:true, letters:"חי", drift:[0,0],
     formula:p=>`∂v/∂t = 0.08·∇²v + u·v² − (${(+p("F")).toFixed(4)} + ${(+p("K")).toFixed(4)})·v`,
@@ -1365,7 +1366,7 @@ Object.assign(RECIPES,{
              spends a whole word's worth of small ones, which would make every
              drum the same whenever that count is a multiple of the ink count */
           const c2=L((k++)%n), s=pitch*.92, ii=lv===1?1+mod((j1++)+(X.mode==="cycle"?Math.floor(X.ph*X.nb):0),X.nb):inkI;
-          if(lv===depth) put(g,c2,ox+x,oy+y,s,ink(ii),lv>1?rot:0); else level(c2,ox+x,oy+y,s,lv+1,ii); } };
+          if(lv===depth) put(g,c2,ox+x,oy+y,s,ink(ii),lv>1||X.bf>1?rot:0); else level(c2,ox+x,oy+y,s,lv+1,ii); } };
       let i=0;
       for(let y=P0*.62;y<H+P0*.4;y+=P0*1.06) for(let x=W-P0*.52;x>-P0*.4;x-=P0*1.02) level(L(i++%n),x,y,P0,1,1);
     }}
@@ -2055,7 +2056,7 @@ Object.assign(RECIPES,{
         const pitch=sz/(lv===1?9:8.5)/fill, m=glyphMask(ch,sz,sz), ox=cx-sz/2, oy=cy-sz/2;
         for(let y=pitch/2;y<sz;y+=pitch) for(let x=pitch/2;x<sz;x+=pitch){ if(!m(x,y)) continue;
           const ii=lv===1?1+mod((q++)+cyc,X.nb):inkI, s=pitch*.92;
-          if(lv===depth) put(g,ch,ox+x,oy+y,s,ink(ii),lv>1?(ii%2?1:-1)*rot:0); else level(ox+x,oy+y,s,lv+1,ii); } };
+          if(lv===depth) put(g,ch,ox+x,oy+y,s,ink(ii),lv>1||X.bf>1?(ii%2?1:-1)*rot:0); else level(ox+x,oy+y,s,lv+1,ii); } };
       if(+X.p("bg")){ const m=glyphMask(ch,size,size), pt=size/9/fill*.5, ox=W/2-size/2, oy=H/2-size/2;
         for(let y=pt/2;y<H;y+=pt) for(let x=pt/2;x<W;x+=pt) if(!m(x-ox,y-oy)) put(g,ch,x,y,pt*.3,ink(1+mod(2+cyc,X.nb)),rot); }
       level(W/2,H/2,size,1,1);
@@ -2152,7 +2153,7 @@ Object.assign(RECIPES,{
         const idx=mod(-k,per); if(idx===n) continue;
         const kk=k+sh, mag=Math.exp(kk*a), th=kk*b+TAU*j/m+rot, w=[mag*Math.cos(th),mag*Math.sin(th)];
         const om=[1-w[0],-w[1]], z=C.div([1+w[0],w[1]],om), dz=C.div([2,0],C.mul(om,om)), dk=C.mul(dz,C.mul(w,[a,b]));
-        const cap=Math.min(W,H)*.075*X.sz; let s=C.abs(dk)*U*X.p("sig")*.8*X.sz; if(!(s>1.5)||s>cap*2.2) continue; s=Math.min(s,cap);
+        const cap=Math.min(W,H)*.075*X.sz; let s=C.abs(dk)*U*X.p("sig")*.8*X.sz; if(!(s>(X.bf>1?X.bf*9:1.5))||s>cap*2.2) continue; s=Math.min(s,cap);
         const x=cx+U*z[0], y=cy+U*z[1]; if(offSheet(x,y,s,W,H)) continue;
         put(g,L(idx),x,y,s,ink(1+mod(Math.floor(k/per)+cyc,X.nb)),C.arg(dk)); }
     }},
@@ -2273,8 +2274,8 @@ Object.assign(RECIPES,{
       for(const q of Q){ const x=q.x*rc-q.y*rs, y=q.x*rs+q.y*rc; if(x<x0)x0=x; if(x>x1)x1=x; if(y<y0)y0=y; if(y>y1)y1=y; }
       const k=Math.min(W*.9/Math.max(1,x1-x0),H*.9/Math.max(1,y1-y0)), ox=W/2-(x0+x1)/2*k, oy=H/2-(y0+y1)/2*k;
       for(const q of Q){ const x=q.x*rc-q.y*rs, y=q.x*rs+q.y*rc; q.x=x; q.y=y; if(q.px!==undefined){ const px=q.px*rc-q.py*rs, py=q.px*rs+q.py*rc; q.px=px; q.py=py; } q.ang+=rot; }
-      const s=Math.min(k*.95,9*S)*X.sz;
-      for(const [v,q] of node){ if(v===1) continue;
+      const stp=Math.round(X.bf), s=Math.min(k*.95*stp,9*S)*X.sz;
+      for(const [v,q] of node){ if(v===1||q.d%stp) continue;
         put(g,L(mod(q.d,n)),ox+(q.x+q.px)/2*k,oy+(q.y+q.py)/2*k,s,ink(bandOf(Math.min(.999,q.d/maxd),X,2)),q.ang); }
     }},
   voronoi:{ name:"וורונוי", group:"single", letters:"ת", roles:["האות"], drift:[0,0],
@@ -2539,7 +2540,7 @@ def3("bessel",{
   f3:p=>`r(θ,φ) = 1 + ${(+p("amp")).toFixed(2)}·Y${sub(p("l"))}^${p("m")}(θ, φ)·cos ωt     Y = P${sub(p("l"))}^${p("m")}(cos θ)·cos(${p("m")}φ)`,
   h3:"התוף הופך לכדור: ההרמוניות הכדוריות, האופנים שבהם כדור רוטט — וגם צורת האורביטלים באטום. האותיות גדולות על קווי הצומת, והכדור עצמו מתנפח ושוקע לפי הערך",
   params3:[{k:"l",l:"דרגה l",min:1,max:12,step:1,d:6},{k:"m",l:"סדר m",min:0,max:12,step:1,d:3},{k:"amp",l:"עיוות",min:0,max:.6,step:.01,d:.24},{k:"eps",l:"עובי קו",min:.04,max:.4,step:.01,d:.14}],
-  d3(E,X){ const {L,ink}=X, l=X.p("l"), m=Math.min(X.p("m"),l), mx=ylmNorm(l,m), N=1600, eps=X.p("eps"), amp=X.p("amp"), cyc=cycOf(X);
+  d3(E,X){ const {L,ink}=X, l=X.p("l"), m=Math.min(X.p("m"),l), mx=ylmNorm(l,m), N=Math.round(1600/(X.bf*X.bf)), eps=X.p("eps"), amp=X.p("amp"), cyc=cycOf(X);
     const rot=X.mode==="spin"&&m>0?X.ph*TAU/m:0, vib=X.mode==="drift"||(X.mode==="spin"&&m===0)?Math.cos(X.ph*TAU):1, s0=Math.sqrt(4*Math.PI/N)*.62;
     const I=k=>ink(1+mod(k-1+cyc,3));
     for(let i=0;i<N;i++){ const d=fibSphere(N,i), th=Math.acos(d[1]), ph=Math.atan2(d[2],d[0]), v=Ylm(l,m,th,ph-rot)/mx, w=v*vib;
@@ -2555,7 +2556,7 @@ def3("hyper",{
     const {tiles,D}=hypTiles(p,q), top=X.p("top"), rmax=Math.sqrt(top*top-1), sc=1.75/Math.max(2*rmax,top-1), cyc=cycOf(X);
     const spin=X.mode==="spin"?X.ph*TAU/p:X.mode==="drift"?X.ph*TAU:0, rl=Math.tanh(D/4*.62);
     const lift=z=>{ const r2=z[0]*z[0]+z[1]*z[1], k=1/(1-r2); return [2*z[0]*k*sc,((1+r2)*k-1-(top-1)/2)*sc,2*z[1]*k*sc]; };
-    const s0=sc*.42*X.sz;
+    const s0=sc*.42*X.sz*(1+.45*(X.bf-1));
     for(const {M,depth} of tiles){ const ring=1+mod(depth+cyc,3);
       for(let k=-1-p;k<p;k++){ const inner=k<-1, a0=(inner?k+.5:k)*TAU/p+spin, z0=k===-1?[0,0]:[(inner?rl*.5:rl)*Math.cos(a0),(inner?rl*.5:rl)*Math.sin(a0)];
         const w=mob(M,z0), r2=w[0]*w[0]+w[1]*w[1]; if((1+r2)/(1-r2)>top) continue;
@@ -2771,18 +2772,19 @@ def3("turing",{
   heavy3:true,
   d3(E,X){ const {L,ink,all}=X, gw=120, gh=60, fld=grayScott(all.join(""),X.p("F"),X.p("K"),X.p("steps"),gw,gh), cyc=cycOf(X);
     const R=.62, r=.3, rot=X.mode==="spin"||X.mode==="drift"?X.ph*TAU:0, flow=X.mode==="drift"?X.ph:0;
-    for(let j=0;j<gh;j++) for(let i=0;i<gw;i++){ const v=fld.v[j*gw+i]; if(v<.08) continue;
+    const st=Math.round(X.bf);
+    for(let j=0;j<gh;j+=st) for(let i=0;i<gw;i+=st){ const v=fld.v[j*gw+i]; if(v<.08) continue;
       const u=(i/gw+flow)*TAU, w=j/gh*TAU, nrm=[Math.cos(w)*Math.cos(u+rot),Math.sin(w),Math.cos(w)*Math.sin(u+rot)];
       const P=[(R+r*Math.cos(w))*Math.cos(u+rot),r*Math.sin(w),(R+r*Math.cos(w))*Math.sin(u+rot)], t=[-Math.sin(u+rot),0,Math.cos(u+rot)];
       const b=bandOf(Math.min(.999,v/.42),X,1), [rr,uu]=frame3(nrm,t);
-      E.add(L(b-1),P,TAU*(R+r*Math.cos(w))/gw*Math.min(1.6,.6+2.6*v)*X.sz,ink(b),rr,uu); } }});
+      E.add(L(b-1),P,st*TAU*(R+r*Math.cos(w))/gw*Math.min(1.6,.6+2.6*v)*X.sz,ink(b),rr,uu); } }});
 RECIPES.turing.params3=RECIPES.turing.params;
 
 def3("riley",{
   f3:p=>`P(i, y) = (i·w,  y,  ${(+p("A")).toFixed(2)}·sin(2π·k·(y/H)·(1 + g·y/H) + i·δ + φ))     וילון`,
   h3:"האופ־ארט של ריילי כווילון: העמודות לא זזות הצידה אלא לעומק, והגל מקפל את הדף כמו בד. מהזווית הנכונה העין עדיין רואה את הרטט — ומזווית אחרת את הקפלים",
   params3:[{k:"A",l:"עומק A",min:0,max:.5,step:.01,d:.22},{k:"k",l:"תדר k",min:.5,max:8,step:.05,d:2.4},{k:"grow",l:"האצה",min:0,max:5,step:.05,d:2},{k:"dph",l:"היסט פאזה",min:0,max:.6,step:.005,d:.12}],
-  d3(E,X){ const {L,ink}=X, A=X.p("A"), k=X.p("k")*TAU, gr=X.p("grow"), dph=X.p("dph"), cols=34, w=1.7/cols, step=w*.9, cyc=cycOf(X);
+  d3(E,X){ const {L,ink}=X, A=X.p("A"), k=X.p("k")*TAU, gr=X.p("grow"), dph=X.p("dph"), cols=Math.round(34/X.bf), w=1.7/cols, step=w*.9, cyc=cycOf(X);
     for(let i=0;i<cols;i++){ const phi=X.mode==="spin"?X.ph*TAU:X.mode==="drift"?(i%2?1:-1)*X.ph*TAU:0;
       for(let y=-1.05;y<1.05;y+=step){ const yy=(y+1.05)/2.1, a=k*yy*(1+gr*yy)+i*dph+phi, z=A*Math.sin(a), dz=A*Math.cos(a)*k*(1+2*gr*yy)/2.1;
         const P=[-.85+(i+.5)*w,y,z], T=V3.norm([0,1,dz]), nrm=V3.cross([1,0,0],T), [r,u]=frame3(nrm,[1,0,0]);
@@ -2794,7 +2796,7 @@ def3("interference",{
   params3:[{k:"N",l:"מקורות",min:1,max:6,step:1,d:2},{k:"k",l:"תדר k",min:4,max:30,step:.5,d:14},{k:"rho",l:"מרחק",min:0,max:.7,step:.01,d:.35},{k:"thr",l:"סף",min:.2,max:.9,step:.01,d:.55}],
   d3(E,X){ const {L,ink}=X, Ns=X.p("N"), k=X.p("k"), rho=X.p("rho"), thr=X.p("thr"), wt=X.mode==="spin"?X.ph*TAU:0, rot=X.mode==="drift"?X.ph*TAU/Math.max(1,Ns):0, cyc=cycOf(X);
     const S=[]; for(let i=0;i<Ns;i++){ const a=i*TAU/Ns+rot; S.push(Ns===1?[0,0,0]:[rho*Math.cos(a),0,rho*Math.sin(a)]); }
-    const N=26, h=2/N;
+    const N=Math.round(26/X.bf), h=2/N;
     for(let i=0;i<N;i++) for(let j=0;j<N;j++) for(let q=0;q<N;q++){ const P=[-1+(i+.5)*h,-1+(j+.5)*h,-1+(q+.5)*h]; if(V3.len(P)>1) continue;
       let f=0, g=[0,0,0]; for(const s of S){ const d=V3.sub(P,s), r=V3.len(d)||1e-6, a=k*r-wt; f+=Math.cos(a); g=V3.add(g,V3.mul(d,-Math.sin(a)*k/r)); }
       f/=Ns; if(f<thr) continue; const [r,u]=frame3(g,[0,1,0]), b=bandOf(Math.min(.999,V3.len(P)),X,1);
@@ -2871,7 +2873,7 @@ RECIPES.droste.d3=function(E,X){
   const s0=a*TAU/V*.8*sc, dth=1.25*s0/(sc*Math.hypot(1,b));
   for(let k=0;k<V;k++){ const v=k*TAU/V, col=X.ink(1+mod(k+cyc,X.nb));
     for(let j=Math.floor(t0/dth)-per;j*dth<=0;j++){ const idx=mod(-j,per); if(idx===n) continue; const th=(j+du*per)*dth; if(th<t0||th>0) continue;
-      const r=Math.exp(b*th), s=Math.min(.08,s0*r)*X.sz; if(s<.004) continue;
+      const r=Math.exp(b*th), s=Math.min(.08*X.bf,s0*r*X.bf)*X.sz; if(s<(X.bf>1?.03:.004)) continue;
       const p=P(th,v), T=V3.norm(V3.sub(P(th+.01,v),p)), [rr,uu]=frame3(V3.sub(p,P(th,v+Math.PI)),T); E.add(X.L(idx),p,s,col,rr,uu); } } };
 
 def3("loxodrome",{
@@ -2896,7 +2898,8 @@ def3("fractal",{
       for(let y=pitch/2;y<240;y+=pitch) for(let x=pitch/2;x<240;x+=pitch){ if(!m(x,y)) continue;
         const ii=1+mod((q++)+cyc,X.nb), mc=V3.add(c,V3.add(V3.mul(r,(x/240-.5)*big),V3.mul(u,-(y/240-.5)*big))), ms=big/8.5/fill, c2=L((q+k)%n), m2=glyphMask(c2,60,60), p2=60/6.2/fill;
         for(let y2=p2/2;y2<60;y2+=p2) for(let x2=p2/2;x2<60;x2+=p2){ if(!m2(x2,y2)) continue;
-          E.add(L((x2+y2|0)%n),V3.add(mc,V3.add(V3.mul(r,(x2/60-.5)*ms),V3.mul(u,-(y2/60-.5)*ms))),ms/6.2/fill*.95,ink(ii),r,u); } } } }});
+          if(X.bf<=1) E.add(L((x2+y2|0)%n),V3.add(mc,V3.add(V3.mul(r,(x2/60-.5)*ms),V3.mul(u,-(y2/60-.5)*ms))),ms/6.2/fill*.95,ink(ii),r,u); }
+        if(X.bf>1) E.add(c2,mc,ms*.95,ink(ii),r,u); } } }});
 
 def3("penrose",{
   f3:p=>`P = Σⱼ ⌈x·eⱼ + γⱼ⌉·eⱼ     גובה = Σⱼ ⌈x·eⱼ + γⱼ⌉·eⱼ⊥     eⱼ⊥ = (cos 4πj/5, sin 4πj/5)`,
@@ -3003,8 +3006,8 @@ def3("collatz",{
         if(w%2){ const Lf=V3.cross(U,H); H=rotA(H,Lf,-b); U=rotA(U,Lf,-b); } else { H=rotA(H,U,a); }
         const q={p:V3.add(par.p,H),H,U,d:par.d+1,pp:par.p}; node.set(w,q); if(q.d>maxd) maxd=q.d; } }
     let lo=[1e9,1e9,1e9], hi=[-1e9,-1e9,-1e9]; for(const q of node.values()) for(let i=0;i<3;i++){ lo[i]=Math.min(lo[i],q.p[i]); hi[i]=Math.max(hi[i],q.p[i]); }
-    const c=lo.map((v,i)=>(v+hi[i])/2), k=1.75/Math.max(hi[0]-lo[0],hi[1]-lo[1],hi[2]-lo[2]), rot=X.mode==="drift"?X.ph*TAU:0, s=Math.min(6*X.w,k*.95)*X.sz;
-    for(const [v,q] of node){ if(v===1) continue; const P=V3.rotY(V3.mul(V3.sub(V3.mul(V3.add(q.p,q.pp),.5),c),k),rot);
+    const c=lo.map((v,i)=>(v+hi[i])/2), k=1.75/Math.max(hi[0]-lo[0],hi[1]-lo[1],hi[2]-lo[2]), rot=X.mode==="drift"?X.ph*TAU:0, stp=Math.round(X.bf), s=Math.min(6*X.w,k*.95*stp)*X.sz;
+    for(const [v,q] of node){ if(v===1||q.d%stp) continue; const P=V3.rotY(V3.mul(V3.sub(V3.mul(V3.add(q.p,q.pp),.5),c),k),rot);
       E.cam(L(mod(q.d,n)),P,s,ink(bandOf(Math.min(.999,q.d/maxd),X,2)),V3.rotY(q.H,rot)); } }});
 
 /* ---- chaos ---- */
@@ -3012,7 +3015,7 @@ def3("attractor",{
   f3:p=>`xₙ₊₁ = sin(${p("a")}yₙ) − zₙcos(${p("b")}xₙ)   yₙ₊₁ = zₙsin(${p("c")}xₙ) − cos(${p("d")}yₙ)   zₙ₊₁ = sin xₙ`,
   h3:"האטרקטור של פיקובר — הדוד התלת־ממדי של קליפורד: נקודה שקופצת בשלושה צירים, ובמקום צבע על דף נוצר ענן. האותיות יושבות בתאים שבהם היא ביקרה הרבה, ופונות לכיוון הזרימה",
   params3:[{k:"a",l:"a",min:-3,max:3,step:.01,d:2.24},{k:"b",l:"b",min:-3,max:3,step:.01,d:.43},{k:"c",l:"c",min:-3,max:3,step:.01,d:-.65},{k:"d",l:"d",min:-3,max:3,step:.01,d:-2.43}],
-  d3(E,X){ const {L,ink}=X, w=X.mode==="spin"?X.ph*TAU:0, a=X.p("a")+.05*Math.sin(w), b=X.p("b")+.05*Math.cos(w), c=X.p("c"), d=X.p("d"), G=26;
+  d3(E,X){ const {L,ink}=X, w=X.mode==="spin"?X.ph*TAU:0, a=X.p("a")+.05*Math.sin(w), b=X.p("b")+.05*Math.cos(w), c=X.p("c"), d=X.p("d"), G=Math.round(26/X.bf);
     const cnt=new Float32Array(G*G*G), vel=new Float32Array(G*G*G*3); let x=.1, y=.1, z=.1;
     for(let i=0;i<200000;i++){ const nx=Math.sin(a*y)-z*Math.cos(b*x), ny=z*Math.sin(c*x)-Math.cos(d*y), nz=Math.sin(x);
       if(i>50){ const gi=Math.floor((nx+2.2)/4.4*G), gj=Math.floor((nz+1.1)/2.2*G), gk=Math.floor((ny+2.2)/4.4*G);
@@ -3086,7 +3089,7 @@ def3("halftone",{
   f3:p=>`s(P) ∝ ½ + ½·${({bands:"sin(k·y − φ)",spiral:"sin(k·φ_lat + 5λ − φ)",dots:"sin(kx)·sin(ky)·sin(kz)",gyroid:"(sin kx cos ky + sin ky cos kz + sin kz cos kx)/1.5"})[p("f")]}     על כדור`,
   h3:"רסטר על כדור: רשת אחידה של אותה אות על פני הכדור, וגודל כל אות הוא ערך של פונקציה במרחב — פסים, ספירלה, נקודות, או הג'ירואיד, המשטח המינימלי שמופיע בכנפי פרפרים",
   params3:[{k:"f",l:"פונקציה",o:[["bands","פסים"],["spiral","ספירלה"],["dots","נקודות"],["gyroid","ג'ירואיד"]],d:"spiral"},{k:"k",l:"תדר k",min:1,max:16,step:.1,d:7},{k:"pts",l:"נקודות",min:600,max:4000,step:50,d:2600}],
-  d3(E,X){ const {L,ink}=X, f=X.p("f"), k=X.p("k"), N=X.p("pts"), phi=X.mode==="spin"?X.ph*TAU:0, rot=X.mode==="drift"?X.ph*TAU:0, s0=Math.sqrt(4*Math.PI/N)*.7;
+  d3(E,X){ const {L,ink}=X, f=X.p("f"), k=X.p("k"), N=X.p("pts"), phi=X.mode==="spin"?X.ph*TAU:0, rot=X.mode==="drift"?X.ph*TAU:0, s0=Math.sqrt(4*Math.PI/N)*.7*Math.sqrt(X.bf);
     for(let i=0;i<N;i++){ const d=fibSphere(N,i), [x,y,z]=d, lat=Math.asin(y), lon=Math.atan2(z,x);
       const v=f==="bands"?Math.sin(k*y*2-phi):f==="spiral"?Math.sin(k*lat+5*lon-phi):f==="dots"?Math.sin(k*x-phi)*Math.sin(k*y)*Math.sin(k*z)*2.2:(Math.sin(k*x-phi)*Math.cos(k*y)+Math.sin(k*y)*Math.cos(k*z)+Math.sin(k*z)*Math.cos(k*x))/1.5;
       const w=Math.max(-1,Math.min(1,v)), [e,no]=sphFrame(d), b=bandOf(Math.min(.999,(1-w)/2),X,1);
@@ -3221,7 +3224,7 @@ void main(){ vec2 uv=gl_FragCoord.xy/uR; vec4 s=vec4(0.); float w=0.; int r=int(
 const FS_FX=`#version 300 es
 precision highp float; precision highp int; out vec4 o;
 uniform sampler2D uC, uL1, uL2, uN; uniform vec2 uRes; uniform vec3 uOut[5];
-uniform float uG, uAir, uRings, uLet, uFlow, uSeed; uniform int uField, uLMode, uTex, uCnt, uAct[4], uPos[5], uNP;
+uniform float uG, uAir, uRings, uLet, uFlow, uSeed, uHalo; uniform int uField, uLMode, uTex, uCnt, uAct[4], uPos[5], uNP;
 uniform vec4 uPR[16], uPS[16]; uniform vec2 uPE[16];
 float nz(ivec2 p,int k){ return texelFetch(uN,ivec2((p.x+k*83)&255,(p.y+k*47)&255),0).r; }
 int panel(vec2 q){ for(int i=0;i<uNP;i++) if(q.x>=uPR[i].x&&q.y>=uPR[i].y&&q.x<uPR[i].z&&q.y<uPR[i].w) return i; return 0; }
@@ -3256,6 +3259,8 @@ void main(){
   float lod=max(0.,log2(uPS[pi].z)); vec4 L=textureLod(uC,uvx,lod); float LS=L.r+L.g+L.b+L.a;
   if(LS>.5&&n1<uLet){ int b=1; float bm=L.r; if(L.g>bm){bm=L.g;b=2;} if(L.b>bm){bm=L.b;b=3;} if(L.a>bm){bm=L.a;b=4;}
     if(uLMode==1) k=0; else if(uPos[b]>=0) k=uAct[(uPos[b]+sh+(uLMode==0?1:0))%uCnt]; }
+  /* at the large sizes each letter is cut clear of the grain by a thin edge */
+  if(uHalo>=0.&&LS<=.5){ vec4 Q=textureLod(uC,uvx,uHalo); if(Q.r+Q.g+Q.b+Q.a>.2) k=uLMode==1?uAct[sh%uCnt]:0; }
   vec3 col=uOut[k];
   if(uTex==1){ ivec2 f=ivec2(px); float a=nz(f,2), b=nz(f/3,3); col*=1.+(a-.5)*.075+(b-.5)*.06; if(a>.9972) col=mix(col,vec3(.96,.94,.9),.8); }
   else if(uTex==2){ float vv=abs(lc.x-.5)*2., y=lc.y-(.08+vv*.5); col*=.66+.46*smoothstep(.0,.3,y)*smoothstep(.68,.3,y)+.1*(nz(cell,2)-.5); }
@@ -3300,9 +3305,9 @@ function fxPanels(cnt){
     else { if(h*cut<minS||h*(1-cut)<minS) continue; R.splice(b,1,[x0,y0,x1,y0+h*cut],[x0,y0+h*cut,x1,y1]); } }
   const pr=[], ps=[], pe=[];
   R.forEach(([x0,y0,x1,y1],i)=>{
-    const one=R.length===1, rot=one?0:[0,0,2,1,3,0][Math.floor(r()*6)], w=(x1-x0), h=(y1-y0)*asp;
+    const one=R.length===1, roll=[0,0,2,1,3,0][Math.floor(r()*6)], rot=one||ST.big?0:roll, w=(x1-x0), h=(y1-y0)*asp;
     const sw=rot%2?h:w, sh=(rot%2?w:h)/asp;       // the crop's size on the source, as fractions of width and height
-    const zMax=Math.min(1/sw,1/sh,1.6), z=one?1:Math.min(zMax,.72+.9*r()), hw=sw*z/2, hh=sh*z/2;
+    const zMax=Math.min(1/sw,1/sh,1.6), zr=r(), z=one||ST.big?1:Math.min(zMax,.72+.9*zr), hw=sw*z/2, hh=sh*z/2;
     const cx=one?.5:hw+(1-2*hw)*r(), cy=one?.5:hh+(1-2*hh)*r();
     pr.push(x0,y0,x1,y1); ps.push(cx,cy,z,rot); pe.push(one||i===0?0:Math.floor(r()*Math.max(1,cnt)),one?.6:.35+.65*r()); });
   return {n:R.length,pr,ps,pe};
@@ -3342,7 +3347,7 @@ function fxApply(){
   const out=fxSep?ST.inks.slice(0,5).map(h=>h.toUpperCase()===fxSep?[0,0,0]:[1,1,1]):inks;
   bind(0,FX.C.t,U.uC); bind(1,FX.L1.t,U.uL1); bind(2,FX.L2.t,U.uL2); bind(3,FX.nz,U.uN);
   gl.uniform2f(U.uRes,W,H); gl.uniform3fv(U.uOut,out.flat()); gl.uniform1f(U.uG,Math.max(1,F.grain*K*Math.min(W/K,1080)/1080));
-  gl.uniform1f(U.uAir,F.air); gl.uniform1f(U.uRings,F.rings); gl.uniform1f(U.uLet,F.letters); gl.uniform1f(U.uFlow,F.flow); gl.uniform1f(U.uSeed,F.seed*1.37);
+  gl.uniform1f(U.uAir,F.air); gl.uniform1f(U.uRings,F.rings); gl.uniform1f(U.uLet,ST.big?1:F.letters); gl.uniform1f(U.uHalo,ST.big?Math.max(.5,Math.log2(2.6*(ST.big+1)*W/1080)):-1); gl.uniform1f(U.uFlow,F.flow); gl.uniform1f(U.uSeed,F.seed*1.37);
   gl.uniform1i(U.uField,F.field==="contour"?1:0); gl.uniform1i(U.uLMode,{next:0,ground:1,own:2}[F.lmode]); gl.uniform1i(U.uTex,fxSep?0:{plain:0,paper:1,knit:2}[F.tex]);
   gl.uniform1i(U.uCnt,cnt); gl.uniform1iv(U.uAct,act); gl.uniform1iv(U.uPos,pos); gl.uniform1i(U.uNP,Pn.n);
   gl.uniform4fv(U.uPR,Pn.pr); gl.uniform4fv(U.uPS,Pn.ps); gl.uniform2fv(U.uPE,Pn.pe);
@@ -3350,6 +3355,26 @@ function fxApply(){
   ctx.setTransform(1,0,0,1,0,0); ctx.globalCompositeOperation="source-over"; ctx.drawImage(FX.cv,0,0);
   return true;
 }
+
+/* ---- letter size. Most structures take it from one scale; the ones whose
+   letters are sized by their own density (rows, order, points) say what to
+   thin out, level by level. A value the designer set on a slider still wins. ---- */
+const BIG_S=[1,1.8,2.9];
+const BIG={
+  conformal:{p:{pitch:[.22,.3],zoom:[1.5,2.2]},p3:{res:[26,20]}}, droste:{p:{sig:[.18,.22],arms:[6,4]},p3:{whorls:[6,4]}},
+  hyper:{p:{p:[5,4],q:[4,5]},p3:{p:[5,4],q:[4,5]}}, fractal:{p:{depth:[1,1],fill:[1,.75]},p3:{ring:[3,2],fill:[.8,.6]}},
+  spiro:{s:[2,3.4],s3:[2,3.4],p:{layers:[2,1]},p3:{layers:[2,1]}}, lissa:{s:[2,3.4],p:{cols:[4,3]}}, fourier:{s3:[2,3.4],p:{rows:[9,5]},p3:{rows:[9,6]}},
+  epicycle:{s:[2.2,3.6],s3:[2.2,3.6],p:{cols:[2,2],max:[48,32]},p3:{layers:[6,4],max:[48,32]}}, rose:{s:[2.4,4.2],s3:[2.4,4.2],p:{pts:[80,45]},p3:{pts:[70,40]}},
+  dipole:{s3:[2,3.4],p:{lines:[10,6]},p3:{lines:[12,7]}}, pascal:{p:{rows:[26,16]},p3:{layers:[14,8]}}, hilbert:{s3:[2,3.4],p:{order:[4,3],bands:[8,4]},p3:{order:[2,2]}},
+  apollonian:{p:{min:[8,14]},p3:{min:[.05,.08]}}, lsystem:{s:[2.2,3.6],p:{depth:[3,2]},p3:{depth:[4,3]}}, lorenz:{p:{len:[30,20]},p3:{len:[25,15]}},
+  sphere:{p:{N:[450,200]},p3:{N:[500,200],shells:[2,1]}}, loxodrome:{s3:[2.2,3.8],p:{m:[5,3],a:[.28,.42],sig:[.9,1.2]},p3:{m:[5,3]}},
+  standard:{s:[2.2,3.8],s3:[2.4,4.2],p:{orb:[22,12]},p3:{orb:[20,10]}}, collatz:{p:{N:[300,100]},p3:{N:[300,120]}}, selfsim:{p:{depth:[1,1],fill:[1,.75],bg:[0,0]},p3:{fill:[.7,.6],layers:[5,3]}},
+  harmono:{p:{len:[45,25]},p3:{len:[45,25]}}, superformula:{s3:[2,3.4],p3:{rings:[12,8]}}, torusknot:{p3:{strands:[4,3]}}, quasi:{p3:{res:[15,12]}}, chladni:{p:{eps:[.4,.6]},p3:{res:[15,14]}},
+  julia:{s:[2,3.4],p3:{res:[24,20]}}, bessel:{p:{eps:[.3,.45]}}, riley:{p:{A:[.7,.4],k:[1.6,1]}}, newton:{s:[2,3.4],p3:{N:[1100,800]}}, flow:{s3:[2,3.4],p3:{seeds:[4,3]}}, phyllo:{p3:{N:[450,200]}}, lens:{p:{inner:[0,0]},p3:{rings:[12,7]}},
+  automaton:{p3:{size:[19,15],layers:[12,8]}}, penrose:{p3:{e:[1.5,2]}}, ulam:{p:{show:[0,0]},p3:{N:[1000,400]}}, logistic:{p3:{res:[26,20]}}, voronoi:{s3:[2.4,4],p:{edge:[.7,.5]},p3:{n:[14,8]}},
+  vortex:{p3:{pts:[700,400]}}, halftone:{p3:{pts:[800,600]}}, truchet:{p3:{n:[6,4]}}, wallpaper:{p3:{size:[1.4,1.6]}}, dither:{p3:{n:[10,8]}},
+  moire:{p3:{cell:[1.6,2]}}, warp:{p3:{n:[7,5]}}, galaxy:{p3:{rings:[12,8]}}, weyl:{p3:{n:[7,5]}}
+};
 
 /* six shelves in the gallery, by what the equation does to the letters */
 const GROUPS=[["single","אות אחת — רק מקום, גודל, זווית ודיו"],["curve","עקומות — האותיות רצות לאורך משוואה פרמטרית"],["field","שדות — כל אות קוראת את ערך הפונקציה במקומה"],
@@ -3378,7 +3403,8 @@ const loopSecs = () => ST.motion==="still" ? 0 : 8/ST.speed;
 function context(ph){
   const R=RECIPES[ST.recipe], list=letterList(), n=list.length;
   const cyc = ST.motion==="cycle" ? Math.floor(ph*n)%n : 0;
-  return { u:(1080/440)*ST.scale, S:(1080/440)*ST.scale*ST.size, G:ST.spacing, scaleS:1, sz:ST.size,
+  const tb=ST.big&&BIG[ST.recipe]&&BIG[ST.recipe][is3()?"s3":"s"], bf=tb?tb[ST.big-1]:BIG_S[ST.big|0];
+  return { bf, u:(1080/440)*ST.scale*bf, S:(1080/440)*ST.scale*ST.size*bf, G:ST.spacing, scaleS:1, sz:ST.size,
     L:i=>list[((i+cyc)%n+n)%n], n, all:list, ink:i=>ST.inks[i]||ST.inks[1],
     /* a formula with no meaning for a motion borrows one it has, so no
        motion button ever leaves the sheet standing still */
@@ -3393,7 +3419,9 @@ const pkey=()=>is3()?ST.recipe+"@3":ST.recipe;
 function plist(id){ if(id.endsWith("@3")){ const R=RECIPES[id.slice(0,-2)]; return R&&(R.params3||R.params); } const R=RECIPES[id]; return R&&R.params; }
 function param(id,k){
   const q=(plist(id)||[]).find(x=>x.k===k), v=ST.fp&&ST.fp[id]?ST.fp[id][k]:undefined;
-  return v!==undefined?v:q?q.d:undefined;
+  if(v!==undefined) return v;
+  if(ST.big&&typeof BIG!=="undefined"){ const three=id.endsWith("@3"), B=BIG[three?id.slice(0,-2):id], o=B&&B[three?"p3":"p"]; if(o&&o[k]) return o[k][ST.big-1]; }
+  return q?q.d:undefined;
 }
 
 /* the repeat, rendered once per change (and per frame only while it moves) */
@@ -3623,10 +3651,15 @@ bound.push(()=>{
 });
 
 /* ---- look ---- */
-const sFx=section("מראה",true,()=>fxOn()?`גרעין · ${ST.fx.panels>1?ST.fx.panels+" פאנלים":"דף אחד"}`:"נקי");
+const sFx=section("מראה",true,()=>(fxOn()?`גרעין · ${ST.fx.panels>1?ST.fx.panels+" פאנלים":"דף אחד"}`:"נקי")+(ST.big?` · אותיות ${ST.big>1?"ענק":"גדול"}`:""));
 const segF=document.createElement("div"); segF.className="seg"; segF.setAttribute("role","group"); segF.setAttribute("aria-label","מראה");
 segF.innerHTML=`<button type="button" data-f="0">נקי<small>אותיות ודיו</small></button><button type="button" data-f="1">גרעין<small>צבע שנמס בנקודות</small></button>`;
 sFx.appendChild(segF); segF.querySelectorAll("button").forEach(b=>b.onclick=()=>{ ST.fx.on=b.dataset.f==="1"; changed(); });
+sFx.appendChild(labeled("גודל אותיות"));
+const bigRow=document.createElement("div"); bigRow.className="chips"; sFx.appendChild(bigRow);
+for(const [v,l,t] of [[0,"רגיל","הצפיפות המקורית של כל נוסחה"],[1,"גדול","פחות אותיות וגדולות יותר, נקראות בבירור"],[2,"ענק","האותיות הן הדף"]]){
+  const b=document.createElement("button"); b.className="chip"; b.type="button"; b.textContent=l; b.title=t; b.dataset.v=v; b.onclick=()=>{ ST.big=v; changed(); }; bigRow.appendChild(b); }
+bound.push(()=>bigRow.querySelectorAll(".chip").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.v===(ST.big|0)))));
 const boxF=document.createElement("div"); sFx.appendChild(boxF);
 function fxChips(label,key,opts){ boxF.appendChild(labeled(label));
   const row=document.createElement("div"); row.className="chips"; boxF.appendChild(row);
@@ -3987,6 +4020,7 @@ function adopt(o){
     if(["top","center","bottom"].includes(T.pos)) D.pos=T.pos;
     if(["box","halo","plain"].includes(T.style)) D.style=T.style;
     if(Number.isInteger(T.ink)&&T.ink>=0&&T.ink<6) D.ink=T.ink; }
+  if([0,1,2].includes(o.big)) d.big=o.big;
   if(o.fx&&typeof o.fx==="object"){ const T=o.fx, D=d.fx; if(typeof T.on==="boolean") D.on=T.on;
     if(["melt","contour"].includes(T.field)) D.field=T.field; if(["next","ground","own"].includes(T.lmode)) D.lmode=T.lmode; if(["plain","paper","knit"].includes(T.tex)) D.tex=T.tex;
     for(const [k,lo,hi] of [["soft",0,1],["grain",1,8],["panels",1,16],["seed",1,99],["letters",0,1],["air",0,1],["flow",0,1],["rings",1,12]]) if(typeof T[k]==="number"&&isFinite(T[k])) D[k]=Math.min(hi,Math.max(lo,T[k])); }
