@@ -1,0 +1,98 @@
+body[data-project="perrier"]{--paper:#fafaf0;--ink:#124e34;--line:#124e3433;--accent:#fef754}
+.theme-spark .case-hero{display:block;background:#124e34;color:#fafaf0;padding:32px var(--gutter) 30px;min-height:0;overflow:hidden}
+.perrier-cover-top{display:flex;justify-content:space-between;gap:20px;font-size:9px;margin-bottom:35px}
+.perrier-cover-top>span:first-child{font-size:18px;letter-spacing:-.04em}
+.perrier-cover-top>span:not(:first-child){padding-top:7px}
+.perrier-cover-top+h1{font-size:clamp(65px,10.8vw,180px);letter-spacing:-.065em;line-height:.83;margin:0 0 45px;max-width:none}
+.perrier-cover-top+h1>span{color:#fef754}
+.perrier-cover-gallery{display:grid;grid-template-columns:.7fr 1fr 1.5fr;gap:24px;align-items:center;padding:0 0 30px}
+.perrier-cover-gallery .media{min-width:0}.perrier-cover-gallery figcaption{display:none}
+.perrier-cover-gallery img{width:100%;object-fit:contain}
+.perrier-cover-gallery .cover-story{width:78%;justify-self:center}
+.perrier-cover-gallery .cover-cocktail{padding-top:50px}
+.perrier-cover-gallery .cover-bag{padding-bottom:35px}
+.perrier-cover-bottom{display:flex;justify-content:space-between;align-items:end;gap:25px;border-top:1px solid #ffffff40;padding-top:22px}
+.perrier-cover-bottom p{font-size:13px;line-height:1.3}
+.perrier-cover-bottom a{font-size:9px;padding:9px 0;border-bottom:1px solid #fef754}
+.theme-spark .project-dossier{border-bottom:0}
+.theme-spark .chapter{margin-top:80px;padding-top:50px;scroll-margin-top:110px}
+.theme-spark .chapter-0{margin-top:0}
+.theme-spark .chapter h2{font-size:clamp(37px,5vw,78px);letter-spacing:-.055em;line-height:.96}
+.theme-spark .chapter-intro{gap:7vw}
+.theme-spark .copy p,.theme-spark .editorial-details p{font-size:12px;line-height:1.85}
+.theme-spark .editorial-details{gap:45px 4vw}
+.theme-spark .editorial-details h3{font-size:26px;letter-spacing:-.035em}
+.perrier-concept{margin-top:85px;padding:75px var(--gutter);background:#fef754;color:#124e34;scroll-margin-top:88px}
+.perrier-concept h2{font-size:clamp(45px,7.5vw,125px);letter-spacing:-.065em;line-height:.93;max-width:14em}
+.perrier-concept h2>span{font-weight:400}
+.perrier-connections{display:flex;gap:40px;font-size:10px;border-top:1px solid #124e3455;margin-top:50px;padding-top:22px;flex-wrap:wrap}
+.perrier-pillars-nav{display:flex;flex-wrap:wrap;gap:15px 28px;font-size:9px;padding:20px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.theme-spark .campaign-sequence{gap:0;margin:35px 0 0}
+.theme-spark .campaign-row{grid-template-columns:1.5fr .75fr;padding:55px 0;gap:6vw;border-bottom:1px solid var(--line);scroll-margin-top:95px}
+.theme-spark .campaign-row:nth-child(even){grid-template-columns:.75fr 1.5fr}
+.theme-spark .application-copy h3{font-size:clamp(32px,4vw,61px);letter-spacing:-.05em;line-height:.96}
+.theme-spark .campaign-row .media img{max-height:none}
+.perrier-social-collage{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;align-items:center;padding:28px;background:#124e34}
+.perrier-social-collage>.media:first-child{grid-row:1/3}
+.perrier-social-collage figcaption{display:none}
+.perrier-social-collage .media img{width:100%;height:auto;object-fit:contain}
+.theme-spark .chapter-5 .palette{margin:45px 0;min-height:220px}
+.theme-spark .chapter-5 .copy h3{font-size:14px}
+.perrier-photo-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px;align-items:center}
+.perrier-photo-strip .media:nth-child(even){padding-top:80px}
+.perrier-photo-strip figcaption{font-size:9px}
+.perrier-photo-caption{font-size:9px;opacity:.6;margin-top:20px}
+.perrier-merch-feature{margin:50px calc(-1 * var(--gutter)) 70px}
+.perrier-merch-feature img{width:100%;max-height:900px;object-fit:contain;background:#1b281f}
+.perrier-merch-feature figcaption{padding:15px var(--gutter)}
+.theme-spark .merch-sequence{gap:65px 45px}
+.theme-spark .merch-item:nth-child(even){padding-top:90px}
+.theme-spark .merch-item .application-copy{max-width:95%}
+.theme-spark .merch-item h3{font-size:37px}
+.theme-spark .chapter-9{background:#124e34;color:#fafaf0;padding-bottom:60px;border-color:#124e34}
+.theme-spark .chapter-9 .editorial-details article,.theme-spark .chapter-9 .translation{border-color:#ffffff40}
+.perrier-event-stage{display:grid;grid-template-columns:1fr 1fr;gap:7vw;align-items:center;margin:50px 0 70px}
+.perrier-event-stage h3{font-size:clamp(40px,6.2vw,90px);line-height:.92;letter-spacing:-.055em;color:#fef754}
+.perrier-event-stage p{font-size:10px;margin-top:35px}
+.perrier-event-stage .media{max-width:520px;justify-self:center;width:100%}
+.perrier-event-stage figcaption{color:#fafaf0}
+.theme-spark .chapter-7 .media-grid{margin-bottom:70px}
+.perrier-research{margin:85px var(--gutter) 0;border-top:1px solid var(--ink);border-bottom:1px solid var(--line);scroll-margin-top:110px}
+.perrier-research>summary{list-style:none;display:flex;justify-content:space-between;align-items:center;gap:30px;padding:30px 0;cursor:pointer}
+.perrier-research>summary::-webkit-details-marker{display:none}
+.perrier-research>summary>span:first-child{font-size:clamp(23px,3.5vw,48px);letter-spacing:-.04em}
+.perrier-research>summary>span:last-child{font-size:9px}
+.perrier-research>summary:hover{text-decoration:underline;text-underline-offset:7px}
+.theme-spark .perrier-research>.chapter{padding-left:0;padding-right:0;padding-bottom:40px;margin-top:0}
+@media(max-width:850px){
+ .perrier-cover-gallery{gap:16px}.perrier-cover-gallery .cover-story{width:100%}
+ .theme-spark .campaign-row,.theme-spark .campaign-row:nth-child(even){gap:30px}
+ .theme-spark .application-copy h3{font-size:33px}
+ .perrier-social-collage{padding:15px;gap:8px;grid-template-columns:1fr 1fr}
+ .perrier-social-collage>.media:first-child{grid-row:1/3}
+ .perrier-photo-strip{gap:15px}
+}
+@media(max-width:600px){
+ .theme-spark .case-hero{padding:25px var(--gutter)}
+ .perrier-cover-top{font-size:7px;margin-bottom:35px;gap:10px}.perrier-cover-top>span:first-child{font-size:14px}.perrier-cover-top>span:last-child{display:none}
+ .perrier-cover-top+h1{font-size:10.6vw;line-height:.92;letter-spacing:-.065em;margin-bottom:30px}
+ .perrier-cover-gallery{grid-template-columns:1fr 1.15fr;gap:16px;padding-bottom:20px}
+ .perrier-cover-gallery .cover-story{width:80%}
+ .perrier-cover-gallery .cover-cocktail{padding-top:20px}
+ .perrier-cover-gallery .cover-bag{grid-column:1/-1;padding:0;width:100%}
+ .perrier-cover-bottom p{font-size:10px}.perrier-cover-bottom a{font-size:8px}
+ .theme-spark .chapter{margin-top:50px;padding-top:32px}.theme-spark .chapter h2{font-size:39px}
+ .perrier-concept{margin-top:50px;padding:45px var(--gutter)}.perrier-concept h2{font-size:11vw}
+ .perrier-connections{gap:15px;margin-top:30px;font-size:8px}
+ .theme-spark .campaign-row,.theme-spark .campaign-row:nth-child(even){grid-template-columns:1fr;padding:32px 0;gap:25px}
+ .theme-spark .campaign-row:nth-child(even)>.media,.theme-spark .campaign-row:nth-child(even)>.application-copy{order:initial}
+ .perrier-social-collage{grid-template-columns:1fr 1fr 1fr;padding:14px;gap:8px}
+ .theme-spark .application-copy h3{font-size:38px}
+ .perrier-photo-strip{grid-template-columns:1fr 1fr;gap:22px 15px}.perrier-photo-strip .media:nth-child(even){padding-top:35px}
+ .perrier-merch-feature{margin-top:30px;margin-bottom:40px}
+ .theme-spark .merch-sequence{gap:45px}.theme-spark .merch-item:nth-child(even){padding-top:0}
+ .theme-spark .merch-item .application-copy{max-width:100%}
+ .perrier-event-stage{grid-template-columns:1fr;gap:35px;margin:35px 0 45px}.perrier-event-stage h3{font-size:49px}
+ .perrier-event-stage .media{width:90%}
+ .perrier-research{margin-top:50px}.perrier-research>summary{display:block}.perrier-research>summary>span{display:block}.perrier-research>summary>span:last-child{margin-top:12px}
+}

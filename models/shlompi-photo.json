@@ -1,0 +1,10 @@
+{
+  "method": "Photo-matched sculpt with projected original photograph; inferred side and rear depth",
+  "reference": "shlompi-reference.png",
+  "eye": [
+    0.4925,
+    0.33,
+    0.6506959457367203
+  ],
+  "model": "shlompi-photo.glb"
+}

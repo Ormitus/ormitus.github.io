@@ -1,0 +1,26 @@
+/* TIMMY: original application artwork and the photographic world. */
+.timmy-menu-layout{display:grid;grid-template-columns:1.35fr 1fr;gap:4vw;align-items:center;margin-bottom:38px}
+.timmy-menu-art{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;padding:26px;background:#eee4cc}
+.timmy-menu-art .art-open{height:360px;display:grid;place-items:center}
+.timmy-menu-art img{max-height:360px;width:auto;max-width:100%;object-fit:contain}
+.timmy-details .art-open{aspect-ratio:auto}
+.timmy-details img{height:auto;object-fit:contain}
+.timmy .timmy-merch-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.timmy .timmy-merch-grid .art-open{aspect-ratio:4/5}
+.timmy .timmy-merch-grid img{object-fit:contain}
+.timmy-photography{padding:45px 0 70px;background:#231f20;color:#f5ecd6;--line:#f5ecd640}
+.timmy-photography .section-intro{border-top:0}
+.photo-sequence+.photo-sequence{margin-top:48px}
+.photo-chapter-label{display:flex;justify-content:space-between;align-items:baseline;gap:25px;border-top:1px solid var(--line);padding:23px 0 26px}
+.photo-chapter-label h3{font-size:clamp(28px,3vw,46px);font-weight:500;letter-spacing:-.04em;line-height:1.1}
+.photo-chapter-label p{font-size:13px;line-height:1.65;max-width:340px;font-weight:400}
+.timmy-photo-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;align-items:start}
+.timmy-photo-grid .art-open{aspect-ratio:auto}
+.timmy-photo-grid img{height:auto;object-fit:contain}
+.timmy-photo-grid figcaption{font-size:10px}
+@media(max-width:1000px){.timmy-menu-layout{gap:25px}.timmy-menu-art{padding:18px;gap:10px}.timmy-menu-art .art-open{height:260px}.timmy-menu-art img{max-height:260px}}
+@media(max-width:700px){.timmy-menu-layout{grid-template-columns:1fr;gap:20px;margin-bottom:30px}.timmy-menu-art{padding:22px;gap:18px}.timmy-menu-art .art-open{height:310px}.timmy-menu-art img{max-height:310px}.timmy-details{grid-template-columns:1fr}.timmy .timmy-merch-grid{grid-template-columns:1fr 1fr;gap:14px}.timmy .timmy-merch-grid>.work-image:last-child{grid-column:1/-1}.timmy .timmy-merch-grid>.work-image:last-child .art-open{aspect-ratio:auto}.timmy-photography{padding:15px 0 35px}.photo-chapter-label{display:block;padding:22px 0}.photo-chapter-label h3{font-size:30px;margin-bottom:12px}.photo-chapter-label p{font-size:13px;max-width:320px}.timmy-photo-grid{grid-template-columns:1fr 1fr;gap:14px}.timmy-photo-grid>.work-image:first-child{grid-column:1/-1}.photo-sequence+.photo-sequence{margin-top:30px}}
+@media(max-width:380px){.timmy-menu-art .art-open{height:250px}.timmy-menu-art img{max-height:250px}}
+
+.timmy-complete-packaging{padding-bottom:55px}.timmy-complete-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:32px 18px;align-items:start}.timmy-complete-grid .art-open{aspect-ratio:auto}.timmy-complete-grid img{height:auto;object-fit:contain}.timmy-complete-grid figcaption{font-size:11px;font-weight:400}.timmy-small-details{margin-top:35px}.timmy-digital-grid{display:grid;grid-template-columns:1fr 1fr;gap:7vw;max-width:850px;margin-inline:auto;align-items:start}.timmy-digital-grid .art-open{aspect-ratio:auto;background:transparent}.timmy-digital-grid img{height:auto;object-fit:contain}.timmy-wolt{position:relative}.timmy-wolt .timmy-avatar-overlay{position:absolute;left:4.124%;top:9.89%;width:14.006%;height:7.555%;border-radius:8px}.art-viewer .art-overlay-wrap{position:relative;display:inline-block;max-width:90vw}.art-viewer .art-overlay-wrap>img:first-child{display:block}.art-viewer .art-overlay-wrap .art-overlay-image{position:absolute;left:4.124%;top:9.89%;width:14.006%;height:7.555%;max-height:none;border-radius:8px;object-fit:fill}
+@media(max-width:700px){.timmy-complete-grid{grid-template-columns:1fr 1fr;gap:24px 12px}.timmy-complete-packaging{padding-bottom:30px}.timmy-digital-grid{gap:20px}.timmy-complete-grid figcaption{font-size:10px}.timmy-wolt .timmy-avatar-overlay{border-radius:3px}}
