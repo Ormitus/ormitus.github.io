@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+Disallow: /case-studies/previews/
+Sitemap: https://ormitus.com/sitemap.xml
