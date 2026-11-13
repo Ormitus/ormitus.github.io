@@ -1,0 +1,32 @@
+/* A shared rhythm: immediate feedback, short travel, quiet settling. */
+:root{--motion-enter:cubic-bezier(.22,1,.36,1);--motion-move:cubic-bezier(.25,1,.5,1)}
+.motion-word{display:inline-grid;position:relative;overflow:clip;vertical-align:top;pointer-events:none}
+.motion-face,.motion-echo{display:block;transition:transform 340ms var(--motion-enter);transition-delay:0ms;pointer-events:none}
+.motion-echo{position:absolute;inset:0;transform:translateY(105%)}
+.motion-roll .motion-word{line-height:inherit}
+@media(hover:hover) and (pointer:fine){
+ .motion-roll:hover .motion-face{transform:translateY(-105%);transition-delay:var(--word-delay,0ms)}
+ .motion-roll:hover .motion-echo{transform:translateY(0);transition-delay:var(--word-delay,0ms)}
+ .art-open img:not(.art-overlay-image),.poster-gallery-grid button img{transition:opacity 180ms ease,transform 260ms var(--motion-enter)}
+ .art-open:hover img:not(.art-overlay-image),.poster-gallery-grid button:hover img{opacity:.92}
+ .art-open:active img:not(.art-overlay-image),.poster-gallery-grid button:active img{transform:scale(.987)}
+}
+.motion-roll:focus-visible .motion-face,a:focus-visible>.motion-roll .motion-face,button:focus-visible>.motion-roll .motion-face{transform:translateY(-105%);transition:none}
+.motion-roll:focus-visible .motion-echo,a:focus-visible>.motion-roll .motion-echo,button:focus-visible>.motion-roll .motion-echo{transform:translateY(0);transition:none}
+.motion-roll:active .motion-face,.motion-roll:active .motion-echo{opacity:.6}
+.motion-tabs{position:relative}
+.motion-tabs>.motion-tab-line{position:absolute;left:0;top:0;width:1px;height:2px;pointer-events:none;background:currentColor;transform-origin:0 0;transition:transform 280ms var(--motion-move),opacity 100ms ease;opacity:0}
+.motion-tabs.motion-tabs-instant>.motion-tab-line{transition:none}
+.motion-tabs button[aria-pressed=true],.motion-tabs button[aria-selected=true]{border-bottom-color:transparent!important}
+.case-contents[open] .chapter-nav{animation:none!important;transform-origin:top right}
+dialog.motion-dialog::backdrop{background:rgb(0 0 0/.28)}
+dialog.motion-dialog:not([open]){display:none}
+.motion-dialog .art-viewer-bar,.motion-dialog .viewer-controls{transition:opacity 140ms ease}
+.motion-dialog[data-motion-closing] .art-viewer-bar,.motion-dialog[data-motion-closing] .viewer-controls{opacity:0}
+.motion-dialog img{user-select:none;-webkit-user-drag:none}
+@media(prefers-reduced-motion:reduce){
+ .motion-face,.motion-echo,.motion-tabs>.motion-tab-line,.art-open img,.poster-gallery-grid button img,.motion-dialog .art-viewer-bar,.motion-dialog .viewer-controls{transition:none!important}
+ .motion-roll .motion-face{transform:none!important}
+ .motion-roll .motion-echo{display:none}
+ .art-open:active img,.poster-gallery-grid button:active img{transform:none!important}
+}
