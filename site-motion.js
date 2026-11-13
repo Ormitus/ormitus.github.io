@@ -4,7 +4,17 @@
  const enter='cubic-bezier(.22,1,.36,1)',move='cubic-bezier(.25,1,.5,1)';
  let keyboard=false;
  const running=new Set(),owned=new WeakMap(),dialogState=new WeakMap();
+ let refreshContent=()=>{};
  const allowed=()=>!reduce.matches&&!keyboard;
+ // A damped mass/spring response, sampled once; the browser runs the frames.
+ function springFrames(duration,distance,scale=1,unit='px'){
+  const omega=Math.sqrt(260),decay=24/2,damped=Math.sqrt(omega*omega-decay*decay);
+  return Array.from({length:33},(_,i)=>{
+   const offset=i/32,time=offset*duration/1000;
+   const progress=i===32?1:1-Math.exp(-decay*time)*(Math.cos(damped*time)+decay/damped*Math.sin(damped*time));
+   return {offset,opacity:.24+.76*Math.min(1,offset*4),transform:`translateY(${distance*(1-progress)}${unit}) scale(${scale+(1-scale)*progress})`};
+  });
+ }
  document.addEventListener('keydown',()=>{keyboard=true},{capture:true});
  document.addEventListener('pointerdown',()=>{keyboard=false},{capture:true});
  document.addEventListener('pointermove',event=>{if(event.pointerType==='mouse')keyboard=false},{passive:true});
@@ -61,6 +71,7 @@
   const state={trigger,source,closing:false};dialogState.set(dialog,state);
   stop(dialog);delete dialog.dataset.motionClosing;
   if(!dialog.open){if(typeof dialog.showModal==='function')dialog.showModal();else dialog.setAttribute('open','')}
+  refreshContent(dialog);
   animate(dialog,[{opacity:0},{opacity:1}],{duration:240});
   const target=media(dialog);
   if(target){
@@ -99,6 +110,7 @@
   if(fade)fade.finished.then(finish,finish);else finish();
  }
  function changeMedia(dialog,direction=1){
+  refreshContent(dialog);
   const state=dialogState.get(dialog);if(state?.closing)return;
   // After browsing, close into the selected thumbnail rather than the first artwork.
   const target=media(dialog);if(!target)return;
@@ -155,32 +167,100 @@
   new ResizeObserver(()=>update(true)).observe(nav);
   update(true);
  }
- function revealSections(){
-  if(reduce.matches)return;
-  const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{
-   if(!entry.isIntersecting)return;
-   observer.unobserve(entry.target);
-   // No invisible content waiting on JS. Only animate sections newly entering from below.
-   if(entry.boundingClientRect.top>innerHeight*.35)animate(entry.target,[{opacity:.55,transform:'translateY(16px)'},{opacity:1,transform:'none'}],{duration:420});
-  }),{threshold:0,rootMargin:'0px 0px -32px 0px'});
-  document.querySelectorAll('.section-intro,.collection-heading,.chapter-intro,.chapter-head,.chapter-heading,.info-section,.symbol-copy,.closing-statement,.next-story,.next-project').forEach(el=>observer.observe(el));
- }
- function pageEntrance(){
-  const root=document.documentElement;
-  const reveal=()=>{
-   const rows=[...document.querySelectorAll('.hero-work-list>*,main>.brand-cover,main>.hero,.info-intro')];
-   rows.forEach((row,i)=>{if(row.getBoundingClientRect().top<innerHeight)animate(row,[{opacity:0},{opacity:1}],{duration:320,delay:Math.min(i*22,154)})});
-  };
-  if(!root.hasAttribute('data-loading')){reveal();return}
-  const observer=new MutationObserver(()=>{if(!root.hasAttribute('data-loading')){observer.disconnect();reveal()}});
-  observer.observe(root,{attributes:true,attributeFilter:['data-loading']});
+ function animateAllContent(){
+  const excluded='script,style,noscript,svg,canvas,video,textarea,select,option,code,pre,.page-loader,.sr-only,.skip,.skip-link,.skip-case,[aria-hidden="true"],[inert],#desktop,#portrait-stage';
+  const semantic='h1,h2,h3,h4,h5,h6,p,li,figcaption,dt,dd,td,th,blockquote,a,button,summary';
+  const groups=new WeakMap(),waiting=new Set();
+  let ready=!document.documentElement.hasAttribute('data-loading');
+  function split(nodes){
+   const words=[];
+   nodes.forEach(node=>{
+    if(!node.isConnected)return;
+    const fragment=document.createDocumentFragment();
+    node.textContent.split(/(\s+)/u).forEach(word=>{
+     if(!word.trim()){fragment.append(document.createTextNode(word));return}
+     // Custom inline elements avoid the site's existing span/strong layout selectors.
+     const token=document.createElement('motion-token'),ink=document.createElement('motion-ink');
+     ink.textContent=word;token.append(ink);fragment.append(token);words.push(token);
+    });node.replaceWith(fragment);
+   });return words;
+  }
+  function textEntrance(element,state){
+   const words=state.roll?[...element.querySelectorAll('.motion-word')]:split(state.nodes);
+   element.dataset.motionText='complete';
+   if(!allowed()||!words.length)return;
+   const headline=!!element.closest('h1,h2,h3,.hero-work-list strong,.next-story strong,.next-project strong');
+   // Bound the whole stagger, even for a long paragraph; never make visitors wait to read.
+   const step=Math.min(headline?48:15,(headline?280:360)/Math.max(1,words.length-1));
+   const duration=headline?620:440;
+   const frames=springFrames(duration,headline?.6:.3,1,'em');
+   words.forEach((word,i)=>animate(word,frames,{duration,delay:i*step,fill:'backwards',easing:'linear'}));
+  }
+  function mediaEntrance(element){
+   if(element.dataset.motionMedia==='complete')return;
+   if(element.tagName==='IMG'&&!element.complete)return;
+   const rect=element.getBoundingClientRect();
+   if(!rect.width||rect.bottom<=0||rect.top>=innerHeight)return;
+   element.dataset.motionMedia='complete';observer.unobserve(element);
+   animate(element,springFrames(720,28,.96),{duration:720,easing:'linear'});
+  }
+  const observer=new IntersectionObserver(entries=>{
+   entries.forEach(entry=>{
+    if(!entry.isIntersecting)return;
+    if(!ready){waiting.add(entry.target);return}
+    reveal(entry.target);
+   });
+  },{threshold:0,rootMargin:'0px 0px -12px 0px'});
+  function reveal(element){
+   if(element.dataset.motionMedia){mediaEntrance(element);return}
+   const state=groups.get(element);if(!state)return;
+   observer.unobserve(element);groups.delete(element);textEntrance(element,state);
+  }
+  function collect(scope=document.body){
+   const byElement=new Map(),walker=document.createTreeWalker(scope,NodeFilter.SHOW_TEXT);
+   while(walker.nextNode()){
+    const node=walker.currentNode,parent=node.parentElement;
+    if(!node.textContent.trim()||!parent||parent.closest(excluded+',motion-token,motion-ink,.motion-roll'))continue;
+    const element=parent.closest(semantic)||parent;
+    if(!byElement.has(element))byElement.set(element,[]);
+    byElement.get(element).push(node);
+   }
+   byElement.forEach((nodes,element)=>{
+    const previous=groups.get(element);
+    groups.set(element,{nodes:[...new Set([...(previous?.nodes||[]),...nodes])],roll:false});
+    element.dataset.motionText='ready';observer.observe(element);
+   });
+   scope.querySelectorAll('.motion-roll').forEach(element=>{
+    if(element.dataset.motionText)return;
+    groups.set(element,{roll:true});element.dataset.motionText='ready';observer.observe(element);
+   });
+   scope.querySelectorAll('img,video,iframe,svg,.art-open[data-art-overlay]').forEach(element=>{
+    if(element.dataset.motionMedia||element.closest('.art-viewer,#poster-viewer,.page-loader,#portrait-stage,#desktop,[inert],[aria-hidden="true"]'))return;
+    if(element.tagName!=='BUTTON'&&element.closest('.art-open[data-art-overlay]'))return;
+    element.dataset.motionMedia='ready';element.classList.add('motion-media');
+    const host=element.parentElement;
+    if(host&&!host.matches('body,main'))host.classList.add('motion-media-host');
+    if(element.tagName==='IMG')element.addEventListener('load',()=>{if(ready)mediaEntrance(element)},{once:true});
+    observer.observe(element);
+   });
+  }
+  refreshContent=collect;collect();
+  if(!ready){
+   const loader=new MutationObserver(()=>{
+    if(document.documentElement.hasAttribute('data-loading'))return;
+    ready=true;loader.disconnect();
+    waiting.forEach(element=>{const r=element.getBoundingClientRect();if(r.bottom>0&&r.top<innerHeight)reveal(element)});waiting.clear();
+   });
+   loader.observe(document.documentElement,{attributes:true,attributeFilter:['data-loading']});
+  }
+  // Native disclosures and switched panels enter when visible, without animating their height.
+  document.addEventListener('toggle',event=>{if(event.target.open)collect(event.target)},true);
  }
  function init(){
   document.querySelectorAll('.hero-work-list strong,.hero-contact a,.site-nav>a:not(.wordmark),.info-header nav a,.info-socials a,.text-link,.contact-email,.next-story strong,.next-project strong,footer a,.art-close,#close-gallery,.viewer-controls button,.art-viewer-bar button').forEach(roll);
   document.querySelectorAll('.case-contents').forEach(setupMenu);
   document.querySelectorAll('.journey-selector,.argo-version-toggle,.family-selector').forEach(setupTabs);
-  revealSections();
-  pageEntrance();
+  animateAllContent();
  }
  window.OrmitusMotion={openDialog,closeDialog,changeMedia,setDialogSource};
  // Deferred scripts can run before the homepage module has built its navigation.

@@ -4,7 +4,12 @@
 .motion-face,.motion-echo{display:block;transition:transform 340ms var(--motion-enter);transition-delay:0ms;pointer-events:none}
 .motion-echo{position:absolute;inset:0;transform:translateY(105%)}
 .motion-roll .motion-word{line-height:inherit}
+motion-token,motion-ink{display:inline-block;max-width:100%;vertical-align:baseline;font:inherit;letter-spacing:inherit;text-transform:inherit;line-height:inherit}
+motion-ink{transition:transform 240ms var(--motion-enter);transform-origin:50% 80%}
+.motion-media{transform-origin:center;transition:translate 420ms var(--motion-enter),scale 420ms var(--motion-enter)}
 @media(hover:hover) and (pointer:fine){
+ motion-token:hover>motion-ink{transform:translateY(-.12em);transition-duration:160ms}
+ .motion-media-host:hover>.motion-media{translate:0 -3px;scale:.99}
  .motion-roll:hover .motion-face{transform:translateY(-105%);transition-delay:var(--word-delay,0ms)}
  .motion-roll:hover .motion-echo{transform:translateY(0);transition-delay:var(--word-delay,0ms)}
  .art-open img:not(.art-overlay-image),.poster-gallery-grid button img{transition:opacity 180ms ease,transform 260ms var(--motion-enter)}
@@ -25,6 +30,8 @@ dialog.motion-dialog:not([open]){display:none}
 .motion-dialog[data-motion-closing] .art-viewer-bar,.motion-dialog[data-motion-closing] .viewer-controls{opacity:0}
 .motion-dialog img{user-select:none;-webkit-user-drag:none}
 @media(prefers-reduced-motion:reduce){
+ motion-ink,.motion-media{transition:none!important;translate:none!important;scale:none!important}
+ motion-token:hover>motion-ink{transform:none!important}
  .motion-face,.motion-echo,.motion-tabs>.motion-tab-line,.art-open img,.poster-gallery-grid button img,.motion-dialog .art-viewer-bar,.motion-dialog .viewer-controls{transition:none!important}
  .motion-roll .motion-face{transform:none!important}
  .motion-roll .motion-echo{display:none}
