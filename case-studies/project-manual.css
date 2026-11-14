@@ -1,0 +1,102 @@
+/* The case studies share TIMMY's page width, baseline, and two-column spreads.
+   Artwork, hero compositions and project-specific interactive chapters retain
+   their own palettes and internal layout. */
+body.project-manual {
+  --paper: #fcfaf6;
+  --spread-gap: clamp(14px,1.8vw,28px);
+  --chapter-space: clamp(46px,6vw,94px);
+  --columns: repeat(2,minmax(0,1fr));
+}
+.project-manual main {
+  box-sizing:border-box; max-width:1600px; margin-inline:auto;
+  padding-inline:var(--folio-gutter);
+}
+.project-manual:not(.timmy) main > :is(.case-hero,.brand-cover,.hta-cover) {
+  margin-block-start:10px;
+}
+.project-manual:not(.timmy) main > :is(.chapter,.project-dossier,.wrap,.bar48-idea,.perrier-concept) {
+  margin-inline:0; width:auto; max-width:none;
+}
+.project-manual main :is(.project-dossier,.story-intro,.hta-intro) {
+  grid-template-columns:var(--columns); gap:var(--spread-gap);
+  padding:var(--chapter-space) 0;
+}
+.project-manual main :is(.project-dossier,.story-intro,.hta-intro)>div {
+  grid-column:auto; min-width:0; position:static;
+}
+.project-manual:not(.timmy) main > .chapter {
+  margin-block:var(--chapter-space) 0; padding:14px 0 0;
+  border-top:1px solid var(--line);
+}
+.project-manual main > :is(.project-dossier,.story-intro) + .chapter { margin-top:0; }
+.project-manual main .chapter:not(.map-story) > .chapter-intro {
+  display:grid;grid-template-columns:var(--columns);gap:12px var(--spread-gap);
+  align-items:start; margin:0 0 clamp(20px,2.5vw,36px);padding:0;
+}
+.project-manual main .chapter:not(.map-story) > .chapter-intro > header {
+  position:static;grid-column:1;grid-row:auto;
+}
+.project-manual main .chapter:not(.map-story) > .chapter-intro.title-only > header { grid-column:1/-1; }
+.project-manual main .chapter:not(.map-story) > .chapter-intro > .copy { grid-column:2;grid-row:auto; }
+.project-manual:not(.timmy) main :is(.chapter-intro,.collection-heading,.section-intro,.argo-section-heading,.symbol-copy,.hta-intro,.project-dossier,.intro-story) h2 {
+  font-size:clamp(23px,2.65vw,40px); font-weight:500; line-height:1.08;letter-spacing:-.045em;
+}
+.project-manual main :is(.section-intro,.chapter-intro,.collection-heading,.argo-section-heading) .drawn-marker::after {opacity:.28}
+.project-manual main .chapter-intro .eyebrow {margin-bottom:9px;}
+.project-manual main :is(.copy,.section-intro,.collection-heading) > p {
+  font-size:15px;line-height:1.5;max-width:52ch;
+}
+.project-manual:not(.timmy) main :is(.media-grid,.image-pair,.product-grid,.hta-family-grid,.pilim-family-grid,.family-logo-grid) {column-gap:var(--spread-gap);}
+.project-manual main :is(.media-grid.pair,.image-pair:not(.uneven)) {grid-template-columns:var(--columns);align-items:start;}
+.project-manual main :is(.media-grid.pair,.image-pair:not(.uneven))>figure:nth-child(2) {margin-top:0;}
+.project-manual main figure figcaption {padding-top:8px;font-size:12px;line-height:1.4;}
+.project-manual:not(.timmy) main :is(.collection-heading,.section-intro) {
+  display:grid;grid-template-columns:var(--columns);align-items:baseline;
+  gap:9px var(--spread-gap);border-top:1px solid var(--line);
+  padding:12px 0 clamp(20px,2.5vw,36px);margin:0;
+}
+.project-manual main :is(.collection-heading,.section-intro)>:is(.label,.section-no) {grid-column:1/-1;padding:0;}
+.project-manual main :is(.collection-heading,.section-intro)>h2 {grid-column:1;margin:0;}
+.project-manual main :is(.collection-heading,.section-intro)>p {grid-column:2;margin:0;}
+.project-manual:is(.pilim,.hapoel) main .wrap {padding-inline:0;}
+.project-manual:is(.pilim,.hapoel) main > :is(.story-section,.collection-section,.pilim-digital,.pilim-public,.space-chapter) {padding-block:0 var(--chapter-space);}
+.project-manual.hapoel main .everyday-section {background:transparent;}
+.project-manual main .editorial-details {gap:28px var(--spread-gap);margin-block:32px var(--chapter-space);}
+.project-manual main .editorial-details h3 {font-size:clamp(20px,1.8vw,28px);font-weight:500;}
+@media(max-width:760px) {
+  .project-manual main :is(.project-dossier,.story-intro,.hta-intro),
+  .project-manual:not(.timmy) main :is(.collection-heading,.section-intro),
+  .project-manual main .chapter:not(.map-story) > .chapter-intro {grid-template-columns:minmax(0,1fr);}
+  .project-manual main .chapter:not(.map-story) > .chapter-intro > .copy,
+  .project-manual main :is(.collection-heading,.section-intro)>p {grid-column:1;}
+  .project-manual main .media-grid.pair,.project-manual main .image-pair:not(.uneven) {grid-template-columns:minmax(0,1fr);}
+}
+.project-manual .perrier-merch-feature {margin-inline:0;}
+.project-manual .perrier-merch-feature figcaption {padding-inline:0;}
+
+/* Inset coloured panels have their own reading margin inside the page grid. */
+.project-manual main > section.inset-panel,
+body.project-manual.reading-edition main > .chapter.inset-panel {
+  padding-inline: clamp(16px, 2.4vw, 38px);
+  padding-block-start: clamp(20px, 2vw, 32px);
+  padding-block-end: clamp(24px, 3vw, 48px);
+}
+.pilim-programme .work-image {width:min(100%,clamp(180px,52vw,300px));margin-inline:auto;}
+.pilim-programme .art-open,.pilim-programme .art-open img {display:block;width:100%;height:auto;}
+.pilim-programme figcaption a {text-decoration:underline;text-underline-offset:.2em;}
+
+body[data-project="germany"] main .chapter .media-grid {
+  width: min(100%, 380px);
+  margin-inline: auto;
+}
+body[data-project="germany"] main .chapter .media-grid.pair {
+  width: min(100%, 790px);
+}
+body[data-project="germany"] main .chapter .media {
+  width: min(100%, 380px);
+  justify-self: center;
+  margin-inline: auto;
+}
+body[data-project="germany"] main .chapter .art-open img {
+  display: block; width: 100%; height: auto; max-height: 360px; object-fit: contain;
+}

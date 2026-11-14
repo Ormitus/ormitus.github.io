@@ -1,0 +1,68 @@
+/* A single page grid carries the cover, chapter headings and artwork. */
+body.timmy {
+  --paper: #fcfaf6;
+  --ink: #231f20;
+  --line: #231f202e;
+  --spread-gap: clamp(14px, 1.8vw, 28px);
+  --chapter-space: clamp(46px, 6vw, 94px);
+  --columns: minmax(0, 1fr) minmax(0, 1fr);
+  background: var(--paper);
+}
+.timmy main { max-width: 1600px; margin-inline: auto; padding-inline: var(--folio-gutter); }
+.timmy main .wrap { padding-inline: 0; }
+.timmy .brand-cover { min-height: 0; margin-block-start: 10px; grid-template-columns: 1.15fr 1fr; }
+.timmy .cover-brand { padding: clamp(20px, 3vw, 48px); gap: 20px; }
+.timmy .cover-brand :is(h1,.cover-title) { padding-block: clamp(24px, 4vw, 64px); }
+.timmy .cover-photo { min-height: clamp(240px, 31vw, 500px); }
+.timmy .cover-bottom p { font-size: clamp(22px, 2.3vw, 38px); }
+.timmy .story-intro { grid-template-columns: var(--columns); gap: var(--spread-gap); padding-block: var(--chapter-space); }
+.timmy .story-intro > :is(.intro-meta,.intro-story) { grid-column: auto; position: static; }
+.timmy .intro-story h2 { margin-bottom: 16px; font-size: clamp(24px, 2.7vw, 40px); font-weight: 500; }
+.timmy main > :is(.story-section,.dark-chapter,.timmy-photography) {
+  margin: 0; padding-block: 0 var(--chapter-space); background: transparent; color: var(--ink); --line: #231f202e;
+}
+.timmy .section-intro {
+  display: grid; grid-template-columns: var(--columns); align-items: baseline;
+  border-top: 1px solid var(--line); gap: 9px var(--spread-gap); padding: 12px 0 clamp(20px, 2.5vw, 36px);
+}
+.timmy .section-intro > .section-no { grid-column: 1/-1; margin: 0; padding: 0; font-weight: 500; }
+.timmy .section-intro > h2 { grid-column: 1; margin: 0; font-size: clamp(23px, 2.65vw, 40px); font-weight: 500; letter-spacing: -.045em; line-height: 1.08; }
+.timmy .section-intro > p { grid-column: 2; margin: 0; max-width: 52ch; font-size: 15px; line-height: 1.5; }
+.timmy .section-intro .drawn-marker::after { opacity: .28; }
+.timmy main :is(.image-pair,.type-pair,.font-specimens,.timmy-proposals,.green-applications,.timmy-menu-layout,.timmy-digital-grid,.timmy-photo-grid,.timmy-complete-grid) { column-gap: var(--spread-gap); align-items: start; }
+.timmy .work-image figcaption { margin: 0; padding: 8px 0 0; font-size: 12px; line-height: 1.4; color: #57524d; opacity: 1; }
+.timmy .image-pair.uneven, .timmy .timmy-menu-layout { grid-template-columns: var(--columns); }
+.timmy .image-pair.uneven .work-image:last-child { width: 100%; margin: 0; }
+.timmy main .timmy-complete-packaging { padding-block: 28px 0; }
+.timmy .timmy-digital-grid { max-width: none; grid-template-columns: var(--columns); }
+.timmy .logo-stage { min-height: 0; padding: clamp(26px,4vw,60px); gap: 22px; background: #231f20; color: #f5ecd6; }
+.timmy .logo-stage img { width: min(82%, 470px); }
+.timmy .logo-stage .label { font-weight: 500; }
+.timmy .colour-strip { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 10px; align-self: center; }
+.timmy .colour-strip > div { display: grid; grid-template-columns: minmax(0,1fr); justify-items: center; gap: 3px; border: 0; padding: 0; color: var(--ink); background: transparent; }
+.timmy .colour-strip > div::before { content: ''; width: min(76%,84px); aspect-ratio: 1; border-radius: 50%; background: var(--swatch); border: 1px solid #231f201a; margin-bottom: 9px; }
+.timmy #identity { display: grid; grid-template-columns: var(--columns); gap: 0 var(--spread-gap); }
+.timmy #identity .section-intro { grid-column: 1/-1; }
+.timmy #type .font-section { margin: 0 0 34px; }
+@font-face {
+  font-family: "Timmy Almoni";
+  src: url("/assets/brand-stories/timmy-almoni-name.woff") format("woff");
+  font-weight: 700; font-display: swap;
+}
+.timmy .font-specimen {border-top: 1px solid var(--line); padding-block-start: 12px;}
+.timmy .font-specimen h3 {font-size: clamp(24px,2.6vw,40px); line-height: 1.15; margin: 8px 0;}
+.timmy .font-specimen .almoni-name {display:inline-block; font: 700 .76em/1 "Timmy Almoni", sans-serif;}
+.timmy .closing-statement { border-top: 1px solid var(--line); padding-block: 24px var(--chapter-space); }
+.timmy .closing-statement > p { font-size: clamp(36px,6vw,86px); }
+@media(max-width:760px) {
+  .timmy .story-intro, .timmy .section-intro, .timmy #identity, .timmy .timmy-menu-layout { grid-template-columns: minmax(0,1fr); }
+  .timmy .story-intro { gap: 22px; }
+  .timmy .section-intro > p { grid-column: 1; }
+  .timmy .colour-strip { margin-top: 22px; }
+  .timmy .font-specimens { grid-template-columns: minmax(0,1fr); gap: 20px; }
+  .timmy .image-pair.uneven { grid-template-columns: 1fr; }
+}
+@media(max-width:620px) {
+  .timmy .brand-cover { grid-template-columns: 1fr; }
+  .timmy .cover-photo { min-height: 225px; }
+}

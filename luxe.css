@@ -1,0 +1,158 @@
+/* Tactile edition — 14 Nov 2026.
+   A presentation layer only: no copy, links or media are touched here.
+   Loaded last on every page. Project brand palettes on case studies stay authoritative;
+   this layer owns the shared chrome, the homepage, Info, light and touch. */
+
+:root{
+ --lx-paper:#ece6da;          /* bone */
+ --lx-paper-lift:#f4efe6;     /* lit surface */
+ --lx-ink:#1d1a16;            /* warm near-black */
+ --lx-muted:#776d60;
+ --lx-line:#1d1a1624;
+ --lx-accent:#9a3b22;         /* burnt sienna — interactive states only */
+ --lx-ease:cubic-bezier(.23,1,.32,1);
+ --lx-ease-move:cubic-bezier(.77,0,.175,1);
+ --lx-shadow:30 22 12;        /* warm shadow tint, rgb */
+ /* Re-point the shared editorial tokens so home, Info and every fallback inherit the bone canvas. */
+ --folio-paper:var(--lx-paper);
+ --folio-ink:var(--lx-ink);
+ --folio-muted:var(--lx-muted);
+ --folio-line:var(--lx-line);
+ --folio-accent:var(--lx-accent);
+}
+
+/* ---------- Material: grain + a single warm light source (top-left) ---------- */
+body::after{opacity:.055!important;mix-blend-mode:multiply}
+body:has(.info-header)::before{
+ content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+ background:
+  radial-gradient(120% 90% at 18% -10%,#fffaf0b3 0%,#fffaf000 55%),
+  radial-gradient(90% 70% at 100% 110%,rgb(var(--lx-shadow) / .10) 0%,transparent 60%);
+}
+
+/* ---------- Shared chrome: nav and header as frosted glass with an edge highlight ---------- */
+body :is(.site-nav,.info-header),
+body .hero-header{
+ box-shadow:inset 0 -1px 0 var(--line,var(--lx-line)),0 1px 0 #ffffff59;
+ border-bottom-color:transparent!important;
+ backdrop-filter:blur(18px) saturate(1.15);-webkit-backdrop-filter:blur(18px) saturate(1.15);
+}
+
+/* Micro-labels: tracked-out mono reads as engraved, not typed. */
+body :is(.label,.section-no,.eyebrow,.kicker,.section-label,.project-facts dt,.intro-meta dt,.period){
+ letter-spacing:.09em;text-transform:uppercase;
+}
+
+/* Long-form reading: calmer measure and rhythm. */
+body :is(.intro-story p,.section-intro>p,.copy p.case-prose,.application-copy p.case-prose,.role-description){
+ line-height:1.7;text-wrap:pretty;
+}
+body :is(h1,h2,h3){text-wrap:balance}
+
+/* ---------- Interaction: accent appears only when the visitor acts ---------- */
+body :is(a,button,summary):focus-visible{outline:1.5px solid var(--lx-accent)!important;outline-offset:5px;border-radius:2px}
+::selection{background:var(--lx-accent);color:var(--lx-paper-lift)}
+
+@media (hover:hover) and (pointer:fine){
+ body :is(.site-nav,.info-header,.hero-header) a:not(.wordmark):not(.info-logo):not(.brand),
+ body footer a,
+ body .hero-footer a{transition:color 180ms ease}
+ body :is(.site-nav,.info-header,.hero-header) a:not(.wordmark):not(.info-logo):not(.brand):hover,
+ body .case-contents summary:hover,
+ body:has(.boot-stage) footer a:hover,
+ body:has(.info-header) footer a:hover,
+ body .hero-footer a:hover{color:var(--lx-accent)}
+}
+/* Press feedback on everything pressable; transform only, never layout. */
+body :is(button,summary,.next-story,.next-project,.hero-work-list a,.hero-work-list button){transition:transform 160ms var(--lx-ease)}
+body :is(button,summary,.next-story,.next-project):active{transform:scale(.985)}
+body .hero-work-list :is(a,button):active{transform:scale(.992)}
+
+/* ---------- Homepage ---------- */
+/* The homepage stays white (Ori, 14 Nov). */
+body:has(.boot-stage){--folio-paper:#fff;--lx-home-paper:#fff}
+body:has(.boot-stage),
+body:has(.boot-stage) :is(.boot-journey,.boot-stage){background:#fff}
+body:has(.boot-stage)::after{opacity:.02!important}
+body .boot-stage{position:relative;z-index:1}
+body .boot-stage>*{position:relative}
+
+/* Index: Helvetica Neue Medium at display scale; weight contrast instead of bold everywhere. */
+body .hero-index .hero-work-list strong{font-weight:500;letter-spacing:-.058em;font-size:clamp(28px,2.9vw,48px)}
+body .hero-index .hero-work-list :is(a,button){position:relative;border-bottom-color:var(--lx-line)}
+body .hero-index .hero-work-list :is(a,button)>span{font-variant-numeric:tabular-nums}
+body .hero-index .hero-work-list .work-meta{color:var(--lx-muted)}
+body .hero-index .hero-work-list .case-tag{border-radius:0;border-color:currentColor;color:var(--lx-muted)}
+/* Shlompi's whisker underline already marks the pointed row; this hairline is kept for keyboard focus only. */
+body .hero-index .hero-work-list :is(a,button)::after{
+ content:'';position:absolute;left:0;right:0;bottom:-1px;height:1px;background:var(--lx-accent);
+ transform:scaleX(0);transform-origin:0 50%;transition:transform 260ms var(--lx-ease);pointer-events:none;
+}
+@media (hover:hover) and (pointer:fine){
+ body .hero-index .hero-work-list :is(a,button) strong{transition:color 180ms ease;display:inline-block}
+ body .hero-index .hero-work-list :is(a,button):hover>span{color:var(--lx-accent)}
+ body .hero-index .hero-work-list :is(a,button):hover .case-tag{color:var(--lx-accent)}
+ body .hero-index .hero-work-list:has(a:hover,button:hover)>:not(:hover){color:#a39a8c}
+}
+body .hero-index .hero-work-list :is(a,button):focus-visible::after{transform:scaleX(1)}
+
+/* The dog: lit from above-left, standing on a soft contact shadow — a portrait, not a cut-out. */
+body #portrait-stage{isolation:isolate}
+body:not(:has(.boot-stage)) #portrait-stage::before{
+ content:'';position:absolute;z-index:-1;pointer-events:none;
+ /* The portrait's matte was cut on near-white; a lit, near-white pool behind it hides the fringe on bone. */
+ inset:-6% -10% -2%;border-radius:50%;
+ background:radial-gradient(closest-side,#f8f5ef 0%,#f8f5ef 58%,#f5f1e9d9 70%,#f1ebe100 100%);
+}
+body #portrait-stage::after{
+ content:'';position:absolute;z-index:-1;pointer-events:none;
+ left:26%;right:26%;bottom:0;height:5%;border-radius:50%;
+ background:radial-gradient(closest-side,rgb(var(--lx-shadow) / .14),rgb(var(--lx-shadow) / 0));
+ filter:blur(4px);
+}
+body #portrait-stage canvas{will-change:transform;transform:translate3d(0,var(--lx-depth,0px),0);transition:transform 420ms var(--lx-ease)}
+
+/* Homepage footer joins the material. */
+body .hero-index .hero-footer{border-top-color:var(--lx-line);color:var(--lx-ink)}
+
+/* ---------- Info page ---------- */
+body:has(.info-header){background:var(--lx-paper);--ink:var(--lx-ink);--muted:var(--lx-muted);--line:var(--lx-line);color:var(--lx-ink)}
+body:has(.info-header) main{position:relative;z-index:1}
+body:has(.info-header) :is(h1,h2,h3){font-weight:500;letter-spacing:-.05em}
+
+/* ---------- Case studies: shared surfaces, brand colours untouched ---------- */
+body :is(.next-story,.next-project){overflow:hidden}
+@media (hover:hover) and (pointer:fine){
+ body .next-story strong,body .next-project strong{transition:transform 300ms var(--lx-ease)}
+ body .next-story:hover strong,body .next-project:hover strong{transform:translateX(12px);text-decoration:none!important}
+ body .next-project .next-art{transition:transform 420ms var(--lx-ease),box-shadow 420ms var(--lx-ease)}
+ body .next-project:hover .next-art{transform:translateY(-8px);box-shadow:0 24px 50px -24px #0000008c}
+}
+/* Index dropdown: glass panel with edge highlight. */
+body .case-contents .chapter-nav{box-shadow:inset 0 1px 0 #ffffff66,0 22px 60px -20px rgb(var(--lx-shadow) / .35)!important;border-radius:2px}
+
+/* ---------- Gentle scroll-linked depth (progressive; static where unsupported) ---------- */
+@supports (animation-timeline:view()){
+ @media (prefers-reduced-motion:no-preference){
+  body :is(.next-project .next-art){animation:lx-drift linear both;animation-timeline:view();animation-range:entry 0% exit 100%}
+  @keyframes lx-drift{from{translate:0 28px}to{translate:0 -28px}}
+ }
+}
+
+/* ---------- Reduced motion: keep colour feedback, drop movement ---------- */
+@media (prefers-reduced-motion:reduce){
+ body .hero-index .hero-work-list :is(a,button) strong,
+ body .next-story strong,body .next-project strong,body .next-project .next-art,
+ body #portrait-stage canvas{transition:none!important;transform:none!important}
+ body :is(button,summary,.next-story,.next-project,.hero-work-list a,.hero-work-list button):active{transform:none}
+}
+
+/* Let project titles use the full width of their grid cell. */
+body [data-fit-title], body .fitted-heading {
+  min-width: 0;
+  max-width: 100%;
+  text-wrap: wrap;
+}
+body [data-fit-title] > span:not(.drawn-marker) { display: inline; }
+/* Older chapter styles use a measure in ch which shrinks as the title fits. */
+body main :is(h1,h2).fitted-heading { max-width: none; min-width: 0; }

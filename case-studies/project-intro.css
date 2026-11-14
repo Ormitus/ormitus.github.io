@@ -1,0 +1,19 @@
+body main > header.project-intro-hero {
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:var(--spread-gap,24px); align-items:start; padding:clamp(36px,5.8vw,88px) 0;
+  margin:0; min-height:0; width:auto; max-width:none;
+  color:var(--ink);background:transparent;border:0;border-bottom:1px solid var(--line);
+}
+main .project-intro-hero > div { min-width:0; grid-column:auto; }
+main .project-intro-hero h1 { margin:16px 0 0;font-size:clamp(25px,2.65vw,40px);font-weight:500;line-height:1.08;letter-spacing:-.045em; }
+main .project-intro-hero .eyebrow,main .project-intro-hero dt {
+  font:400 11px/1.45 var(--folio-mono,monospace);letter-spacing:.08em;text-transform:uppercase;
+}
+main .project-intro-hero .project-facts {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px var(--spread-gap,24px);margin:0 0 28px;}
+main .project-intro-hero dd {margin:6px 0 0;font-size:15px;font-weight:400;line-height:1.5;}
+:is(.timmy,.pilim) .project-intro-hero .overview-copy h2 {font-size:clamp(18px,1.4vw,23px);font-weight:500;line-height:1.25;margin:0 0 12px;}
+:is(.timmy,.pilim) .project-intro-hero .overview-copy p {font-size:16px;line-height:1.55;max-width:62ch;margin:0 0 12px;}
+@media(max-width:700px){
+  body main > header.project-intro-hero {grid-template-columns:minmax(0,1fr);gap:24px;}
+  main .project-intro-hero h1 {margin-top:8px;}
+}

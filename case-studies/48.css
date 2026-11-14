@@ -5,8 +5,8 @@ body[data-project="48"]{--paper:#f7f5e9;--ink:#262626;--forest:#2e493b;--signal:
 .bar48-cover-meta,.bar48-cover-foot{display:flex;justify-content:space-between;gap:25px;font-size:9px;letter-spacing:.08em;text-transform:uppercase}
 .bar48-cover-meta{margin-bottom:28px}.bar48-cover-meta span:last-child{opacity:.55}
 .bar48-cover-index{font-size:9px;color:var(--paper);margin:0 0 25px;letter-spacing:.08em}
-.bar48-cover-copy h1{font-size:clamp(82px,14vw,230px);letter-spacing:-.085em;line-height:.76;margin:0 0 30px;max-width:7em}
-.bar48-cover-copy h1 span{color:var(--signal)}
+.bar48-cover-copy :is(h1,.cover-title){font-size:clamp(82px,14vw,230px);letter-spacing:-.085em;line-height:.76;margin:0 0 30px;max-width:7em}
+.bar48-cover-copy :is(h1,.cover-title) span{color:var(--signal)}
 .bar48-cover-dek{font-size:12px;letter-spacing:.12em;margin:0 0 34px}
 .bar48-text-link{display:inline-block;font-size:10px;color:var(--paper);border-bottom:1px solid var(--signal);padding:8px 0;text-transform:uppercase;letter-spacing:.06em}
 .bar48-cover-gallery{display:grid;grid-template-columns:1.15fr .75fr 1.3fr;gap:18px;align-items:end;margin-top:34px;padding-bottom:26px}
@@ -28,7 +28,7 @@ body[data-project="48"]{--paper:#f7f5e9;--ink:#262626;--forest:#2e493b;--signal:
 .theme-bar .chapter-3{background:var(--paper);padding-bottom:58px;margin-top:0}.theme-bar .chapter-3 .palette{margin-top:48px}
 .theme-bar .chapter-4{background:var(--paper);padding-bottom:65px}.theme-bar .chapter-4 .type-stage{margin-top:45px}
 .theme-bar .chapter-5{padding-bottom:55px}.theme-bar .chapter-5 .media-grid img{max-height:920px}
-.theme-bar .chapter-6{background:var(--forest);color:var(--paper);padding-bottom:75px}.theme-bar .chapter-6 .language-essays{border-color:#f7f5e944}.theme-bar .chapter-6 .language-essays article{border-color:#f7f5e944}
+.theme-bar .chapter-6{background:transparent;color:var(--ink);padding-bottom:75px}.theme-bar .chapter-6 .language-essays{border-color:var(--line)}.theme-bar .chapter-6 .language-essays article{border-color:var(--line)}
 .theme-bar .chapter-6 .media-grid{margin-top:42px}.theme-bar .chapter-6 .media-grid img{max-height:850px}
 .theme-bar .chapter-6 .board-copy p{font-size:12px;line-height:1.8}
 .theme-bar .next-project{background:var(--forest);color:var(--paper);margin-top:0}.theme-bar .next-project .eyebrow{color:var(--paper)}
@@ -38,7 +38,7 @@ body[data-project="48"]{--paper:#f7f5e9;--ink:#262626;--forest:#2e493b;--signal:
 }
 @media(max-width:600px){
  .theme-bar .case-hero{padding:22px var(--gutter) 24px}.bar48-cover-meta{font-size:7px;margin-bottom:35px}.bar48-cover-index{font-size:7px;margin-bottom:18px}
- .bar48-cover-copy h1{font-size:20vw;line-height:.8;margin-bottom:24px}.bar48-cover-dek{font-size:9px;margin-bottom:26px}.bar48-text-link{font-size:8px}
+ .bar48-cover-copy :is(h1,.cover-title){font-size:20vw;line-height:.8;margin-bottom:24px}.bar48-cover-dek{font-size:9px;margin-bottom:26px}.bar48-text-link{font-size:8px}
  .bar48-cover-gallery{grid-template-columns:1fr 1fr;gap:10px;margin-top:28px;padding-bottom:18px}.bar48-cover-mark{grid-column:1/-1;max-width:85%;justify-self:center}.bar48-cover-mark img{max-height:210px}.bar48-cover-menu{padding-top:17px}.bar48-cover-menu img{max-height:285px}.bar48-cover-images{padding-bottom:0}.bar48-cover-images img{max-height:285px}
  .bar48-cover-foot{font-size:7px;padding-top:13px;gap:10px}.bar48-cover-foot span:last-child{text-align:right}
  .bar48-idea{display:block;padding:48px var(--gutter) 52px}.bar48-idea-lead h2{font-size:12vw;max-width:10em}.bar48-idea-copy{margin-top:35px}.bar48-idea-copy p{font-size:12px}.bar48-idea-tags{margin-top:28px;font-size:7px;gap:10px 14px}
@@ -73,3 +73,6 @@ body[data-project="48"] .technical .bar48-sample p[dir="auto"]:last-child{font-f
 .theme-bar .bar48-cover-gallery-single .bar48-cover-mark{width:100%;max-width:100%;justify-self:stretch}
 .theme-bar .bar48-cover-gallery-single .bar48-cover-mark img{width:100%;height:auto;max-height:560px;object-fit:contain}
 @media(max-width:600px){.theme-bar .bar48-cover-gallery-single .bar48-cover-mark img{max-height:300px}}
+
+.theme-bar.reading-edition .bar-name-note {display:flex;flex-direction:column;align-items:flex-start;gap:12px;}
+.theme-bar .bar-name-note > * {margin:0;}

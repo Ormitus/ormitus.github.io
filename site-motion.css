@@ -37,3 +37,5 @@ dialog.motion-dialog:not([open]){display:none}
  .motion-roll .motion-echo{display:none}
  .art-open:active img,.poster-gallery-grid button:active img{transform:none!important}
 }
+
+motion-line{display:inline;font:inherit;letter-spacing:inherit;text-transform:inherit;line-height:inherit}

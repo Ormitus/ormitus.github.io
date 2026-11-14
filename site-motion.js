@@ -168,7 +168,7 @@
   update(true);
  }
  function animateAllContent(){
-  const excluded='script,style,noscript,svg,canvas,video,textarea,select,option,code,pre,.page-loader,.sr-only,.skip,.skip-link,.skip-case,[aria-hidden="true"],[inert],#desktop,#portrait-stage';
+  const excluded='[data-letter-wave],.gesture-original,.read-along,.decode-label,.drawn-marker,.page-dot-rail,.goo-counter,script,style,noscript,svg,canvas,video,textarea,select,option,code,pre,.page-loader,.sr-only,.skip,.skip-link,.skip-case,[aria-hidden="true"],[inert],#desktop,#portrait-stage';
   const semantic='h1,h2,h3,h4,h5,h6,p,li,figcaption,dt,dd,td,th,blockquote,a,button,summary';
   const groups=new WeakMap(),waiting=new Set();
   let ready=!document.documentElement.hasAttribute('data-loading');
@@ -176,12 +176,16 @@
    const words=[];
    nodes.forEach(node=>{
     if(!node.isConnected)return;
-    const fragment=document.createDocumentFragment();
+    // In a flex/grid parent each word would become its own item (space-between pulls a phrase apart); keep the phrase as one inline item.
+    const display=node.parentElement?getComputedStyle(node.parentElement).display:'';
+    const flowing=/flex|grid/.test(display)?document.createElement('motion-line'):null;
+    const fragment=document.createDocumentFragment(),target=flowing||fragment;
+    if(flowing)fragment.append(flowing);
     node.textContent.split(/(\s+)/u).forEach(word=>{
-     if(!word.trim()){fragment.append(document.createTextNode(word));return}
+     if(!word.trim()){target.append(document.createTextNode(word));return}
      // Custom inline elements avoid the site's existing span/strong layout selectors.
      const token=document.createElement('motion-token'),ink=document.createElement('motion-ink');
-     ink.textContent=word;token.append(ink);fragment.append(token);words.push(token);
+     ink.textContent=word;token.append(ink);target.append(token);words.push(token);
     });node.replaceWith(fragment);
    });return words;
   }
@@ -257,7 +261,8 @@
   document.addEventListener('toggle',event=>{if(event.target.open)collect(event.target)},true);
  }
  function init(){
-  document.querySelectorAll('.hero-work-list strong,.hero-contact a,.site-nav>a:not(.wordmark),.info-header nav a,.info-socials a,.text-link,.contact-email,.next-story strong,.next-project strong,footer a,.art-close,#close-gallery,.viewer-controls button,.art-viewer-bar button').forEach(roll);
+  window.PortfolioGestures?.init();
+  document.querySelectorAll('.hero-contact a,.site-nav>a:not(.wordmark),.info-header nav a,.info-socials a,.text-link,.contact-email,.next-story strong,.next-project strong,footer a,.art-close,#close-gallery,.viewer-controls button,.art-viewer-bar button').forEach(roll);
   document.querySelectorAll('.case-contents').forEach(setupMenu);
   document.querySelectorAll('.journey-selector,.argo-version-toggle,.family-selector').forEach(setupTabs);
   animateAllContent();

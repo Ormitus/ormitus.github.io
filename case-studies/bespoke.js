@@ -16,6 +16,7 @@ function showArtwork(index){
  if(overlay){const wrap=document.createElement('div');wrap.className='art-overlay-wrap';target.replaceWith(wrap);wrap.append(target);const img=document.createElement('img');img.className='art-overlay-image';img.src=overlay;img.alt='';wrap.append(img)}
  bar.querySelector('p').textContent=source.alt;
  bar.querySelector('output').textContent=`${artIndex+1} / ${artwork.length}`;
+ window.PortfolioGestures?.updateViewer(viewer, artIndex, artwork.length, showArtwork, bar.querySelector('output'));
  if(viewer.open){window.OrmitusMotion?.setDialogSource(viewer,artwork[artIndex]);window.OrmitusMotion?.changeMedia(viewer,index>previous?1:-1)}
 }
 artwork.forEach((button,index)=>button.addEventListener('click',()=>{

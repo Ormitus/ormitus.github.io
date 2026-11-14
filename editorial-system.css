@@ -156,8 +156,14 @@ body .role-description{font-size:16px;max-width:58ch}
 }
 @supports(animation-timeline:view()){
  @media(prefers-reduced-motion:no-preference) and (min-width:701px){
-  .brand-cover .cover-brand h1,.case-hero .hero-art{animation:folio-depth linear both;animation-timeline:view();animation-range:exit 0% exit 100%}
+  .brand-cover .cover-brand :is(h1,.cover-title),.case-hero .hero-art{animation:folio-depth linear both;animation-timeline:view();animation-range:exit 0% exit 100%}
  }
 }
 @keyframes folio-depth{from{translate:0 0}to{translate:0 -24px}}
-@media(prefers-reduced-motion:reduce){body::after{display:none}.brand-cover .cover-brand h1,.case-hero .hero-art{animation:none!important;translate:none!important}}
+@media(prefers-reduced-motion:reduce){body::after{display:none}.brand-cover .cover-brand :is(h1,.cover-title),.case-hero .hero-art{animation:none!important;translate:none!important}}
+
+/* Homepage close: the same contact line every case study ends with. */
+body .hero-index .hero-footer{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px 24px;margin-top:56px;padding:20px 0 0;border-top:1px solid var(--folio-line);font:400 11px/1.4 var(--folio-mono);letter-spacing:-.03em;text-transform:uppercase;color:var(--folio-ink);order:2}
+/* Home links inherit the site-wide Helvetica rule; match the header contact links. */
+body .hero-index .hero-footer a{color:inherit;font-size:12px;font-weight:400;letter-spacing:-.04em;text-decoration:none;padding:10px 0}
+@media(max-width:700px){body .hero-index .hero-footer{margin-top:40px;justify-content:flex-start;gap:4px 28px}}
