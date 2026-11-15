@@ -76,3 +76,16 @@ body[data-project="48"] .technical .bar48-sample p[dir="auto"]:last-child{font-f
 
 .theme-bar.reading-edition .bar-name-note {display:flex;flex-direction:column;align-items:flex-start;gap:12px;}
 .theme-bar .bar-name-note > * {margin:0;}
+
+/* Pair the print artwork with its photographed application. */
+.theme-bar main .bar48-menu {display:block;}
+.bar48-menu-art {
+  display:grid; grid-template-columns:minmax(0, .78fr) minmax(0, 1fr);
+  gap:var(--spread-gap); align-items:end; max-width:930px; margin-inline:auto;
+}
+.bar48-menu-art .media {min-width:0;margin:0;}
+.bar48-menu-art .art-open img {display:block;width:100%;height:auto;}
+.theme-bar .bar48-menu .bar48-transcript {max-width:930px;margin-inline:auto;}
+@media(max-width:700px){
+  .bar48-menu-art {grid-template-columns:minmax(0,1fr);row-gap:24px;}
+}
