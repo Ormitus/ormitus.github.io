@@ -1,0 +1,458 @@
+/* ==========================================================================
+   ALMA / עלמא — v4 "cinematic index"
+
+   ALMA's identity, unchanged: the stencil ALMA/עלמא logo, their dark site
+   (#161616), the strip grey #BFBFBF with its tagline band, the ✦ sparkle, and
+   black-and-white arch photographs.
+
+   Approach (from studying Bureau Betak, Villa Eugénie, Moment Factory): the
+   work leads, the brand recedes. Real footage full-bleed, small confident type,
+   one scale jump, photographs without frames or shadows, very few words.
+   No ornament that the work itself doesn't justify.
+   ========================================================================== */
+
+:root {
+  /* Colour — ALMA's palette */
+  --bg: #161616;          /* their site background */
+  --bg-2: #1D1D1B;        /* the logo's ground: raised dark surfaces */
+  --fg: #F2F2F0;          /* text on dark (16.1:1) — softened white, less glare */
+  --mute: #9C9C98;        /* secondary text on dark (6.6:1) */
+  --faint: #6F6F6B;       /* decorative only — dots, never text (3.6:1) */
+  --line: rgba(242, 242, 240, .14);
+  --line-2: rgba(242, 242, 240, .28);
+  --grey: #BFBFBF;        /* strip grey: the one light surface */
+  --on-grey: #292927;     /* text on grey, from their strip (7.9:1) */
+  --on-grey-mute: #4A4A47;/* secondary on grey (4.84:1, AA) */
+
+  /* Kept so the brand document still renders */
+  --paper: #FFFFFF; --ink: #161616; --night: #1D1D1B; --sand: #BFBFBF;
+  --stone: #666666; --fog: #A3A3A3; --tally: #161616; --tally-hi: #FFFFFF;
+
+  /* Type */
+  --f-he: "IBM Plex Sans Hebrew", "Arial Hebrew", system-ui, sans-serif;
+  --f-la: "Archivo", "IBM Plex Sans Hebrew", system-ui, sans-serif;  /* expanded = their strip */
+  --f-display: var(--f-he); --f-text: var(--f-he); --f-mono: var(--f-la);
+
+  --t-hero: clamp(2.3rem, 4.4vw, 4.6rem);
+  --t-big: clamp(1.7rem, 3vw, 3.1rem);     /* statement paragraphs */
+  --t-h2: clamp(1.9rem, 3.6vw, 3.6rem);
+  --t-h3: clamp(1.4rem, 2.1vw, 2.1rem);
+  --t-body: 1.0625rem;
+  --t-small: .875rem;
+  --t-label: .75rem;
+
+  /* Space */
+  --gutter: clamp(18px, 3.4vw, 56px);
+  --col-gap: clamp(16px, 2vw, 32px);
+  --sec: clamp(64px, 8vw, 128px);         /* section rhythm */
+  --max: 1520px;
+
+  /* Motion */
+  --ease-out: cubic-bezier(.23, 1, .32, 1);
+  --ease-io: cubic-bezier(.77, 0, .175, 1);
+
+  /* ALMA's sparkle (from their tagline strip) */
+  --spark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath transform='skewX(-18) translate(4 0)' d='M12 1C12.9 8.6 14.6 10.6 23 12C14.6 13.4 12.9 15.4 12 23C11.1 15.4 9.4 13.4 1 12C9.4 10.6 11.1 8.6 12 1Z'/%3E%3C/svg%3E");
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; background: var(--bg); }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  margin: 0; background: var(--bg); color: var(--fg);
+  font-family: var(--f-he); font-size: var(--t-body); font-weight: 400; line-height: 1.6;
+  -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; overflow-x: clip;
+}
+img { display: block; max-width: 100%; height: auto; }
+a { color: inherit; text-underline-offset: .22em; text-decoration-thickness: 1px; }
+button { font: inherit; color: inherit; }
+p { margin: 0 0 1em; max-width: 60ch; text-wrap: pretty; }
+.en { direction: ltr; unicode-bidi: isolate; }
+.la { font-family: var(--f-la); font-stretch: 125%; }
+.nowrap { white-space: nowrap; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.skip { position: absolute; inset-inline-start: 16px; top: -100px; z-index: 100; background: var(--fg); color: var(--bg); padding: 8px 16px; }
+.skip:focus { top: 16px; }
+:focus { outline: none; }
+:focus-visible { outline: 2px solid var(--fg); outline-offset: 4px; }
+.on-grey :focus-visible { outline-color: var(--on-grey); }
+
+.wrap { max-width: var(--max); margin-inline: auto; padding-inline: var(--gutter); }
+.grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--col-gap); }
+
+/* Small label: the only "eyebrow" style, used sparingly */
+.label {
+  display: block; font-family: var(--f-la); font-stretch: 125%; font-weight: 500;
+  font-size: var(--t-label); letter-spacing: .08em; text-transform: uppercase; color: var(--mute);
+}
+.label:lang(he), .label .he { font-family: var(--f-he); font-stretch: 100%; letter-spacing: .01em; text-transform: none; font-size: .8125rem; }
+.num { font-family: var(--f-la); font-stretch: 125%; font-variant-numeric: tabular-nums; direction: ltr; unicode-bidi: isolate; }
+
+h1, h2, h3, .display { font-family: var(--f-he); margin: 0; letter-spacing: -.02em; text-wrap: balance; }
+h2 { font-size: var(--t-h2); font-weight: 500; line-height: 1.05; }
+h2 strong, h1 strong { font-weight: 600; }
+h3 { font-size: var(--t-h3); font-weight: 400; line-height: 1.15; }
+
+.spark { display: inline-block; width: .7em; height: .7em; background: currentColor; -webkit-mask: var(--spark) center / contain no-repeat; mask: var(--spark) center / contain no-repeat; vertical-align: -.02em; }
+
+/* Text link: a plain underline. Hover thickens it; nothing moves. */
+.tlink { position: relative; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: .28em; font-weight: 500; }
+.tlink::after { content: ""; position: absolute; inset: -9px -6px; }  /* ≈44px hit area */
+@media (hover: hover) { .tlink:hover { text-decoration-thickness: 2px; } }
+
+/* ---------- Logo: ALMA's original artwork (masked from their PNG) ---------- */
+.logo { display: inline-flex; color: inherit; line-height: 0; }
+.logo-mark {
+  display: block; height: var(--logo-h, 40px); aspect-ratio: 2.0409; background: currentColor;
+  -webkit-mask: url("../brand/alma-logo.png") center / contain no-repeat; mask: url("../brand/alma-logo.png") center / contain no-repeat;
+}
+.logo-pill {
+  display: block; height: var(--logo-h, 120px); aspect-ratio: 1.7439; background: currentColor;
+  -webkit-mask: url("../brand/alma-logo-pill.png") center / contain no-repeat; mask: url("../brand/alma-logo-pill.png") center / contain no-repeat;
+}
+@media (forced-colors: active) { .logo-mark, .logo-pill { background: CanvasText; } }
+
+/* ---------- Header: transparent over the film, solid after it ---------- */
+.site-head { position: fixed; inset: 0 0 auto 0; z-index: 50; color: #fff; transition: background-color 300ms ease, color 300ms ease; }
+.site-head::before { content: ""; position: absolute; inset: 0 0 -40px 0; z-index: -1; pointer-events: none; background: linear-gradient(rgba(0,0,0,.5), rgba(0,0,0,0)); transition: opacity 300ms ease; }
+.site-head.solid { background: var(--bg); }
+.site-head.solid::before { opacity: 0; }
+.site-head.solid::after { content: ""; position: absolute; inset: auto 0 0 0; height: 1px; background: var(--line); }
+.site-head .wrap { display: flex; align-items: center; justify-content: space-between; gap: 24px; min-height: 76px; }
+.site-head .logo { --logo-h: 42px; }
+.nav { display: flex; align-items: center; gap: clamp(20px, 3vw, 44px); }
+.nav ul { display: flex; gap: clamp(18px, 2.4vw, 36px); list-style: none; margin: 0; padding: 0; }
+.nav a { text-decoration: none; font-size: .9375rem; font-weight: 400; }
+.nav ul a { opacity: .78; transition: opacity 200ms ease; }
+.nav ul a:hover, .nav ul a[aria-current="page"] { opacity: 1; }
+.nav .cta { font-weight: 500; }
+.menu-btn { display: none; min-height: 44px; min-width: 44px; padding: 0 4px; background: none; border: 0; cursor: pointer; font-size: .9375rem; font-weight: 500; color: inherit; }
+@media (max-width: 860px) {
+  .site-head .logo { --logo-h: 36px; }
+  .site-head .wrap { min-height: 64px; }
+  .menu-btn { display: inline-flex; align-items: center; gap: 10px; }
+  .menu-btn .bars { width: 22px; height: 8px; border-block: 1.5px solid currentColor; transition: transform 300ms var(--ease-out); }
+  .menu-btn[aria-expanded="true"] .bars { transform: scaleY(.25); }
+  .nav { position: fixed; inset: 64px 0 auto 0; flex-direction: column; align-items: stretch; gap: 0; background: var(--bg); color: var(--fg); padding: 8px var(--gutter) 32px; border-bottom: 1px solid var(--line); display: none; }
+  .nav.open { display: flex; }
+  .nav ul { flex-direction: column; gap: 0; }
+  .nav ul a { opacity: 1; display: block; padding: 18px 0; font-size: 1.75rem; font-weight: 500; border-bottom: 1px solid var(--line); }
+  .nav .cta { margin-top: 24px; font-size: 1.125rem; }
+}
+
+/* ---------- Opening: built like the logo — two rows and a cut ----------
+   Row 1: the film. The cut: ALMA's grey strip. Row 2: the offer, with the proof
+   (an index of the projects) beside it. */
+.opening { padding-top: 76px; }
+.film { position: relative; height: clamp(280px, 40svh, 560px); overflow: hidden; background: #000; isolation: isolate; }
+.film img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 40%; }
+.film iframe {
+  position: absolute; top: 50%; left: 50%; border: 0; pointer-events: none;
+  /* cover for any film ratio: --ar is the film's width/height (1 for MESS) */
+  width: max(100%, calc(var(--fh) * var(--ar, 1.7778))); height: max(var(--fh), calc(100vw / var(--ar, 1.7778)));
+  transform: translate(-50%, -50%); opacity: 0; transition: opacity 1200ms ease;
+}
+.film { --fh: clamp(280px, 40svh, 560px); }
+.film.playing iframe { opacity: 1; }
+.film::after { content: ""; position: absolute; inset: auto 0 0 0; height: 40%; background: linear-gradient(to top, rgba(0,0,0,.55), transparent); pointer-events: none; }
+.film-ui { position: absolute; inset: auto var(--gutter) 16px var(--gutter); z-index: 2; display: flex; justify-content: space-between; align-items: center; gap: 16px; color: #fff; }
+.film-ui .now { margin: 0; font-size: .8125rem; color: rgba(255,255,255,.85); }
+.film-ui .now b { color: #fff; font-weight: 500; }
+.film-btn {
+  display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 0;
+  background: none; border: 0; color: #fff; cursor: pointer; font-size: .8125rem;
+}
+@media (hover: hover) { .film-btn:hover .t { text-decoration: underline; text-underline-offset: .25em; } }
+.film-btn .ico { width: 10px; height: 10px; border-inline: 3px solid currentColor; }
+.film-btn[aria-pressed="true"] .ico { border: 0; width: 0; height: 0; border-block: 5px solid transparent; border-inline-end: 9px solid currentColor; }
+.film-btn[hidden] { display: none; }
+
+.offer { padding-block: clamp(32px, 4vw, 56px) clamp(64px, 8vw, 120px); }
+.offer .grid { row-gap: 48px; align-items: start; }
+.offer-text { grid-column: 1 / span 7; }
+.offer h1 { font-size: clamp(2.1rem, 4.4vw, 4rem); font-weight: 400; line-height: 1.08; letter-spacing: -.03em; max-width: 20ch; }
+.offer h1 strong { font-weight: 600; }
+.offer .sub { margin: 22px 0 0; color: var(--mute); font-size: 1.0625rem; max-width: 44ch; }
+.offer-cta { margin-top: 36px; display: flex; gap: 20px 40px; align-items: flex-end; flex-wrap: wrap; }
+.index { grid-column: 9 / span 4; }
+.index ol { list-style: none; margin: 14px 0 0; padding: 0; border-top: 1px solid var(--line-2); }
+.index a { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: baseline; min-height: 44px; padding: 11px 0; border-bottom: 1px solid var(--line); text-decoration: none; }
+.index .num { color: var(--mute); font-size: .8125rem; }
+.index .t { font-size: 1rem; }
+.index .m { color: var(--mute); font-size: .8125rem; }
+@media (hover: hover) { .index a:hover .t { text-decoration: underline; text-underline-offset: .25em; } }
+/* Primary action: set as type with a heavy rule under it, not a filled button */
+.btn {
+  display: inline-flex; align-items: flex-end; min-height: 44px; padding: 0 0 6px; background: none; color: inherit;
+  border: 0; border-bottom: 3px solid currentColor; cursor: pointer; text-decoration: none;
+  font-weight: 500; font-size: clamp(1.2rem, 1.7vw, 1.6rem); letter-spacing: -.01em; line-height: 1.1;
+  transition: border-color 200ms ease;
+}
+@media (hover: hover) { .btn:hover { border-bottom-color: var(--grey); } }
+.btn:active { opacity: .8; }
+@media (max-width: 1000px) { .offer-text, .index { grid-column: 1 / -1; } .index { max-width: 560px; } }
+@media (max-width: 860px) { .opening { padding-top: 64px; } }
+@media (max-width: 600px) { .film { --fh: min(100vw, 62svh); height: var(--fh); } }
+
+/* ALMA's tagline strip — their band, at the seam under the film */
+.strip {
+  background: var(--grey); color: var(--on-grey); margin: 0; max-width: none;
+  display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: .3em .8em;
+  padding: .7em var(--gutter); direction: ltr;
+  font-family: var(--f-la); font-stretch: 125%; font-weight: 500;
+  font-size: clamp(.8rem, 1.9vw, 1.7rem); letter-spacing: -.005em; text-transform: uppercase; line-height: 1.1;
+}
+.strip .spark { width: .62em; height: .62em; }
+
+/* ---------- Sections ---------- */
+.sec { padding-block: var(--sec); }
+.sec + .sec { border-top: 1px solid var(--line); }
+.sec-top { display: flex; justify-content: space-between; align-items: baseline; gap: 24px; margin-bottom: clamp(40px, 6vw, 88px); }
+
+/* Stacked label: ALMA's English word over the Hebrew, like the logo's two rows */
+.stack { display: inline-flex; flex-direction: column; gap: 4px; line-height: 1.1; }
+.stack .en { font-family: var(--f-la); font-stretch: 125%; font-weight: 500; font-size: .6875rem; letter-spacing: .12em; text-transform: uppercase; color: var(--mute); }
+.stack .he { font-size: clamp(1.4rem, 1.9vw, 1.8rem); font-weight: 500; color: var(--fg); letter-spacing: -.01em; }
+
+/* What we produce: categories, each pointing at its proof */
+.cats { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line-2); }
+.cat { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 4fr) minmax(0, 3fr); gap: 12px 32px; align-items: baseline; padding: clamp(24px, 3vw, 40px) 0; border-bottom: 1px solid var(--line); }
+.cat h3 { font-size: clamp(1.5rem, 2.6vw, 2.6rem); font-weight: 500; letter-spacing: -.025em; }
+.cat .who { display: block; margin-top: 8px; font-size: .875rem; color: var(--mute); }
+.cat p { margin: 0; color: var(--mute); }
+.cat .proof { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; font-size: .9375rem; }
+.cat .proof .none { color: var(--mute); font-size: .875rem; }
+@media (max-width: 860px) { .cat { grid-template-columns: 1fr; } }
+
+/* How we work: ALMA's own four words, each with a real image */
+.how-lead { grid-column: 1 / span 8; font-size: var(--t-big); font-weight: 400; line-height: 1.25; letter-spacing: -.018em; color: var(--fg); max-width: 30ch; margin: 0; }
+.how-lead b { font-weight: 600; }
+.how-name { grid-column: 10 / span 3; align-self: end; }
+.how-name .w { font-size: 1.5rem; display: block; margin-bottom: 6px; }
+.how-name p { color: var(--mute); font-size: .9375rem; margin: 0; max-width: 30ch; }
+.words { list-style: none; margin: clamp(56px, 8vw, 120px) 0 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(16px, 2vw, 28px); }
+.words li { display: flex; flex-direction: column; gap: 16px; }
+.words li:nth-child(even) { margin-top: clamp(0px, 7vw, 112px); }
+.words .ph { aspect-ratio: 4 / 5; overflow: hidden; background: var(--bg-2); }
+.words .ph img { width: 100%; height: 100%; object-fit: cover; }
+.words .arch { aspect-ratio: 4 / 5; }
+.words h3 { font-size: 1.5rem; font-weight: 400; margin-top: 4px; }
+.words p { margin: 0; color: var(--mute); font-size: .9375rem; }
+@media (max-width: 900px) { .how-lead, .how-name { grid-column: 1 / -1; } .words { grid-template-columns: 1fr 1fr; row-gap: 48px; } .words li:nth-child(even) { margin-top: 48px; } }
+@media (max-width: 520px) { .words { grid-template-columns: 1fr; } .words li:nth-child(even) { margin-top: 0; } }
+
+/* The arch — ALMA's device: a circle standing on a square, photograph in B/W */
+.arch { position: relative; aspect-ratio: 4 / 5; border-radius: 999px 999px 0 0; overflow: hidden; background: var(--bg-2); }
+.arch img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(1) contrast(1.08); }
+
+/* ---------- Work ---------- */
+.work .sec-top h2 { max-width: 12ch; }
+.proj { margin-top: clamp(64px, 9vw, 140px); }
+.proj:first-of-type { margin-top: 0; }
+.proj-media { position: relative; overflow: hidden; background: var(--bg-2); }
+.proj-media img { width: 100%; height: 100%; object-fit: cover; transition: transform 1200ms var(--ease-out); }
+@media (hover: hover) and (pointer: fine) { .proj-media:hover img, .vid:hover img { transform: scale(1.025); } }
+.proj-meta { display: grid; grid-template-columns: 1fr auto; gap: 8px 32px; align-items: baseline; padding-top: 22px; }
+.proj-meta .num { color: var(--mute); font-size: .875rem; }
+.proj-meta h3 { font-size: var(--t-h3); font-weight: 500; }
+.proj-meta .facts { display: flex; gap: 8px 22px; flex-wrap: wrap; justify-content: flex-end; color: var(--mute); font-size: .875rem; }
+.proj-meta .desc { grid-column: 1 / 2; color: var(--mute); margin: 4px 0 0; max-width: 54ch; }
+.proj-meta .go { grid-column: 2; grid-row: 2; justify-self: end; align-self: end; }
+.proj.wide .proj-media { aspect-ratio: 16 / 8.2; }
+.proj.inset { width: min(100%, 1040px); margin-inline-start: auto; }
+.proj.inset .proj-media { aspect-ratio: 16 / 9; }
+@media (max-width: 760px) {
+  .proj-meta { grid-template-columns: 1fr; }
+  .proj-meta .num { order: -1; }
+  .proj-meta .facts { justify-content: flex-start; }
+  .proj-meta .desc, .proj-meta .go { grid-column: 1; grid-row: auto; justify-self: start; }
+  .proj.wide .proj-media { aspect-ratio: 4 / 3; }
+}
+
+/* Two smaller projects: mixed ratios, offset baselines (a broken grid, not a card row) */
+.duo { display: grid; grid-template-columns: 5fr 7fr; gap: clamp(24px, 4vw, 72px); align-items: end; margin-top: clamp(64px, 9vw, 140px); }
+.duo .proj { margin: 0; }
+.duo .proj:first-child .proj-media { aspect-ratio: 4 / 5; }
+.duo .proj:last-child { padding-bottom: clamp(0px, 8vw, 120px); }
+.duo .proj:last-child .proj-media { aspect-ratio: 3 / 2; }
+.duo .proj-meta { grid-template-columns: 1fr; }
+.duo .proj-meta .facts { grid-column: 1; justify-content: flex-start; }
+@media (max-width: 760px) { .duo { grid-template-columns: 1fr; } .duo .proj:last-child { padding-bottom: 0; } .duo .proj-meta { grid-template-columns: 1fr; } .duo .proj-meta .facts { grid-column: 1; } }
+
+/* Video facade: poster until asked, then the real player (with sound, by choice) */
+.vid { position: relative; display: block; width: 100%; height: 100%; padding: 0; border: 0; cursor: pointer; background: var(--bg-2); overflow: hidden; color: #fff; }
+.vid img { width: 100%; height: 100%; object-fit: cover; transition: transform 1200ms var(--ease-out); }
+/* Play: a tab of ALMA's grey band on the image corner, not a glass circle */
+.vid .play {
+  position: absolute; inset-inline-start: 0; bottom: 0; display: inline-flex; align-items: center; gap: 12px;
+  min-height: 48px; padding: 0 18px; background: var(--grey); color: var(--on-grey);
+  font-size: .9375rem; font-weight: 500; transition: background-color 200ms ease;
+}
+.vid .play::before { content: ""; width: 0; height: 0; border-block: 6px solid transparent; border-inline-end: 10px solid currentColor; }
+@media (hover: hover) { .vid:hover .play { background: var(--fg); } }
+.vid .play .t { font-weight: 400; }
+.vid iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.vid-fallback { margin-top: 10px; font-size: .8125rem; color: var(--mute); }
+.r-16x9 { aspect-ratio: 16 / 9; } .r-1x1 { aspect-ratio: 1 / 1; } .r-9x16 { aspect-ratio: 9 / 16; }
+
+/* Archive: a native horizontal reel, snap, no fake controls */
+.reel { margin-top: clamp(96px, 12vw, 180px); }
+.reel-head { display: flex; justify-content: space-between; align-items: baseline; gap: 24px; margin-bottom: 24px; }
+.reel-track {
+  display: grid; grid-auto-flow: column; grid-auto-columns: clamp(220px, 26vw, 420px); gap: 14px;
+  overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scrollbar-width: thin;
+  padding-bottom: 14px; margin-inline: calc(-1 * var(--gutter)); padding-inline: var(--gutter); scroll-padding-inline: var(--gutter);
+}
+.reel-track figure { margin: 0; scroll-snap-align: start; }
+.reel-track figure:nth-child(odd) img { aspect-ratio: 4 / 5; }
+.reel-track figure:nth-child(even) img { aspect-ratio: 4 / 5; margin-top: 48px; }
+.reel-track img { width: 100%; object-fit: cover; }
+.reel-note { color: var(--mute); font-size: .875rem; margin: 0; }
+
+/* ---------- Services: everything visible, no accordion ---------- */
+.svc-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line-2); }
+.svc { display: grid; grid-template-columns: 64px minmax(0, 5fr) minmax(0, 4fr) minmax(0, 3fr); gap: 16px 32px; padding: clamp(28px, 3.4vw, 48px) 0; border-bottom: 1px solid var(--line); align-items: baseline; }
+.svc .num { color: var(--mute); font-size: .875rem; }
+.svc h3 { font-size: clamp(1.6rem, 2.8vw, 2.8rem); font-weight: 300; letter-spacing: -.025em; transition: transform 400ms var(--ease-out); }
+
+.svc .who { display: block; margin-top: 10px; font-size: .875rem; color: var(--mute); }
+.svc .what { margin: 0; color: var(--mute); }
+.svc ul { list-style: none; margin: 0; padding: 0; font-size: .9375rem; }
+.svc ul li { padding: 3px 0; }
+.svc .ex { display: block; margin-top: 12px; color: var(--mute); font-size: .8125rem; }
+@media (max-width: 960px) { .svc { grid-template-columns: 40px minmax(0, 1fr); } .svc > :not(.num) { grid-column: 2; } }
+
+/* Team placeholders: review mode only, until ALMA supplies real people */
+.team { margin-top: 72px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; max-width: 760px; }
+.team .ph { aspect-ratio: 3 / 4; border: 1px dashed var(--line-2); display: grid; place-items: center; text-align: center; color: var(--mute); font-size: .8125rem; padding: 12px; }
+
+/* ---------- Contact: the one light surface, in ALMA's strip grey ---------- */
+.contact { background: var(--grey); color: var(--on-grey); }
+.contact .label { color: var(--on-grey-mute); }
+.contact .grid { row-gap: 64px; }
+.contact h2 { grid-column: 1 / -1; font-size: clamp(3.4rem, 10vw, 10rem); font-weight: 500; line-height: .92; letter-spacing: -.045em; }
+.contact .lines { grid-column: 1 / span 5; }
+.contact .lines p { color: var(--on-grey-mute); }
+.direct { list-style: none; margin: 32px 0 0; padding: 0; }
+.direct a { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 18px 0; border-top: 1px solid rgba(41,41,39,.25); text-decoration: none; }
+.direct li:last-child a { border-bottom: 1px solid rgba(41,41,39,.25); }
+.direct .k { font-size: .875rem; color: var(--on-grey-mute); }
+.direct .v { font-size: clamp(1.25rem, 2vw, 1.75rem); font-weight: 400; direction: ltr; unicode-bidi: isolate; letter-spacing: -.01em; }
+@media (hover: hover) { .direct a:hover .v { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: .2em; } }
+.form { grid-column: 7 / span 6; }
+@media (max-width: 900px) { .contact .lines, .form { grid-column: 1 / -1; } }
+.f-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0 32px; }
+@media (max-width: 560px) { .f-row { grid-template-columns: 1fr; } }
+.field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 26px; }
+.field label, .chips legend { font-size: .8125rem; color: var(--on-grey-mute); padding: 0; }
+.field .opt { opacity: .8; }
+.field input, .field select, .field textarea {
+  font: inherit; font-size: 1.0625rem; color: var(--on-grey); background: transparent;
+  border: 0; border-bottom: 1px solid rgba(41,41,39,.45); border-radius: 0; padding: 8px 0; min-height: 46px; width: 100%;
+  transition: border-color 200ms ease;
+}
+.field input:focus-visible, .field select:focus-visible, .field textarea:focus-visible { outline: none; border-bottom: 2px solid var(--on-grey); }
+.field select { appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--on-grey) 50%), linear-gradient(135deg, var(--on-grey) 50%, transparent 50%); background-position: 6px 55%, 12px 55%; background-size: 6px 6px; background-repeat: no-repeat; }
+.field textarea { resize: vertical; min-height: 84px; }
+.field [aria-invalid="true"] { border-bottom: 2px solid var(--on-grey); }
+.field .err { font-size: .8125rem; font-weight: 500; min-height: 1.2em; }
+/* Event type: a printed checklist with square marks, not pills */
+.chips { border: 0; margin: 0 0 28px; padding: 0; display: grid; grid-template-columns: 1fr 1fr; column-gap: 32px; }
+.chips legend { width: 100%; margin-bottom: 6px; }
+.chips label { position: relative; border-bottom: 1px solid rgba(41,41,39,.25); }
+.chips input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+.chips span { display: flex; align-items: center; gap: 12px; min-height: 48px; font-size: 1.0625rem; cursor: pointer; }
+.chips span::before { content: ""; flex: none; width: 14px; height: 14px; border: 1.5px solid var(--on-grey); transition: background-color 150ms ease; }
+.chips input:checked + span { font-weight: 500; }
+.chips input:checked + span::before { background: var(--on-grey); }
+.chips input:focus-visible + span { outline: 2px solid var(--on-grey); outline-offset: 2px; }
+@media (max-width: 420px) { .chips { grid-template-columns: 1fr; } }
+.contact .btn { color: var(--on-grey); border-bottom-color: var(--on-grey); font-size: clamp(1.4rem, 2.2vw, 2rem); margin-top: 8px; }
+@media (hover: hover) { .contact .btn:hover { border-bottom-color: rgba(41,41,39,.35); } }
+.form-status { margin: 14px 0 0; font-size: .875rem; font-weight: 500; min-height: 1.3em; }
+.form-note { margin: 10px 0 0; font-size: .8125rem; color: var(--on-grey-mute); max-width: none; }
+
+/* ---------- Footer ---------- */
+.site-foot { padding: clamp(72px, 9vw, 128px) 0 32px; }
+.site-foot .grid { row-gap: 48px; align-items: end; }
+.site-foot .logo { --logo-h: clamp(90px, 11vw, 150px); color: var(--fg); }
+.site-foot .tag { grid-column: 1 / span 6; }
+.site-foot .tag p { margin: 22px 0 0; font-size: 1.25rem; font-weight: 400; color: var(--mute); }
+.site-foot nav { grid-column: 8 / span 5; display: flex; flex-wrap: wrap; gap: 6px 28px; }
+.site-foot nav a { text-decoration: none; min-height: 40px; display: inline-flex; align-items: center; color: var(--mute); transition: color 200ms ease; }
+.site-foot nav a:hover { color: var(--fg); }
+.legal { grid-column: 1 / -1; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 16px; padding-top: 24px; border-top: 1px solid var(--line); font-size: .8125rem; color: var(--mute); }
+.legal button { background: none; border: 0; padding: 12px 0; margin-block: -12px; color: inherit; cursor: pointer; text-decoration: underline; text-underline-offset: .2em; font-size: inherit; }
+@media (max-width: 900px) { .site-foot .tag, .site-foot nav { grid-column: 1 / -1; } }
+
+/* Mobile: call / WhatsApp, the two things a planner wants on a phone */
+.m-bar { display: none; }
+@media (max-width: 700px) {
+  .m-bar { display: grid; grid-template-columns: 1fr 1fr; position: fixed; inset: auto 0 0 0; z-index: 40; background: var(--bg); border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom); transform: translateY(110%); transition: transform 300ms var(--ease-out); }
+  .m-bar.show { transform: none; }
+  .m-bar a { display: flex; align-items: center; justify-content: center; min-height: 56px; text-decoration: none; font-weight: 500; }
+  .m-bar a.wa { background: var(--fg); color: var(--bg); }
+  .site-foot { padding-bottom: calc(32px + 56px + env(safe-area-inset-bottom)); }
+}
+
+/* ---------- Project page ---------- */
+.case-open .film { height: clamp(280px, 52svh, 720px); }
+.case-open .film::after { display: none; }
+.case-title { padding-block: clamp(28px, 4vw, 56px) 0; }
+.crumb { font-size: .875rem; color: var(--mute); margin: 0 0 14px; }
+.crumb a { color: inherit; }
+.case-title h1 { font-family: var(--f-la); font-stretch: 125%; font-weight: 500; font-size: clamp(3.6rem, 13vw, 12rem); line-height: .82; letter-spacing: -.04em; direction: ltr; text-align: right; }
+.case-facts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; padding-block: 32px; border-bottom: 1px solid var(--line); }
+.case-facts dt { font-size: .8125rem; color: var(--mute); }
+.case-facts dd { margin: 6px 0 0; }
+@media (max-width: 760px) { .case-facts { grid-template-columns: 1fr 1fr; } }
+.chapter .grid { row-gap: 40px; }
+.chapter .ch-label { grid-column: 1 / span 3; }
+.chapter .ch-body { grid-column: 4 / span 8; }
+.chapter .ch-body .big { font-size: var(--t-big); font-weight: 400; line-height: 1.22; letter-spacing: -.018em; max-width: 26ch; margin: 0; color: var(--fg); }
+@media (max-width: 860px) { .chapter .ch-label, .chapter .ch-body { grid-column: 1 / -1; } }
+.media-pair { display: grid; grid-template-columns: 5fr 7fr; gap: clamp(16px, 2vw, 28px); align-items: start; margin-top: clamp(56px, 7vw, 104px); }
+.media-pair figure { margin: 0; }
+.media-pair figure:last-child { margin-top: clamp(0px, 10vw, 160px); }
+.media-pair .crop-detail img { aspect-ratio: 4 / 5; object-fit: cover; width: 100%; }
+.media-pair .crop-wide img { aspect-ratio: 3 / 2; object-fit: cover; width: 100%; }
+@media (max-width: 700px) { .media-pair { grid-template-columns: 1fr; } .media-pair figure:last-child { margin-top: 0; } }
+.vids { display: grid; grid-template-columns: 1fr .5625fr; gap: clamp(16px, 2vw, 28px); align-items: end; margin-top: 40px; }
+@media (max-width: 700px) { .vids { grid-template-columns: 1fr; } .vids .r-9x16 { max-width: 300px; } }
+.full-bleed { margin-top: clamp(56px, 7vw, 104px); }
+.full-bleed img { width: 100%; aspect-ratio: 21 / 9; object-fit: cover; }
+figcaption { margin-top: 12px; font-size: .8125rem; color: var(--mute); }
+.next-case { display: block; text-decoration: none; padding-block: var(--sec); border-top: 1px solid var(--line); }
+.next-case .display { font-size: clamp(2.6rem, 8vw, 8rem); font-weight: 500; letter-spacing: -.04em; line-height: 1; }
+@media (hover: hover) { .next-case:hover .display { text-decoration: underline; text-decoration-thickness: 3px; text-underline-offset: .12em; } }
+
+/* ---------- Review mode (?review=1): notes for ALMA, hidden from visitors ---------- */
+.rv-only { display: none !important; }
+body.review .rv-only { display: revert !important; }
+body.review .team.rv-only, body.review .reel-note.rv-only { display: grid !important; }
+.review-bar { position: fixed; inset: auto 0 0 0; z-index: 80; background: #fff; color: #161616; font-size: .8125rem; border-top: 1px solid #000; }
+.review-bar .wrap { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 20px; min-height: 44px; padding-block: 6px; }
+.review-bar a, .review-bar button { color: inherit; }
+.review-bar button { background: none; border: 1px solid #161616; min-height: 32px; padding: 0 12px; cursor: pointer; font-size: inherit; }
+.review-bar button[aria-pressed="true"] { background: #161616; color: #fff; }
+body.review { padding-bottom: 56px; }
+.missing { border: 1px dashed var(--line-2); padding: 16px 20px; color: var(--mute); font-size: .9375rem; max-width: 62ch; }
+.missing b { display: block; color: var(--fg); font-weight: 500; margin-bottom: 4px; }
+body.show-verify [data-v] { outline: 1px dashed #fff; outline-offset: 4px; position: relative; }
+body.show-verify [data-v]::after { content: attr(data-v); position: absolute; top: -12px; inset-inline-end: 0; z-index: 5; background: #fff; color: #161616; font: 500 10px/1 var(--f-he); padding: 3px 6px; }
+
+/* ---------- Legacy helpers used by the brand document ---------- */
+.night { background: var(--bg); color: var(--fg); }
+.cue { display: inline-flex; align-items: center; gap: 8px; font-family: var(--f-la); font-stretch: 125%; font-weight: 500; font-size: var(--t-label); letter-spacing: .06em; text-transform: uppercase; color: var(--stone); }
+.cue::before { content: ""; width: 11px; height: 11px; background: currentColor; -webkit-mask: var(--spark) center / contain no-repeat; mask: var(--spark) center / contain no-repeat; }
+.cue .n { direction: ltr; unicode-bidi: isolate; }
+.lead { font-size: 1.25rem; line-height: 1.55; }
+.meta { color: var(--stone); font-size: var(--t-small); }
+.horizon { --tick: currentColor; height: 16px; border-bottom: 2px solid var(--tick); background-image: linear-gradient(to left, var(--tick) 2px, transparent 2px), linear-gradient(to left, var(--tick) 1px, transparent 1px); background-size: 72px 16px, 12px 7px; background-position: right bottom; background-repeat: repeat-x; }
+.crop-wide { aspect-ratio: 3 / 2; overflow: hidden; }
+.crop-wide img { width: 100%; height: 100%; object-fit: cover; }
+
+/* ---------- Motion ----------
+   No scroll or load reveals: content is visible as it arrives, with native scrolling.
+   The only motion is the hero film (paused or skipped with reduced motion / Save-Data). */
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: 0ms !important; } }
